@@ -1,8 +1,17 @@
+using System.Text;
+using API.Mapping;
+using Application.Interfaces.Authentecation;
+using Application.Interfaces.Services;
+using Application.Validations;
 using Domain.Entites.Users;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Infrastructure.Authentecation;
 using Infrastructure.Data;
-using Infrastructure.Data.Seeding;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API
 {
@@ -26,6 +35,41 @@ namespace API
                 .AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            // 4. Register Bearer token authentication
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "Bearer";
+                options.DefaultChallengeScheme = "Bearer";
+            }).AddJwtBearer("Bearer", options =>
+            {
+                options.RequireHttpsMetadata = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+                    ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("Jwt:Key")!))
+                };
+            });
+
+            // 5. Register Authentication services
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
+            builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+            // AutoMapper
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+
+            // FluentValidation
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+
+            // 6. Register other services
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
 
             // dotnet ef migrations add InitialCreate --startup-project ../API
 
