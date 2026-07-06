@@ -216,9 +216,11 @@ function RegisterForm({ onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
   const [confirmError, setConfirmError] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setApiError('')
     if (password !== confirmPassword) {
       setShake(true)
       setConfirmError(true)
@@ -248,15 +250,25 @@ function RegisterForm({ onSuccess }) {
 
       if (!response.ok) {
         setShake(true)
-        setConfirmError(true) 
-        setTimeout(() => { setShake(false); setConfirmError(false) }, 3000)
+        // Extract actual error message from backend
+        let msg = ''
+        if (data?.errors) {
+          msg = Object.values(data.errors).flat().join(' | ')
+        } else if (data?.message) {
+          msg = data.message
+        } else {
+          msg = 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.'
+        }
+        setApiError(msg)
+        setTimeout(() => setShake(false), 600)
       } else {
         // Success - tell them to check email
         onSuccess('تم إنشاء حسابك بنجاح', 'يرجى مراجعة بريدك الإلكتروني لتأكيد الحساب قبل تسجيل الدخول.')
       }
     } catch (err) {
       setShake(true)
-      setTimeout(() => setShake(false), 3000)
+      setApiError('حدث خطأ في الاتصال بالخادم. تأكد من تشغيل الباك اند.')
+      setTimeout(() => setShake(false), 600)
     } finally {
       setLoading(false)
     }
@@ -319,6 +331,8 @@ function RegisterForm({ onSuccess }) {
         </div>
         {confirmError && <span className="error-message">كلمة المرور غير متطابقة</span>}
       </div>
+
+      {apiError && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginBottom: '4px', padding: '8px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>{apiError}</div>}
 
       <label className="checkbox-wrapper terms-checkbox">
         <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} required />
