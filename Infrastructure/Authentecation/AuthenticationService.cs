@@ -36,7 +36,6 @@ namespace Infrastructure.Authentecation
         public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
         {
             var user = await _userManager.FindByEmailAsync(request.Identity) ??
-                    await _userManager.Users.FirstOrDefaultAsync(x => x.PhoneNumber == request.Identity) ??
                     await _userManager.FindByNameAsync(request.Identity);
 
             if (user == null)
@@ -95,7 +94,8 @@ namespace Infrastructure.Authentecation
         {
             try
             {
-                var userExists = await _userManager.FindByEmailAsync(request.Email) ?? await _userManager.FindByNameAsync(request.UserName);
+                var userExists = await _userManager.FindByEmailAsync(request.Email) ?? 
+                await _userManager.FindByNameAsync(request.UserName);
 
 
                 if (userExists != null)
@@ -181,13 +181,12 @@ namespace Infrastructure.Authentecation
 
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
+            var token = new JwtSecurityToken
+            (
                 issuer: _configuration.GetValue<string>("Jwt:Issuer"),
                 audience: _configuration.GetValue<string>("Jwt:Audience"),
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(
-                    _configuration.GetValue<double>("Jwt:ExpiryMinutes")
-                ),
+                expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:ExpiryMinutes")),
                 signingCredentials: credentials
             );
 

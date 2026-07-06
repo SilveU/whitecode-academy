@@ -19,6 +19,8 @@ namespace API
     {
         public static async Task Main(string[] args)
         {
+            // run project -> dotnet run --launch-profile https 
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
