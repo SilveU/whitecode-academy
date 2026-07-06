@@ -93,19 +93,47 @@ function LoginForm({ onSuccess }) {
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setErrorMsg('')
     if (!email || !password) {
       setShake(true)
       setTimeout(() => setShake(false), 600)
       return
     }
     setLoading(true)
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch('http://localhost:5076/api/authentication/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identity: email,
+          password: password
+        })
+      });
+      
+      const data = await response.json().catch(() => null);
+      
+      if (!response.ok || (data && data.isAuthenticated === false)) {
+        setShake(true)
+        setErrorMsg(data?.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة')
+        setTimeout(() => setShake(false), 600)
+      } else {
+        // Success
+        onSuccess('تم تسجيل الدخول بنجاح', data?.message || 'مرحباً بعودتك، جاري تحويلك إلى المنصة')
+      }
+    } catch (error) {
+      setShake(true)
+      setErrorMsg('حدث خطأ في الاتصال بالخادم. تأكد من تشغيل الباك اند.')
+      setTimeout(() => setShake(false), 600)
+    } finally {
       setLoading(false)
-      onSuccess('تم تسجيل الدخول بنجاح', 'مرحباً بعودتك، جاري تحويلك إلى لوحة التحكم')
-    }, 1500)
+    }
   }
 
   return (
@@ -125,9 +153,9 @@ function LoginForm({ onSuccess }) {
         <div className="input-wrapper">
           <span className="input-icon"><Mail size={18} /></span>
           <input
-            type="email"
+            type="text"
             id="loginEmail"
-            placeholder="example@email.com"
+            placeholder="البريد الإلكتروني أو اسم المستخدم"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -154,6 +182,8 @@ function LoginForm({ onSuccess }) {
         </label>
         <a href="#" className="forgot-link">نسيت كلمة المرور؟</a>
       </div>
+
+      {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginBottom: '4px' }}>{errorMsg}</div>}
 
       <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} id="loginBtn">
         <span className="btn-text">تسجيل الدخول</span>
