@@ -9,6 +9,7 @@ import FAQPage from './pages/FAQPage'
 import ContactPage from './pages/ContactPage'
 import TermsPage from './pages/TermsPage'
 import PathsPage from './pages/PathsPage'
+import ScrollToTopButton from './components/common/ScrollToTopButton'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/terms" element={<TermsPage />} />
       </Routes>
+      <ScrollToTopButton />
     </Router>
   )
 }

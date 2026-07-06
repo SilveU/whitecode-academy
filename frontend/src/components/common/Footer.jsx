@@ -12,6 +12,11 @@ export default function Footer() {
               <span className="nav-logo-text">White <strong>Academy</strong></span>
             </div>
             <p>منصة تعليمية رائدة تهدف إلى تمكين الأفراد بالمهارات والمعارف اللازمة للنجاح في العصر الحديث.</p>
+            <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.6 }}>
+                <strong>تنويه:</strong> المحتوى المتوفر على المنصة هو عبارة عن دورات وفيديوهات مدفوعة قمنا بشراؤها وترجمتها للغة العربية، مع إضافة أسئلة (Quizzes) وتكليفات عملية (Assignments) لضمان أقصى استفادة. حقوق الملكية الأصلية تعود لأصحابها.
+              </p>
+            </div>
           </div>
           <div className="footer-links-group">
             <h4>المنصة</h4>
