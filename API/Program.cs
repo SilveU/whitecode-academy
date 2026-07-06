@@ -12,6 +12,7 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Infrastructure.Data.Seeding;
 
 namespace API
 {
@@ -23,10 +24,10 @@ namespace API
 
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddSwaggerGen();
             // Add services to the container.
             // 1. Fetch the connection string (usually from appsettings.json)
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-            builder.Services.AddSwaggerGen();
 
             // 2. Register your DbContext in the DI container
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -58,6 +59,22 @@ namespace API
                 };
             });
 
+            // 6. Configure CORS policy
+            var corsPolicy = builder.Configuration.GetValue<string>("CORS:CorsPolicy")!;
+            var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(corsPolicy, policy =>
+                {
+                    policy
+                        .WithOrigins(allowedOrigins)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             // 5. Register Authentication services
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
@@ -81,15 +98,15 @@ namespace API
 
             var app = builder.Build();
 
-            // using (var scope = app.Services.CreateScope())
-            // {
-            //     var services = scope.ServiceProvider;
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
 
-            //     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            //     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-            //     await AppSeeder.SeedAsync(roleManager, userManager);
-            // }
+                await AppSeeder.SeedAsync(roleManager, userManager);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
