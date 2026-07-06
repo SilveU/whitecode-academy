@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Code2,
@@ -11,7 +11,6 @@ import {
   Database,
   Layers,
   ArrowLeft,
-  ChevronDown,
   Play,
   Star,
   Clock,
@@ -26,9 +25,23 @@ import {
   MessageSquare,
   FileCode2,
   Cpu,
-  Shield
+  Shield,
+  Search,
+  TrendingUp,
+  Flame,
+  Sparkles
 } from 'lucide-react'
 import './HomePage.css'
+
+// User icon for avatars
+function UserIcon({ size }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
 
 // Navbar
 function Navbar() {
@@ -36,7 +49,7 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -56,8 +69,8 @@ function Navbar() {
 
         <div className={`nav-links ${mobileOpen ? 'open' : ''}`}>
           <a href="#courses" onClick={() => setMobileOpen(false)}>الدورات</a>
+          <a href="#paths" onClick={() => setMobileOpen(false)}>المسارات</a>
           <a href="#features" onClick={() => setMobileOpen(false)}>المميزات</a>
-          <a href="#stats" onClick={() => setMobileOpen(false)}>الإنجازات</a>
           <a href="#testimonials" onClick={() => setMobileOpen(false)}>آراء الطلاب</a>
           <div className="nav-cta-mobile">
             <Link to="/auth" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>ابدأ الآن</Link>
@@ -77,58 +90,67 @@ function Navbar() {
   )
 }
 
-// Hero Section
-function HeroSection() {
+// Welcome Banner (compact replacement for hero)
+function WelcomeBanner() {
   return (
-    <section className="hero" dir="rtl">
-      <div className="hero-bg">
-        <div className="hero-glow hero-glow-1" />
-        <div className="hero-glow hero-glow-2" />
-        <div className="hero-grid" />
-      </div>
-      <div className="hero-content">
-        <div className="hero-badge">
-          <Zap size={14} />
-          <span>أكثر من 5,000 طالب يتعلمون معنا</span>
-        </div>
-        <h1>
-          تعلّم البرمجة<br />
-          <span className="hero-gradient">من الصفر إلى الاحتراف</span>
-        </h1>
-        <p className="hero-desc">
-          دورات عملية مكثفة في تطوير الويب، تطبيقات الموبايل، والذكاء الاصطناعي. 
-          محتوى محدّث باستمرار مع دعم فني ومجتمع نشط.
-        </p>
-        <div className="hero-actions">
-          <Link to="/auth" className="btn-primary-lg">
-            <span>ابدأ التعلم مجاناً</span>
-            <ArrowLeft size={18} />
-          </Link>
-          <a href="#courses" className="btn-ghost-lg">
-            <Play size={16} />
-            <span>تصفح الدورات</span>
-          </a>
-        </div>
-        <div className="hero-trust">
-          <div className="hero-trust-avatars">
-            <div className="trust-avatar" style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}>
-              <User size={14} />
+    <section className="welcome-banner" dir="rtl">
+      <div className="section-inner">
+        <div className="welcome-grid">
+          <div className="welcome-main">
+            <div className="welcome-tag">
+              <Flame size={14} />
+              <span>أكثر من 5,000 طالب يتعلمون معنا</span>
             </div>
-            <div className="trust-avatar" style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}>
-              <User size={14} />
-            </div>
-            <div className="trust-avatar" style={{ background: 'linear-gradient(135deg, #a855f7, #7c3aed)' }}>
-              <User size={14} />
-            </div>
-            <div className="trust-avatar" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
-              <User size={14} />
+            <h1>تعلّم البرمجة، <span className="text-gradient">ابنِ مستقبلك</span></h1>
+            <p>دورات عملية في تطوير الويب، الموبايل، والأمن السيبراني مع مشاريع حقيقية وشهادات معتمدة.</p>
+            <div className="welcome-actions">
+              <Link to="/auth" className="btn-primary-lg">
+                <span>ابدأ التعلم مجاناً</span>
+                <ArrowLeft size={16} />
+              </Link>
+              <a href="#courses" className="btn-ghost-lg">
+                <Search size={15} />
+                <span>تصفح الدورات</span>
+              </a>
             </div>
           </div>
-          <div className="hero-trust-text">
-            <div className="trust-stars">
-              {[...Array(5)].map((_, i) => <Star key={i} size={13} fill="#f59e0b" color="#f59e0b" />)}
+          <div className="welcome-stats-cards">
+            <div className="mini-stat-card">
+              <div className="mini-stat-icon" style={{ color: '#22c55e', background: 'rgba(34,197,94,0.1)' }}>
+                <BookOpen size={20} />
+              </div>
+              <div>
+                <div className="mini-stat-value">48</div>
+                <div className="mini-stat-label">دورة تعليمية</div>
+              </div>
             </div>
-            <span>4.9 من أصل 5 — تقييم 2,400+ طالب</span>
+            <div className="mini-stat-card">
+              <div className="mini-stat-icon" style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.1)' }}>
+                <Users size={20} />
+              </div>
+              <div>
+                <div className="mini-stat-value">5,200+</div>
+                <div className="mini-stat-label">طالب مسجّل</div>
+              </div>
+            </div>
+            <div className="mini-stat-card">
+              <div className="mini-stat-icon" style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.1)' }}>
+                <Star size={20} />
+              </div>
+              <div>
+                <div className="mini-stat-value">4.9</div>
+                <div className="mini-stat-label">تقييم الطلاب</div>
+              </div>
+            </div>
+            <div className="mini-stat-card">
+              <div className="mini-stat-icon" style={{ color: '#a855f7', background: 'rgba(168,85,247,0.1)' }}>
+                <Code2 size={20} />
+              </div>
+              <div>
+                <div className="mini-stat-value">200+</div>
+                <div className="mini-stat-label">مشروع عملي</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +158,41 @@ function HeroSection() {
   )
 }
 
-// Courses Preview
+// Trending / Popular Courses Strip
+const POPULAR_TAGS = [
+  { label: 'React', color: '#61dafb' },
+  { label: 'Python', color: '#3776ab' },
+  { label: 'Node.js', color: '#68a063' },
+  { label: 'Flutter', color: '#02569b' },
+  { label: 'SQL', color: '#e48e00' },
+  { label: 'Docker', color: '#2496ed' },
+  { label: 'JavaScript', color: '#f7df1e' },
+  { label: 'TypeScript', color: '#3178c6' },
+]
+
+function TechStrip() {
+  return (
+    <section className="tech-strip" dir="rtl">
+      <div className="section-inner">
+        <div className="tech-strip-inner">
+          <div className="tech-strip-label">
+            <TrendingUp size={15} />
+            <span>الأكثر طلباً</span>
+          </div>
+          <div className="tech-tags">
+            {POPULAR_TAGS.map((tag, i) => (
+              <span className="tech-tag" key={i} style={{ borderColor: `${tag.color}40`, color: tag.color }}>
+                {tag.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Courses
 const COURSES = [
   {
     icon: <Globe size={24} />,
@@ -145,7 +201,8 @@ const COURSES = [
     level: 'مبتدئ - متقدم',
     duration: '60 ساعة',
     students: '2,100',
-    color: '#22c55e'
+    color: '#22c55e',
+    featured: true
   },
   {
     icon: <Smartphone size={24} />,
@@ -154,7 +211,8 @@ const COURSES = [
     level: 'متوسط',
     duration: '45 ساعة',
     students: '1,300',
-    color: '#3b82f6'
+    color: '#3b82f6',
+    featured: true
   },
   {
     icon: <Database size={24} />,
@@ -163,7 +221,8 @@ const COURSES = [
     level: 'متوسط - متقدم',
     duration: '40 ساعة',
     students: '980',
-    color: '#a855f7'
+    color: '#a855f7',
+    featured: false
   },
   {
     icon: <Cpu size={24} />,
@@ -172,7 +231,8 @@ const COURSES = [
     level: 'مبتدئ',
     duration: '35 ساعة',
     students: '1,850',
-    color: '#f59e0b'
+    color: '#f59e0b',
+    featured: true
   },
   {
     icon: <Shield size={24} />,
@@ -181,7 +241,8 @@ const COURSES = [
     level: 'متقدم',
     duration: '50 ساعة',
     students: '720',
-    color: '#ef4444'
+    color: '#ef4444',
+    featured: false
   },
   {
     icon: <Layers size={24} />,
@@ -190,7 +251,8 @@ const COURSES = [
     level: 'متقدم',
     duration: '38 ساعة',
     students: '650',
-    color: '#06b6d4'
+    color: '#06b6d4',
+    featured: false
   },
 ]
 
@@ -205,7 +267,13 @@ function CoursesSection() {
         </div>
         <div className="courses-grid">
           {COURSES.map((course, i) => (
-            <div className="course-card" key={i}>
+            <div className={`course-card ${course.featured ? 'featured' : ''}`} key={i}>
+              {course.featured && (
+                <div className="course-badge">
+                  <Sparkles size={11} />
+                  <span>مميّز</span>
+                </div>
+              )}
               <div className="course-card-icon" style={{ color: course.color, background: `${course.color}15` }}>
                 {course.icon}
               </div>
@@ -229,37 +297,96 @@ function CoursesSection() {
   )
 }
 
-// Features Section
+// Learning Paths
+const PATHS = [
+  {
+    title: 'مطور واجهات أمامية',
+    techs: 'HTML → CSS → JS → React',
+    duration: '6 أشهر',
+    icon: <Monitor size={22} />,
+    color: '#22c55e'
+  },
+  {
+    title: 'مطور Full-Stack',
+    techs: 'Frontend → Backend → Database → Deploy',
+    duration: '9 أشهر',
+    icon: <Layers size={22} />,
+    color: '#3b82f6'
+  },
+  {
+    title: 'مطور موبايل',
+    techs: 'Dart → Flutter → APIs → Publishing',
+    duration: '5 أشهر',
+    icon: <Smartphone size={22} />,
+    color: '#a855f7'
+  },
+]
+
+function PathsSection() {
+  return (
+    <section className="paths-section" id="paths" dir="rtl">
+      <div className="section-inner">
+        <div className="section-header">
+          <span className="section-tag"><Target size={14} /> المسارات التعليمية</span>
+          <h2>اختر مسارك المهني</h2>
+          <p>خطط تعليمية مرتبة خطوة بخطوة توصلك لهدفك</p>
+        </div>
+        <div className="paths-grid">
+          {PATHS.map((path, i) => (
+            <div className="path-card" key={i}>
+              <div className="path-card-header">
+                <div className="path-icon" style={{ color: path.color, background: `${path.color}12` }}>
+                  {path.icon}
+                </div>
+                <div className="path-duration">
+                  <Clock size={13} />
+                  <span>{path.duration}</span>
+                </div>
+              </div>
+              <h3>{path.title}</h3>
+              <div className="path-techs">{path.techs}</div>
+              <Link to="/auth" className="path-link">
+                ابدأ المسار <ArrowLeft size={14} />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Features
 const FEATURES = [
   {
     icon: <Monitor size={24} />,
     title: 'تعلّم عملي',
-    desc: 'طبّق ما تتعلمه مباشرة من خلال مشاريع حقيقية ومحاكاة لبيئات العمل الفعلية.'
+    desc: 'طبّق ما تتعلمه من خلال مشاريع حقيقية ومحاكاة لبيئات العمل الفعلية.'
   },
   {
     icon: <GraduationCap size={24} />,
     title: 'شهادات معتمدة',
-    desc: 'احصل على شهادة إتمام لكل دورة يمكنك مشاركتها في سيرتك الذاتية وملفاتك المهنية.'
+    desc: 'احصل على شهادة إتمام لكل دورة يمكنك مشاركتها في سيرتك الذاتية.'
   },
   {
     icon: <MessageSquare size={24} />,
     title: 'دعم مباشر',
-    desc: 'فريق دعم فني متخصص يساعدك في حل أي مشكلة تواجهك خلال رحلة التعلم.'
+    desc: 'فريق دعم فني متخصص يساعدك في حل أي مشكلة خلال رحلة التعلم.'
   },
   {
     icon: <FileCode2 size={24} />,
     title: 'مشاريع تطبيقية',
-    desc: 'أكثر من 200 مشروع عملي جاهز للتطبيق، من بسيط إلى متقدم في مختلف المجالات.'
+    desc: 'أكثر من 200 مشروع عملي جاهز للتطبيق في مختلف المجالات.'
   },
   {
     icon: <Target size={24} />,
     title: 'مسارات واضحة',
-    desc: 'خطة تعليمية مرتبة خطوة بخطوة توصلك لهدفك المهني بأسرع وقت ممكن.'
+    desc: 'خطة تعليمية مرتبة خطوة بخطوة توصلك لهدفك المهني.'
   },
   {
     icon: <Users size={24} />,
     title: 'مجتمع نشط',
-    desc: 'انضم لمجتمع يضم آلاف المطورين العرب للتعاون وتبادل الخبرات والمعرفة.'
+    desc: 'انضم لمجتمع يضم آلاف المطورين العرب للتعاون وتبادل الخبرات.'
   },
 ]
 
@@ -270,7 +397,7 @@ function FeaturesSection() {
         <div className="section-header">
           <span className="section-tag"><Zap size={14} /> لماذا نحن</span>
           <h2>ما يميّز White Code Academy</h2>
-          <p>نوفر لك بيئة تعليمية متكاملة مبنية على أفضل الممارسات في التعليم التقني</p>
+          <p>بيئة تعليمية متكاملة مبنية على أفضل الممارسات في التعليم التقني</p>
         </div>
         <div className="features-grid">
           {FEATURES.map((f, i) => (
@@ -286,38 +413,12 @@ function FeaturesSection() {
   )
 }
 
-// Stats Section
-const STATS = [
-  { value: '5,200+', label: 'طالب مسجّل', icon: <Users size={22} /> },
-  { value: '48', label: 'دورة تعليمية', icon: <BookOpen size={22} /> },
-  { value: '200+', label: 'مشروع عملي', icon: <Code2 size={22} /> },
-  { value: '96%', label: 'نسبة الرضا', icon: <Star size={22} /> },
-]
-
-function StatsSection() {
-  return (
-    <section className="stats-section" id="stats" dir="rtl">
-      <div className="section-inner">
-        <div className="stats-grid">
-          {STATS.map((stat, i) => (
-            <div className="stat-card" key={i}>
-              <div className="stat-icon">{stat.icon}</div>
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // Testimonials
 const TESTIMONIALS = [
   {
     name: 'أحمد عبدالله',
     role: 'مطور واجهات أمامية',
-    text: 'بفضل White Code Academy قدرت أتعلم React واشتغلت في شركة تقنية خلال 6 أشهر. المحتوى عملي ومباشر بدون حشو.',
+    text: 'بفضل White Code Academy قدرت أتعلم React واشتغلت في شركة تقنية خلال 6 أشهر. المحتوى عملي ومباشر.',
     rating: 5
   },
   {
@@ -329,7 +430,7 @@ const TESTIMONIALS = [
   {
     name: 'خالد العمري',
     role: 'مهندس DevOps',
-    text: 'من أفضل المنصات العربية لتعلم البرمجة. المحتوى محدّث باستمرار والمجتمع نشط جداً ويساعد في حل المشاكل.',
+    text: 'من أفضل المنصات العربية لتعلم البرمجة. المحتوى محدّث والمجتمع نشط جداً ويساعد في حل المشاكل.',
     rating: 5
   },
 ]
@@ -352,7 +453,7 @@ function TestimonialsSection() {
               <p className="testimonial-text">"{t.text}"</p>
               <div className="testimonial-author">
                 <div className="testimonial-avatar">
-                  <User size={18} />
+                  <UserIcon size={18} />
                 </div>
                 <div>
                   <div className="testimonial-name">{t.name}</div>
@@ -367,7 +468,7 @@ function TestimonialsSection() {
   )
 }
 
-// CTA Section
+// CTA
 function CTASection() {
   return (
     <section className="cta-section" dir="rtl">
@@ -417,7 +518,7 @@ function Footer() {
             <h4>المنصة</h4>
             <a href="#courses">الدورات</a>
             <a href="#features">المميزات</a>
-            <a href="#">المسارات التعليمية</a>
+            <a href="#paths">المسارات التعليمية</a>
             <a href="#">الأسعار</a>
           </div>
           <div className="footer-links-group">
@@ -443,24 +544,15 @@ function Footer() {
   )
 }
 
-// User icon for avatars
-function User({ size }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}
-
 // Main Page
 export default function HomePage() {
   return (
     <div className="home-page">
       <Navbar />
-      <HeroSection />
-      <StatsSection />
+      <WelcomeBanner />
+      <TechStrip />
       <CoursesSection />
+      <PathsSection />
       <FeaturesSection />
       <TestimonialsSection />
       <CTASection />
