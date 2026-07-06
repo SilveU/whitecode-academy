@@ -106,7 +106,7 @@ function LoginForm({ onSuccess }) {
     setLoading(true)
     
     try {
-      const response = await fetch('http://localhost:5076/api/authentication/login', {
+      const response = await fetch('/api/authentication/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
