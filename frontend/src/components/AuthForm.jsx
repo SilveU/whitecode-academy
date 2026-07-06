@@ -209,6 +209,7 @@ function LoginForm({ onSuccess }) {
 function RegisterForm({ onSuccess }) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [userName, setUserName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -239,7 +240,7 @@ function RegisterForm({ onSuccess }) {
         body: JSON.stringify({
           firstName,
           lastName,
-          userName: email,
+          userName,
           email,
           password,
           confirmPassword
@@ -304,6 +305,14 @@ function RegisterForm({ onSuccess }) {
       </div>
 
       <div className="input-group">
+        <label htmlFor="userName">اسم المستخدم</label>
+        <div className="input-wrapper">
+          <span className="input-icon"><User size={18} /></span>
+          <input type="text" id="userName" placeholder="مثال: youssef_99" value={userName} onChange={(e) => setUserName(e.target.value)} maxLength={30} required />
+        </div>
+      </div>
+
+      <div className="input-group">
         <label htmlFor="registerEmail">البريد الإلكتروني</label>
         <div className="input-wrapper">
           <span className="input-icon"><Mail size={18} /></span>
@@ -325,10 +334,13 @@ function RegisterForm({ onSuccess }) {
 
       <div className="input-group">
         <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
-        <div className={`input-wrapper ${confirmError ? 'error' : ''}`}>
-          <span className="input-icon"><Shield size={18} /></span>
-          <input type="password" id="confirmPassword" placeholder="أعد إدخال كلمة المرور" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-        </div>
+        <PasswordInput
+          id="confirmPassword"
+          placeholder="أعد إدخال كلمة المرور"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
         {confirmError && <span className="error-message">كلمة المرور غير متطابقة</span>}
       </div>
 
