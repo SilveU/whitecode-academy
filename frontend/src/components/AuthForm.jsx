@@ -237,6 +237,7 @@ function RegisterForm({ onSuccess }) {
         body: JSON.stringify({
           firstName,
           lastName,
+          userName: email,
           email,
           password,
           confirmPassword
