@@ -10,6 +10,7 @@ import ContactPage from './pages/ContactPage'
 import TermsPage from './pages/TermsPage'
 import PathsPage from './pages/PathsPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
+import PendingVerificationPage from './pages/PendingVerificationPage'
 import ScrollToTopButton from './components/common/ScrollToTopButton'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/api/authentication/confirm-email" element={<VerifyEmailPage />} />
+        <Route path="/pending-verification" element={<PendingVerificationPage />} />
         <Route path="/paths" element={<PathsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/about" element={<AboutPage />} />

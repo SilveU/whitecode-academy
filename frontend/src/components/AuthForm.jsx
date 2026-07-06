@@ -263,8 +263,8 @@ function RegisterForm({ onSuccess }) {
         setApiError(msg)
         setTimeout(() => setShake(false), 600)
       } else {
-        // Success - tell them to check email
-        onSuccess('تم إنشاء حسابك بنجاح', 'يرجى مراجعة بريدك الإلكتروني لتأكيد الحساب قبل تسجيل الدخول.')
+        // Success - redirect to pending verification page
+        window.location.href = '/pending-verification'
       }
     } catch (err) {
       setShake(true)
