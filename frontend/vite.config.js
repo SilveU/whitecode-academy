@@ -7,9 +7,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5076',
+        target: 'https://unmultipliable-kelsey-unloyal.ngrok-free.dev',
         changeOrigin: true,
         secure: false,
+        bypass: function (req, res, options) {
+          if (req.method === 'GET' && req.url.includes('/api/authentication/confirm-email') && req.headers['accept']?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
       }
     }
   }

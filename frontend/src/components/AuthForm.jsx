@@ -110,6 +110,7 @@ function LoginForm({ onSuccess }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({
           identity: email,
@@ -216,7 +217,7 @@ function RegisterForm({ onSuccess }) {
   const [shake, setShake] = useState(false)
   const [confirmError, setConfirmError] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (password !== confirmPassword) {
       setShake(true)
@@ -225,10 +226,39 @@ function RegisterForm({ onSuccess }) {
       return
     }
     setLoading(true)
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/authentication/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+          confirmPassword
+        })
+      })
+
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        setShake(true)
+        setConfirmError(true) 
+        setTimeout(() => { setShake(false); setConfirmError(false) }, 3000)
+      } else {
+        // Success - tell them to check email
+        onSuccess('تم إنشاء حسابك بنجاح', 'يرجى مراجعة بريدك الإلكتروني لتأكيد الحساب قبل تسجيل الدخول.')
+      }
+    } catch (err) {
+      setShake(true)
+      setTimeout(() => setShake(false), 3000)
+    } finally {
       setLoading(false)
-      onSuccess('تم إنشاء حسابك بنجاح', 'مرحباً بك في White Academy')
-    }, 1500)
+    }
   }
 
   return (

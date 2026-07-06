@@ -9,6 +9,7 @@ import FAQPage from './pages/FAQPage'
 import ContactPage from './pages/ContactPage'
 import TermsPage from './pages/TermsPage'
 import PathsPage from './pages/PathsPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
 import ScrollToTopButton from './components/common/ScrollToTopButton'
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/api/authentication/confirm-email" element={<VerifyEmailPage />} />
         <Route path="/paths" element={<PathsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/about" element={<AboutPage />} />
