@@ -1,6 +1,15 @@
 {
   "rewrites": [
     {
+      "source": "/api/authentication/confirm-email",
+      "has": [{ "type": "header", "key": "accept", "value": "application/json" }],
+      "destination": "https://unmultipliable-kelsey-unloyal.ngrok-free.dev/api/authentication/confirm-email"
+    },
+    {
+      "source": "/api/authentication/confirm-email",
+      "destination": "/index.html"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://unmultipliable-kelsey-unloyal.ngrok-free.dev/api/:path*"
     }
