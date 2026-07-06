@@ -1,35 +1,25 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Code2,
   Users,
   Award,
   BookOpen,
   Monitor,
-  Smartphone,
-  Globe,
-  Database,
-  Layers,
   ArrowLeft,
-  Play,
   Star,
   Clock,
-  BarChart3,
-  Zap,
   Target,
   CheckCircle2,
   Menu,
   X,
-  ArrowUpRight,
   GraduationCap,
   MessageSquare,
-  FileCode2,
-  Cpu,
-  Shield,
-  Search,
+  Briefcase,
+  PenTool,
   TrendingUp,
   Flame,
-  Sparkles
+  Search,
+  Globe
 } from 'lucide-react'
 import './HomePage.css'
 
@@ -39,6 +29,16 @@ function UserIcon({ size }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+// Global Logo Icon (Abstract W / Academy Icon)
+function BrandLogo() {
+  return (
+    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="nav-logo-icon">
+      <rect x="2" y="2" width="56" height="56" rx="14" stroke="currentColor" strokeWidth="3" />
+      <path d="M15 20L25 40L30 30L35 40L45 20" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
 }
@@ -58,18 +58,12 @@ function Navbar() {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} dir="rtl">
       <div className="nav-inner">
         <Link to="/" className="nav-logo">
-          <div className="nav-logo-icon">
-            <svg viewBox="0 0 60 60" fill="none">
-              <rect x="2" y="2" width="56" height="56" rx="14" stroke="currentColor" strokeWidth="3" />
-              <text x="10" y="40" fontFamily="monospace" fontSize="28" fontWeight="bold" fill="currentColor">&lt;/&gt;</text>
-            </svg>
-          </div>
-          <span className="nav-logo-text">White Code <strong>Academy</strong></span>
+          <BrandLogo />
+          <span className="nav-logo-text">White <strong>Academy</strong></span>
         </Link>
 
         <div className={`nav-links ${mobileOpen ? 'open' : ''}`}>
-          <a href="#courses" onClick={() => setMobileOpen(false)}>الدورات</a>
-          <a href="#paths" onClick={() => setMobileOpen(false)}>المسارات</a>
+          <a href="#paths" onClick={() => setMobileOpen(false)}>المسارات التعليمية</a>
           <a href="#features" onClick={() => setMobileOpen(false)}>المميزات</a>
           <a href="#testimonials" onClick={() => setMobileOpen(false)}>آراء الطلاب</a>
           <div className="nav-cta-mobile">
@@ -99,18 +93,18 @@ function WelcomeBanner() {
           <div className="welcome-main">
             <div className="welcome-tag">
               <Flame size={14} />
-              <span>أكثر من 5,000 طالب يتعلمون معنا</span>
+              <span>أكثر من 10,000 متعلم من جميع أنحاء العالم</span>
             </div>
-            <h1>تعلّم البرمجة، <span className="text-gradient">ابنِ مستقبلك</span></h1>
-            <p>دورات عملية في تطوير الويب، الموبايل، والأمن السيبراني مع مشاريع حقيقية وشهادات معتمدة.</p>
+            <h1>طوّر مهاراتك، <span className="text-gradient">واصنع مستقبلك</span></h1>
+            <p>منصتك الشاملة لتعلم المهارات الحديثة في الإدارة، التصميم، التسويق، والتقنية. مسارات عملية بشهادات معتمدة.</p>
             <div className="welcome-actions">
               <Link to="/auth" className="btn-primary-lg">
                 <span>ابدأ التعلم مجاناً</span>
                 <ArrowLeft size={16} />
               </Link>
-              <a href="#courses" className="btn-ghost-lg">
+              <a href="#paths" className="btn-ghost-lg">
                 <Search size={15} />
-                <span>تصفح الدورات</span>
+                <span>تصفح المسارات</span>
               </a>
             </div>
           </div>
@@ -120,8 +114,8 @@ function WelcomeBanner() {
                 <BookOpen size={20} />
               </div>
               <div>
-                <div className="mini-stat-value">48</div>
-                <div className="mini-stat-label">دورة تعليمية</div>
+                <div className="mini-stat-value">120+</div>
+                <div className="mini-stat-label">مسار تعليمي</div>
               </div>
             </div>
             <div className="mini-stat-card">
@@ -129,7 +123,7 @@ function WelcomeBanner() {
                 <Users size={20} />
               </div>
               <div>
-                <div className="mini-stat-value">5,200+</div>
+                <div className="mini-stat-value">10k+</div>
                 <div className="mini-stat-label">طالب مسجّل</div>
               </div>
             </div>
@@ -144,11 +138,11 @@ function WelcomeBanner() {
             </div>
             <div className="mini-stat-card">
               <div className="mini-stat-icon" style={{ color: '#a855f7', background: 'rgba(168,85,247,0.1)' }}>
-                <Code2 size={20} />
+                <Award size={20} />
               </div>
               <div>
-                <div className="mini-stat-value">200+</div>
-                <div className="mini-stat-label">مشروع عملي</div>
+                <div className="mini-stat-value">15k+</div>
+                <div className="mini-stat-label">شهادة مُصدرة</div>
               </div>
             </div>
           </div>
@@ -158,178 +152,60 @@ function WelcomeBanner() {
   )
 }
 
-// Trending / Popular Courses Strip
-const POPULAR_TAGS = [
-  { label: 'React', color: '#61dafb' },
-  { label: 'Python', color: '#3776ab' },
-  { label: 'Node.js', color: '#68a063' },
-  { label: 'Flutter', color: '#02569b' },
-  { label: 'SQL', color: '#e48e00' },
-  { label: 'Docker', color: '#2496ed' },
-  { label: 'JavaScript', color: '#f7df1e' },
-  { label: 'TypeScript', color: '#3178c6' },
-]
-
-function TechStrip() {
-  return (
-    <section className="tech-strip" dir="rtl">
-      <div className="section-inner">
-        <div className="tech-strip-inner">
-          <div className="tech-strip-label">
-            <TrendingUp size={15} />
-            <span>الأكثر طلباً</span>
-          </div>
-          <div className="tech-tags">
-            {POPULAR_TAGS.map((tag, i) => (
-              <span className="tech-tag" key={i} style={{ borderColor: `${tag.color}40`, color: tag.color }}>
-                {tag.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Courses
-const COURSES = [
-  {
-    icon: <Globe size={24} />,
-    title: 'تطوير الويب الكامل',
-    desc: 'HTML, CSS, JavaScript, React, Node.js',
-    level: 'مبتدئ - متقدم',
-    duration: '60 ساعة',
-    students: '2,100',
-    color: '#22c55e',
-    featured: true
-  },
-  {
-    icon: <Smartphone size={24} />,
-    title: 'تطوير تطبيقات الموبايل',
-    desc: 'React Native, Flutter, Swift',
-    level: 'متوسط',
-    duration: '45 ساعة',
-    students: '1,300',
-    color: '#3b82f6',
-    featured: true
-  },
-  {
-    icon: <Database size={24} />,
-    title: 'قواعد البيانات والباك إند',
-    desc: 'SQL, MongoDB, PostgreSQL, APIs',
-    level: 'متوسط - متقدم',
-    duration: '40 ساعة',
-    students: '980',
-    color: '#a855f7',
-    featured: false
-  },
-  {
-    icon: <Cpu size={24} />,
-    title: 'Python والتحليل البرمجي',
-    desc: 'Python, Data Analysis, Automation',
-    level: 'مبتدئ',
-    duration: '35 ساعة',
-    students: '1,850',
-    color: '#f59e0b',
-    featured: true
-  },
-  {
-    icon: <Shield size={24} />,
-    title: 'الأمن السيبراني',
-    desc: 'Ethical Hacking, Pentesting, Security',
-    level: 'متقدم',
-    duration: '50 ساعة',
-    students: '720',
-    color: '#ef4444',
-    featured: false
-  },
-  {
-    icon: <Layers size={24} />,
-    title: 'DevOps وإدارة السيرفرات',
-    desc: 'Docker, Kubernetes, CI/CD, AWS',
-    level: 'متقدم',
-    duration: '38 ساعة',
-    students: '650',
-    color: '#06b6d4',
-    featured: false
-  },
-]
-
-function CoursesSection() {
-  return (
-    <section className="courses-section" id="courses" dir="rtl">
-      <div className="section-inner">
-        <div className="section-header">
-          <span className="section-tag"><BookOpen size={14} /> الدورات التعليمية</span>
-          <h2>اختر مسارك التعليمي</h2>
-          <p>مسارات تعليمية مصمّمة بعناية لتأخذك من المبتدئ إلى المحترف</p>
-        </div>
-        <div className="courses-grid">
-          {COURSES.map((course, i) => (
-            <div className={`course-card ${course.featured ? 'featured' : ''}`} key={i}>
-              {course.featured && (
-                <div className="course-badge">
-                  <Sparkles size={11} />
-                  <span>مميّز</span>
-                </div>
-              )}
-              <div className="course-card-icon" style={{ color: course.color, background: `${course.color}15` }}>
-                {course.icon}
-              </div>
-              <h3>{course.title}</h3>
-              <p className="course-card-desc">{course.desc}</p>
-              <div className="course-card-meta">
-                <span><Clock size={13} /> {course.duration}</span>
-                <span><BarChart3 size={13} /> {course.level}</span>
-              </div>
-              <div className="course-card-footer">
-                <span className="course-students"><Users size={13} /> {course.students} طالب</span>
-                <Link to="/auth" className="course-card-link">
-                  سجّل الآن <ArrowUpRight size={14} />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// Learning Paths
+// Learning Paths (Replacing Courses and specific tech content)
 const PATHS = [
   {
-    title: 'مطور واجهات أمامية',
-    techs: 'HTML → CSS → JS → React',
+    title: 'إدارة الأعمال والمشاريع',
+    desc: 'تعلم استراتيجيات الإدارة، التخطيط المالي، وإدارة فرق العمل بنجاح.',
+    duration: '4 أشهر',
+    icon: <Briefcase size={22} />,
+    color: '#3b82f6'
+  },
+  {
+    title: 'التصميم الجرافيكي وتجربة المستخدم',
+    desc: 'احترف أدوات التصميم وبناء واجهات مستخدم جذابة وعملية.',
     duration: '6 أشهر',
+    icon: <PenTool size={22} />,
+    color: '#a855f7'
+  },
+  {
+    title: 'التسويق الرقمي والمبيعات',
+    desc: 'استراتيجيات التسويق الحديثة، إدارة الحملات الإعلانية، وتحليل البيانات.',
+    duration: '3 أشهر',
+    icon: <TrendingUp size={22} />,
+    color: '#f59e0b'
+  },
+  {
+    title: 'المهارات التقنية والبرمجة',
+    desc: 'أساسيات التقنية، تطوير المواقع، والذكاء الاصطناعي للمبتدئين.',
+    duration: '8 أشهر',
     icon: <Monitor size={22} />,
     color: '#22c55e'
   },
   {
-    title: 'مطور Full-Stack',
-    techs: 'Frontend → Backend → Database → Deploy',
-    duration: '9 أشهر',
-    icon: <Layers size={22} />,
-    color: '#3b82f6'
+    title: 'اللغات والتواصل الفعال',
+    desc: 'طوّر مهاراتك في اللغة الإنجليزية والتواصل المهني في بيئة العمل.',
+    duration: '5 أشهر',
+    icon: <Globe size={22} />,
+    color: '#ec4899'
   },
   {
-    title: 'مطور موبايل',
-    techs: 'Dart → Flutter → APIs → Publishing',
-    duration: '5 أشهر',
-    icon: <Smartphone size={22} />,
-    color: '#a855f7'
+    title: 'تطوير الذات والإنتاجية',
+    desc: 'مهارات تنظيم الوقت، التفكير النقدي، والقيادة الشخصية.',
+    duration: 'شهران',
+    icon: <Target size={22} />,
+    color: '#06b6d4'
   },
 ]
 
 function PathsSection() {
   return (
-    <section className="paths-section" id="paths" dir="rtl">
+    <section className="paths-section" id="paths" dir="rtl" style={{ marginTop: '40px' }}>
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><Target size={14} /> المسارات التعليمية</span>
-          <h2>اختر مسارك المهني</h2>
-          <p>خطط تعليمية مرتبة خطوة بخطوة توصلك لهدفك</p>
+          <span className="section-tag"><Target size={14} /> مجالات التعلم</span>
+          <h2>استكشف مساراتنا التعليمية</h2>
+          <p>اختر المجال الذي يناسب طموحك وابدأ رحلة التطور المهني والشخصي</p>
         </div>
         <div className="paths-grid">
           {PATHS.map((path, i) => (
@@ -344,9 +220,11 @@ function PathsSection() {
                 </div>
               </div>
               <h3>{path.title}</h3>
-              <div className="path-techs">{path.techs}</div>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.6' }}>
+                {path.desc}
+              </p>
               <Link to="/auth" className="path-link">
-                ابدأ المسار <ArrowLeft size={14} />
+                تصفح المسار <ArrowLeft size={14} />
               </Link>
             </div>
           ))}
@@ -359,34 +237,34 @@ function PathsSection() {
 // Features
 const FEATURES = [
   {
-    icon: <Monitor size={24} />,
-    title: 'تعلّم عملي',
-    desc: 'طبّق ما تتعلمه من خلال مشاريع حقيقية ومحاكاة لبيئات العمل الفعلية.'
+    icon: <GraduationCap size={24} />,
+    title: 'محتوى شامل وحديث',
+    desc: 'مواد تعليمية مُصممة على يد خبراء وتُحدّث باستمرار لمواكبة سوق العمل.'
   },
   {
-    icon: <GraduationCap size={24} />,
+    icon: <Award size={24} />,
     title: 'شهادات معتمدة',
-    desc: 'احصل على شهادة إتمام لكل دورة يمكنك مشاركتها في سيرتك الذاتية.'
+    desc: 'احصل على شهادة إتمام موثقة تعزز من سيرتك الذاتية وفرصك المهنية.'
   },
   {
     icon: <MessageSquare size={24} />,
-    title: 'دعم مباشر',
-    desc: 'فريق دعم فني متخصص يساعدك في حل أي مشكلة خلال رحلة التعلم.'
+    title: 'مجتمع تفاعلي',
+    desc: 'تواصل مع زملائك والمدربين، وتبادل الخبرات في بيئة تعليمية داعمة.'
   },
   {
-    icon: <FileCode2 size={24} />,
-    title: 'مشاريع تطبيقية',
-    desc: 'أكثر من 200 مشروع عملي جاهز للتطبيق في مختلف المجالات.'
+    icon: <Briefcase size={24} />,
+    title: 'تطبيق عملي',
+    desc: 'نركز على التطبيق العملي والمشاريع الحقيقية لضمان اكتساب المهارة.'
   },
   {
     icon: <Target size={24} />,
-    title: 'مسارات واضحة',
-    desc: 'خطة تعليمية مرتبة خطوة بخطوة توصلك لهدفك المهني.'
+    title: 'مرونة في التعلم',
+    desc: 'تعلم بالسرعة التي تناسبك ومن أي مكان في العالم وفي أي وقت.'
   },
   {
     icon: <Users size={24} />,
-    title: 'مجتمع نشط',
-    desc: 'انضم لمجتمع يضم آلاف المطورين العرب للتعاون وتبادل الخبرات.'
+    title: 'توجيه مهني',
+    desc: 'جلسات إرشادية لمساعدتك في التخطيط لمسارك المهني بنجاح.'
   },
 ]
 
@@ -395,9 +273,9 @@ function FeaturesSection() {
     <section className="features-section" id="features" dir="rtl">
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><Zap size={14} /> لماذا نحن</span>
-          <h2>ما يميّز White Code Academy</h2>
-          <p>بيئة تعليمية متكاملة مبنية على أفضل الممارسات في التعليم التقني</p>
+          <span className="section-tag"><Award size={14} /> لماذا تختارنا</span>
+          <h2>ما يميّز White Academy</h2>
+          <p>نوفر لك بيئة تعليمية متكاملة تساعدك على تحقيق أهدافك بأفضل الطرق</p>
         </div>
         <div className="features-grid">
           {FEATURES.map((f, i) => (
@@ -416,21 +294,21 @@ function FeaturesSection() {
 // Testimonials
 const TESTIMONIALS = [
   {
-    name: 'أحمد عبدالله',
-    role: 'مطور واجهات أمامية',
-    text: 'بفضل White Code Academy قدرت أتعلم React واشتغلت في شركة تقنية خلال 6 أشهر. المحتوى عملي ومباشر.',
+    name: 'سالم عبدالله',
+    role: 'مدير تسويق',
+    text: 'مسار التسويق الرقمي غيّر نظرتي بالكامل. المحتوى كان عملي جداً وساعدني في مضاعفة مبيعات شركتي في فترة قصيرة.',
     rating: 5
   },
   {
-    name: 'سارة محمد',
-    role: 'مطورة تطبيقات موبايل',
-    text: 'الدورات منظمة بشكل ممتاز والمشاريع التطبيقية ساعدتني أبني Portfolio قوي. الدعم الفني سريع ومحترف.',
+    name: 'منى حسن',
+    role: 'مصممة جرافيك',
+    text: 'الدورات هنا ليست مجرد تنظير. التطبيق العملي والمشاريع ساعدتني في بناء معرض أعمال قوي حصلت بسببه على وظيفتي الحالية.',
     rating: 5
   },
   {
-    name: 'خالد العمري',
-    role: 'مهندس DevOps',
-    text: 'من أفضل المنصات العربية لتعلم البرمجة. المحتوى محدّث والمجتمع نشط جداً ويساعد في حل المشاكل.',
+    name: 'كريم محمود',
+    role: 'رائد أعمال',
+    text: 'بدأت مشروعين ناشئين بفضل ما تعلمته في مسار إدارة الأعمال. المنصة توفر كل ما تحتاجه للنجاح في سوق العمل اليوم.',
     rating: 5
   },
 ]
@@ -440,9 +318,9 @@ function TestimonialsSection() {
     <section className="testimonials-section" id="testimonials" dir="rtl">
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><MessageSquare size={14} /> آراء الطلاب</span>
-          <h2>ماذا يقول طلابنا</h2>
-          <p>تجارب حقيقية من طلاب غيّرت مساراتهم المهنية</p>
+          <span className="section-tag"><MessageSquare size={14} /> آراء المتعلمين</span>
+          <h2>قصص نجاح نلهم بها</h2>
+          <p>تجارب حقيقية لأشخاص طوّروا مهاراتهم وحققوا أهدافهم معنا</p>
         </div>
         <div className="testimonials-grid">
           {TESTIMONIALS.map((t, i) => (
@@ -475,10 +353,10 @@ function CTASection() {
       <div className="section-inner">
         <div className="cta-content">
           <div className="cta-icon-wrap">
-            <Code2 size={32} />
+            <GraduationCap size={32} />
           </div>
-          <h2>جاهز تبدأ رحلتك؟</h2>
-          <p>سجّل الآن مجاناً وابدأ أول دورة لك اليوم. لا تحتاج خبرة سابقة.</p>
+          <h2>جاهز للاستثمار في مستقبلك؟</h2>
+          <p>انضم لآلاف المتعلمين وابدأ رحلتك لاكتساب المهارات الأكثر طلباً اليوم.</p>
           <div className="cta-actions">
             <Link to="/auth" className="btn-primary-lg">
               <span>أنشئ حسابك المجاني</span>
@@ -486,9 +364,9 @@ function CTASection() {
             </Link>
           </div>
           <div className="cta-features">
-            <span><CheckCircle2 size={15} /> بدون بطاقة ائتمان</span>
-            <span><CheckCircle2 size={15} /> دورات مجانية متاحة</span>
-            <span><CheckCircle2 size={15} /> إلغاء في أي وقت</span>
+            <span><CheckCircle2 size={15} /> بدون رسوم خفية</span>
+            <span><CheckCircle2 size={15} /> وصول مدى الحياة للمحتوى</span>
+            <span><CheckCircle2 size={15} /> دعم فني مستمر</span>
           </div>
         </div>
       </div>
@@ -504,22 +382,17 @@ function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="footer-logo">
-              <div className="nav-logo-icon">
-                <svg viewBox="0 0 60 60" fill="none">
-                  <rect x="2" y="2" width="56" height="56" rx="14" stroke="currentColor" strokeWidth="3" />
-                  <text x="10" y="40" fontFamily="monospace" fontSize="28" fontWeight="bold" fill="currentColor">&lt;/&gt;</text>
-                </svg>
-              </div>
-              <span className="nav-logo-text">White Code <strong>Academy</strong></span>
+              <BrandLogo />
+              <span className="nav-logo-text">White <strong>Academy</strong></span>
             </div>
-            <p>منصة عربية متخصصة في تعليم البرمجة وتطوير المهارات التقنية بمحتوى عملي ومحدّث.</p>
+            <p>منصة تعليمية رائدة تهدف إلى تمكين الأفراد بالمهارات والمعارف اللازمة للنجاح في العصر الحديث.</p>
           </div>
           <div className="footer-links-group">
             <h4>المنصة</h4>
-            <a href="#courses">الدورات</a>
+            <a href="#paths">المسارات</a>
             <a href="#features">المميزات</a>
-            <a href="#paths">المسارات التعليمية</a>
-            <a href="#">الأسعار</a>
+            <a href="#">المدونة</a>
+            <a href="#">عن الأكاديمية</a>
           </div>
           <div className="footer-links-group">
             <h4>الدعم</h4>
@@ -530,14 +403,14 @@ function Footer() {
           </div>
           <div className="footer-links-group">
             <h4>تواصل معنا</h4>
-            <a href="#">info@whitecodeacademy.com</a>
+            <a href="#">hello@whiteacademy.com</a>
             <a href="#">Twitter / X</a>
             <a href="#">LinkedIn</a>
-            <a href="#">YouTube</a>
+            <a href="#">Instagram</a>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2026 White Code Academy. جميع الحقوق محفوظة.</p>
+          <p>&copy; 2026 White Academy. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>
@@ -550,8 +423,6 @@ export default function HomePage() {
     <div className="home-page">
       <Navbar />
       <WelcomeBanner />
-      <TechStrip />
-      <CoursesSection />
       <PathsSection />
       <FeaturesSection />
       <TestimonialsSection />

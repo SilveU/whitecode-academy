@@ -197,7 +197,7 @@ function RegisterForm({ onSuccess }) {
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      onSuccess('تم إنشاء حسابك بنجاح', 'مرحباً بك في White Code Academy')
+      onSuccess('تم إنشاء حسابك بنجاح', 'مرحباً بك في White Academy')
     }, 1500)
   }
 
