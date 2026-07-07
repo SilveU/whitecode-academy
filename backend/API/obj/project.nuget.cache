@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "rdS1c7+u/h0=",
+  "dgSpecHash": "M/FgSFns3oo=",
   "success": true,
   "projectFilePath": "C:\\Users\\STAR4\\source\\repos\\MVPs\\WhiteCodeAcademy\\backend\\API\\API.csproj",
   "expectedPackageFiles": [
@@ -11,6 +11,8 @@
     "C:\\Users\\STAR4\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.1\\fluentvalidation.aspnetcore.11.3.1.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.11.0\\fluentvalidation.dependencyinjectionextensions.11.11.0.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\STAR4\\.nuget\\packages\\mediatr\\14.2.0\\mediatr.14.2.0.nupkg.sha512",
+    "C:\\Users\\STAR4\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.9\\microsoft.aspnetcore.authentication.jwtbearer.10.0.9.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\microsoft.aspnetcore.identity.entityframeworkcore\\10.0.9\\microsoft.aspnetcore.identity.entityframeworkcore.10.0.9.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.9\\microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",

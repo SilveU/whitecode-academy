@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Infrastructure.Data.Seeding;
+using Application.Interfaces.Repositories;
+using Infrastructure.Repositories;
+using Application.Features.Courses.Commands.CreateCourse;
 
 namespace API
 {
@@ -80,15 +83,24 @@ namespace API
             builder.Services.AddScoped<IEmailVerificationService, EmailVerificationService>();
             builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
-            // AutoMapper
+            // 6. Register AutoMapper
             builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
-            // FluentValidation
+            // 7. Register FluentValidation
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
-            // 6. Register other services
+            // 8. Register other services
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+            // 9. Register MediatR and scan the assembly where the Program class lives
+            builder.Services.AddMediatR(cfg => 
+                cfg.RegisterServicesFromAssembly(typeof(CreateCourseHandler).Assembly));
+
+            // 10. Register repositories
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+            builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
 
             // dotnet ef migrations add InitialCreate --startup-project ../API
 
@@ -104,8 +116,9 @@ namespace API
 
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var context = services.GetRequiredService<ApplicationDbContext>();
 
-                await AppSeeder.SeedAsync(roleManager, userManager);
+                await AppSeeder.SeedAsync(roleManager, userManager, context);
             }
 
             // Configure the HTTP request pipeline.
