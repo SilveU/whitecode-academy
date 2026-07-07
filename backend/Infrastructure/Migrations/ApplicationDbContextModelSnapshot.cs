@@ -78,6 +78,9 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("InstructorId");
 
+                    b.HasIndex("Name", "DepartmentId", "InstructorId")
+                        .IsUnique();
+
                     b.ToTable("Courses");
                 });
 
