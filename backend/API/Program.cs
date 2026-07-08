@@ -101,7 +101,10 @@ namespace API
             builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
-
+            builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            builder.Services.AddScoped<ISectionRepository, SectionRepository>();
+            builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+            builder.Services.AddScoped<IStudentRepository, StudentRepository>();
             // dotnet ef migrations add InitialCreate --startup-project ../API
 
             builder.Services.AddControllers();
@@ -131,8 +134,10 @@ namespace API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseCors(corsPolicy);
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 

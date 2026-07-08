@@ -14,10 +14,15 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public void DeleteAsync(Instructor instructor)
+        public void Delete(Instructor instructor)
         {
             instructor.IsDeleted = true;
             instructor.DeletedAt = DateTimeOffset.UtcNow;
+        }
+
+        public void Update(Instructor instructor)
+        {
+            instructor.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         public async Task<Instructor?> GetByIdWithNavigationPropertiesAsync(Guid id)
@@ -25,7 +30,16 @@ namespace Infrastructure.Repositories
             return await _context.Instructors
                 .Include(i => i.User)
                 .Include(i => i.Department)
+                .Include(i => i.Courses.Where(c => !c.IsDeleted))
                 .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
+        }
+
+        public async Task<Instructor?> GetByUserIdAsync(string userId)
+        {
+            return await _context.Instructors
+                .Include(i => i.User)
+                .Include(i => i.Department)
+                .FirstOrDefaultAsync(i => i.UserId == userId && !i.IsDeleted);
         }
 
         public async Task<IEnumerable<Instructor>> SearchAsync(QueryParameters query)
@@ -33,24 +47,23 @@ namespace Infrastructure.Repositories
             var queryable = _context.Instructors
                 .Include(i => i.User)
                 .Include(i => i.Department)
+                .Where(i => !i.IsDeleted)
                 .AsQueryable();
 
             return await ApplyQueryParameters(queryable, query);
         }
 
-        private async Task<IQueryable<Instructor>> ApplyQueryParameters(IQueryable<Instructor> query, QueryParameters queryParameters)
+        private async Task<IEnumerable<Instructor>> ApplyQueryParameters(IQueryable<Instructor> query, QueryParameters queryParameters)
         {
-            // Apply search filter
             if (!string.IsNullOrEmpty(queryParameters.WordForSearch))
             {
                 var searchTerm = $"%{queryParameters.WordForSearch.Trim().ToLower()}%";
-                query = 
-                query.Where(i => EF.Functions.Like(i.User.FirstName, searchTerm) ||
-                EF.Functions.Like(i.User.LastName, searchTerm) ||
-                EF.Functions.Like(i.Department!.Name, searchTerm));
+                query = query.Where(i =>
+                    EF.Functions.Like(i.User.FirstName, searchTerm) ||
+                    EF.Functions.Like(i.User.LastName, searchTerm) ||
+                    EF.Functions.Like(i.Department!.Name, searchTerm));
             }
 
-            // Apply sorting
             switch (queryParameters.SortBy?.ToLower())
             {
                 case "firstname":
@@ -60,17 +73,14 @@ namespace Infrastructure.Repositories
                     query = query.OrderBy(i => i.User.LastName);
                     break;
                 default:
-                    query = query.OrderBy(i => i.User.FirstName); // Default sorting by first name
+                    query = query.OrderBy(i => i.User.FirstName);
                     break;
             }
 
-            return await Task.FromResult(query);
-        }
+            int skip = (queryParameters.PageNumber - 1) * queryParameters.PageSize;
+            query = query.Skip(skip).Take(queryParameters.PageSize);
 
-        public async Task<Instructor> UpdateAsync(Instructor instructor)
-        {
-            instructor.UpdatedAt = DateTimeOffset.UtcNow;
-            return instructor;
+            return await query.ToListAsync();
         }
     }
 }
