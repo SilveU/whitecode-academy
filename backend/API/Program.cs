@@ -121,7 +121,7 @@ namespace API
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                 var context = services.GetRequiredService<ApplicationDbContext>();
 
-                await AppSeeder.SeedAsync(roleManager, userManager, context);
+                await AppSeeder.SeedAsync(roleManager, userManager, context, builder.Configuration);
             }
 
             // Configure the HTTP request pipeline.
