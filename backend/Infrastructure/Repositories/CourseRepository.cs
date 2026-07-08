@@ -14,10 +14,27 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
-        public void DeleteAsync(Course course)
+        public void Delete(Course course)
         {
             course.IsDeleted = true;
             course.DeletedAt = DateTimeOffset.UtcNow;
+        }
+
+        public async Task<bool> HasActiveEnrollmentsAsync(Guid courseId)
+        {
+            return await _context.Enrollments
+                .AnyAsync(e => e.CourseId == courseId && !e.IsDeleted);
+        }
+
+        public async Task<Course?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        {
+            return await _context.Courses
+                .Include(c => c.Instructor)
+                    .ThenInclude(i => i.User)
+                .Include(c => c.Department)
+                .Include(c => c.Enrollments.Where(e => !e.IsDeleted))
+                .Include(c => c.Sections!.Where(s => !s.IsDeleted))
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         }
 
         public async Task<IEnumerable<Course>> SearchAsync(QueryParameters query)
@@ -75,10 +92,9 @@ namespace Infrastructure.Repositories
             return query;
         }
 
-        public async Task<Course> UpdateAsync(Course course)
+        public void Update(Course course)
         {
             course.UpdatedAt = DateTimeOffset.UtcNow;
-            return course;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
 
             RuleFor(x => x.TotalSections)
                 .GreaterThan(0)
-                .LessThanOrEqualTo(100);
+                .LessThanOrEqualTo(250);
         }
     }
 }
