@@ -2,18 +2,22 @@ using Domain.Entites.Core;
 using Domain.Entites.Enums;
 using Domain.Entites.Users;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data.Seeding
 {
     public static class AppSeeder
     {
-        public static async Task SeedAsync(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager,
-        ApplicationDbContext context)
+        public static async Task SeedAsync(
+            RoleManager<IdentityRole> roleManager,
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context,
+            IConfiguration configuration)
         {
             await SeedRolesAsync(roleManager);
-            await SeedUsersAsync(userManager);
+            await SeedUsersAsync(userManager, configuration);
             await SeedDepartmentsAsync(context);
-            await SeedInstructorsAsync(context, userManager);
+            await SeedInstructorsAsync(context, userManager, configuration);
         }
 
         // 1. Roles
@@ -27,16 +31,42 @@ namespace Infrastructure.Data.Seeding
             }
         }
 
-        // 2. Users
-        private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager)
+        // 2. Users — credentials come from IConfiguration (user-secrets in dev, env vars in prod)
+        private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
-            await CreateUserIfNotExists(userManager, "admin@system.com", "admin@system", "System", "Admin", "Admin");
-            await CreateUserIfNotExists(userManager, "instructor@system.com", "instructor@system", "Instructor", "Instructor", "Instructor");
-            await CreateUserIfNotExists(userManager, "student@system.com", "student@system", "Student", "Student", "Student");
+            var admin      = configuration.GetSection("SeedSettings:Admin");
+            var instructor = configuration.GetSection("SeedSettings:Instructor");
+            var student    = configuration.GetSection("SeedSettings:Student");
+
+            await CreateUserIfNotExists(userManager,
+                email:     admin["Email"]     ?? throw new InvalidOperationException("SeedSettings:Admin:Email is not configured."),
+                username:  admin["UserName"]  ?? throw new InvalidOperationException("SeedSettings:Admin:UserName is not configured."),
+                firstName: admin["FirstName"] ?? "System",
+                lastName:  admin["LastName"]  ?? "Admin",
+                password:  admin["Password"]  ?? throw new InvalidOperationException("SeedSettings:Admin:Password is not configured."),
+                role:      "Admin");
+
+            await CreateUserIfNotExists(userManager,
+                email:     instructor["Email"]     ?? throw new InvalidOperationException("SeedSettings:Instructor:Email is not configured."),
+                username:  instructor["UserName"]  ?? throw new InvalidOperationException("SeedSettings:Instructor:UserName is not configured."),
+                firstName: instructor["FirstName"] ?? "Instructor",
+                lastName:  instructor["LastName"]  ?? "Instructor",
+                password:  instructor["Password"]  ?? throw new InvalidOperationException("SeedSettings:Instructor:Password is not configured."),
+                role:      "Instructor");
+
+            await CreateUserIfNotExists(userManager,
+                email:     student["Email"]     ?? throw new InvalidOperationException("SeedSettings:Student:Email is not configured."),
+                username:  student["UserName"]  ?? throw new InvalidOperationException("SeedSettings:Student:UserName is not configured."),
+                firstName: student["FirstName"] ?? "Student",
+                lastName:  student["LastName"]  ?? "Student",
+                password:  student["Password"]  ?? throw new InvalidOperationException("SeedSettings:Student:Password is not configured."),
+                role:      "User");
         }
 
-        private static async Task<ApplicationUser> CreateUserIfNotExists(UserManager<ApplicationUser> userManager,
-        string email, string username, string firstName, string lastName, string role)
+        private static async Task<ApplicationUser> CreateUserIfNotExists(
+            UserManager<ApplicationUser> userManager,
+            string email, string username, string firstName, string lastName,
+            string password, string role)
         {
             var user = await userManager.FindByEmailAsync(email);
             if (user != null) return user;
@@ -50,103 +80,62 @@ namespace Infrastructure.Data.Seeding
                 EmailConfirmed = true
             };
 
-            await userManager.CreateAsync(user, $"{role}@123");
+            var result = await userManager.CreateAsync(user, password);
+            if (!result.Succeeded)
+                throw new InvalidOperationException(
+                    $"Failed to create seed user '{email}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+
             await userManager.AddToRoleAsync(user, role);
             return user;
         }
 
-        // 3. Departments
+        // 3. Departments — static data, safe to keep here
         public static async Task SeedDepartmentsAsync(ApplicationDbContext context)
         {
-            if (!context.Departments.Any())
-            {
-                var departments = new List<Department>
-                {
-                    new Department 
-                    { 
-                        Id = Guid.NewGuid(),
-                        Name = "Computer Science",
-                        Description = "The study of computers and computational systems.",
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-10), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
+            if (context.Departments.Any()) return;
 
-                    },
-                    new Department 
-                    { 
-                        Id = Guid.NewGuid(), 
-                        Name = "Mathematics", 
-                        Description = "The study of numbers, quantities, and shapes." ,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-30), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
-                    },
-                    new Department 
-                    { 
-                        Id = Guid.NewGuid(), 
-                        Name = "Physics", 
-                        Description = "The study of matter, energy, and their interactions." ,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-90), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
-                    },
-                    new Department 
-                    { 
-                        Id = Guid.NewGuid(), 
-                        Name = "Chemistry", 
-                        Description = "The study of substances and their transformations." ,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-6), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
-                    },
-                    new Department 
-                    { 
-                        Id = Guid.NewGuid(), 
-                        Name = "Biology", 
-                        Description = "The study of living organisms." ,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-20), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
-                    }
-                };
-                context.Departments.AddRange(departments);
-                await context.SaveChangesAsync();
-            }
+            var departments = new List<Department>
+            {
+                new() { Id = Guid.NewGuid(), Name = "Computer Science", Description = "The study of computers and computational systems.",     CreatedAt = DateTimeOffset.UtcNow.AddDays(-10) },
+                new() { Id = Guid.NewGuid(), Name = "Mathematics",       Description = "The study of numbers, quantities, and shapes.",          CreatedAt = DateTimeOffset.UtcNow.AddDays(-30) },
+                new() { Id = Guid.NewGuid(), Name = "Physics",           Description = "The study of matter, energy, and their interactions.",   CreatedAt = DateTimeOffset.UtcNow.AddDays(-90) },
+                new() { Id = Guid.NewGuid(), Name = "Chemistry",         Description = "The study of substances and their transformations.",     CreatedAt = DateTimeOffset.UtcNow.AddDays(-6)  },
+                new() { Id = Guid.NewGuid(), Name = "Biology",           Description = "The study of living organisms.",                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-20) }
+            };
+
+            context.Departments.AddRange(departments);
+            await context.SaveChangesAsync();
         }
 
-        public static async Task SeedInstructorsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        // 4. Instructors
+        public static async Task SeedInstructorsAsync(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IConfiguration configuration)
         {
-            if (!context.Instructors.Any())
+            if (context.Instructors.Any()) return;
+
+            var instructorEmail = configuration["SeedSettings:Instructor:Email"]
+                ?? throw new InvalidOperationException("SeedSettings:Instructor:Email is not configured.");
+
+            var instructorUser = await userManager.FindByEmailAsync(instructorEmail);
+            if (instructorUser == null)
+                throw new InvalidOperationException(
+                    $"Instructor user '{instructorEmail}' not found. Ensure users are seeded before instructors.");
+
+            var csDepartment = context.Departments.FirstOrDefault(x => x.Name == "Computer Science");
+            if (csDepartment == null)
+                throw new InvalidOperationException("Computer Science department not found. Ensure departments are seeded first.");
+
+            context.Instructors.Add(new Instructor
             {
-                var instructorUser = await userManager.FindByEmailAsync("instructor@system.com");
-                if (instructorUser == null)
-                {
-                    throw new 
-                    Exception("Instructor user not found. Please ensure the instructor user is seeded before seeding instructors.");
-                }
+                Id           = Guid.NewGuid(),
+                UserId       = instructorUser.Id,
+                DepartmentId = csDepartment.Id,
+                CreatedAt    = DateTimeOffset.UtcNow.AddDays(-15)
+            });
 
-                var instructors = new List<Instructor>
-                {
-                    new Instructor
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = instructorUser.Id,
-                        DepartmentId = context.Departments.First(x => x.Name == "Computer Science").Id,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-15), // Set a past date for CreatedAt
-                        UpdatedAt = null,
-                        DeletedAt = null,
-                        IsDeleted = false
-                    }
-                };
-
-                context.Instructors.AddRange(instructors);
-                await context.SaveChangesAsync();
-            }
+            await context.SaveChangesAsync();
         }
     }
 }
