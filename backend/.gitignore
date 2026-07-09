@@ -506,8 +506,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Uploaded files (if stored locally)
-backend/API/wwwroot/Sections/
-backend/API/wwwroot/Departments/
+wwwroot/Sections/
+wwwroot/Departments/
 wwwroot/uploads/
 wwwroot/files/
 Uploads/
