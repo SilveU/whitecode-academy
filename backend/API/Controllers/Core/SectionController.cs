@@ -1,28 +1,47 @@
+using Application.Common;
+using Application.DTOs.Core.Requests;
 using Application.Features.Sections.Commands.CreateSection;
 using Application.Features.Sections.Commands.DeleteSection;
 using Application.Features.Sections.Commands.UpdateSection;
+using Application.Features.Sections.Queries.GetSectionsByCourse;
+using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers.Core
 {
-    [Authorize(Roles = "Admin,Instructor")]
     [Route("api/[controller]")]
     public class SectionController : BaseController
     {
         private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
 
-        public SectionController(IMediator mediator)
+        public SectionController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
+            _mapper   = mapper;
+        }
+
+        // GET /api/section/by-course/{courseId}
+        [HttpGet("by-course/{courseId:guid}")]
+        [Authorize]
+        public async Task<IActionResult> GetSectionsByCourse(Guid courseId)
+        {
+            var result = await _mediator.Send(new GetSectionsByCourseQuery(courseId));
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return StatusCode(result.StatusCode, result);
         }
 
         // POST /api/section
-        // CourseId is part of the body — it's input data, not a resource identifier
+        // Multipart/form-data — VideoFile is required, PdfFile is optional
         [HttpPost]
-        public async Task<IActionResult> CreateSection([FromBody] CreateSectionCommand command)
+        [Authorize(Roles = "Admin,Instructor")]
+        public async Task<IActionResult> CreateSection([FromForm] CreateSectionRequest request)
         {
+            var command = _mapper.Map<CreateSectionCommand>(request);
             command = command with
             {
                 CurrentUserId = GetCurrentUserId(),
@@ -31,15 +50,18 @@ namespace API.Controllers.Core
 
             var result = await _mediator.Send(command);
             if (result.IsSuccess)
-                return CreatedAtAction(nameof(CreateSection), result.Value);
+                return CreatedAtAction(nameof(GetSectionsByCourse), new { courseId = result.Value!.CourseId }, result.Value);
 
             return StatusCode(result.StatusCode, result);
         }
 
         // PUT /api/section/{id}
+        // Multipart/form-data — all fields optional; only provided values are updated
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateSection(Guid id, [FromBody] UpdateSectionCommand command)
+        [Authorize(Roles = "Admin,Instructor")]
+        public async Task<IActionResult> UpdateSection(Guid id, [FromForm] UpdateSectionRequest request)
         {
+            var command = _mapper.Map<UpdateSectionCommand>(request);
             command = command with
             {
                 Id            = id,
@@ -56,6 +78,7 @@ namespace API.Controllers.Core
 
         // DELETE /api/section/{id}
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin,Instructor")]
         public async Task<IActionResult> DeleteSection(Guid id)
         {
             var result = await _mediator.Send(

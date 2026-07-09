@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers.Core
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class StudentController : BaseController
     {

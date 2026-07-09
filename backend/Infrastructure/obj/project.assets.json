@@ -1230,6 +1230,15 @@
           "buildTransitive/Mono.TextTemplating.targets": {}
         }
       },
+      "nClam/9.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.1/nClam.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/nClam.dll": {}
+        }
+      },
       "Newtonsoft.Json/13.0.3": {
         "type": "package",
         "compile": {
@@ -1517,7 +1526,10 @@
         },
         "runtime": {
           "bin/placeholder/Application.dll": {}
-        }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       },
       "Domain/1.0.0": {
         "type": "project",
@@ -3849,6 +3861,20 @@
         "readme.md"
       ]
     },
+    "nClam/9.0.0": {
+      "sha512": "kjJ9W3TJOl0VIS2lCpblfDHDZTUG7oejwx2PkjKxu6r+XSmcgBGJUMsrx2c8Utm4EfNDhjtKbJqwIzDpgog0Bw==",
+      "type": "package",
+      "path": "nclam/9.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/netstandard2.0/nClam.dll",
+        "lib/netstandard2.1/nClam.dll",
+        "nclam.9.0.0.nupkg.sha512",
+        "nclam.nuspec"
+      ]
+    },
     "Newtonsoft.Json/13.0.3": {
       "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "type": "package",
@@ -4285,7 +4311,8 @@
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 10.0.9",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.9",
       "Microsoft.EntityFrameworkCore.SqlServer >= 10.0.9",
-      "Microsoft.EntityFrameworkCore.Tools >= 10.0.9"
+      "Microsoft.EntityFrameworkCore.Tools >= 10.0.9",
+      "nClam >= 9.0.0"
     ]
   },
   "packageFolders": {
@@ -4368,6 +4395,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[10.0.9, )"
+          },
+          "nClam": {
+            "target": "Package",
+            "version": "[9.0.0, )"
           }
         },
         "imports": [
