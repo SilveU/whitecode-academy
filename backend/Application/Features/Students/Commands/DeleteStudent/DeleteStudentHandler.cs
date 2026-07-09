@@ -26,7 +26,7 @@ namespace Application.Features.Students.Commands.DeleteStudent
         {
             var student = await _studentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (student == null)
-                return Result<bool>.NotFound($"Student with ID {request.Id} not found.");
+                return Result<bool>.NotFound($"Student not found.");
 
             // Soft-delete all active enrollments first
             var enrollments = await _enrollmentRepository.GetByStudentIdAsync(request.Id);

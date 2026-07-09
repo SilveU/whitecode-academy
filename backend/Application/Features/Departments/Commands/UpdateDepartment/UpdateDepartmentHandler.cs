@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using MediatR;
 
@@ -9,12 +10,20 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
     public class UpdateDepartmentHandler : IRequestHandler<UpdateDepartmentCommand, Result<DepartmentResponse>>
     {
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IFileSecurityService _fileSecurityService;
         private readonly IMapper _mapper;
 
-        public UpdateDepartmentHandler(IDepartmentRepository departmentRepository, IMapper mapper)
+        public UpdateDepartmentHandler(
+            IDepartmentRepository departmentRepository,
+            IFileStorageService fileStorageService,
+            IFileSecurityService fileSecurityService,
+            IMapper mapper)
         {
             _departmentRepository = departmentRepository;
-            _mapper = mapper;
+            _fileStorageService   = fileStorageService;
+            _fileSecurityService  = fileSecurityService;
+            _mapper               = mapper;
         }
 
         public async Task<Result<DepartmentResponse>> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
@@ -32,8 +41,19 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             if (!string.IsNullOrEmpty(request.Description))
                 department.Description = request.Description;
 
-            if (request.ImageUrl != null)
-                department.ImageUrl = request.ImageUrl;
+            // Image file replacement
+            if (request.ImageFile != null)
+            {
+                await _fileSecurityService.ValidatePdfAsync(request.ImageFile);   // reuses image extension + size validation
+                await _fileSecurityService.ScanAsync(request.ImageFile);
+
+                // Delete old image before uploading the new one
+                if (!string.IsNullOrEmpty(department.ImageUrl))
+                    await _fileStorageService.DeleteAsync(department.ImageUrl);
+
+                var imageFolder = Path.Combine("Departments", department.Id.ToString(), "Images");
+                department.ImageUrl = await _fileStorageService.UploadAsync(request.ImageFile, imageFolder);
+            }
 
             _departmentRepository.Update(department);
             await _departmentRepository.SaveChangesAsync();

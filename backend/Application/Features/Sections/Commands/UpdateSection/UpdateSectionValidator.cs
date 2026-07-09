@@ -4,6 +4,11 @@ namespace Application.Features.Sections.Commands.UpdateSection
 {
     public class UpdateSectionValidator : AbstractValidator<UpdateSectionCommand>
     {
+        private static readonly string[] AllowedVideoExtensions = { ".mp4" };
+        private static readonly string[] AllowedPdfExtensions   = { ".pdf" };
+        private const long MaxVideoSizeBytes = 1000L * 1024 * 1024; // 1000 MB
+        private const long MaxPdfSizeBytes   = 5 * 1024 * 1024;     // 5 MB
+
         public UpdateSectionValidator()
         {
             RuleFor(x => x.Name)
@@ -14,15 +19,25 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
-            RuleFor(x => x.VideoUrl)
-                .MaximumLength(500).WithMessage("Video URL cannot exceed 500 characters.")
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("Video URL must be a valid URL.")
-                .When(x => !string.IsNullOrEmpty(x.VideoUrl));
+            // VideoFile is optional on update — validate only when provided
+            When(x => x.VideoFile != null, () =>
+            {
+                RuleFor(x => x.VideoFile!)
+                    .Must(f => AllowedVideoExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
+                    .WithMessage("Video must be an .mp4 file.")
+                    .Must(f => f.Length <= MaxVideoSizeBytes)
+                    .WithMessage("Video size cannot exceed 1000 MB.");
+            });
 
-            RuleFor(x => x.PdfUrl)
-                .MaximumLength(500).WithMessage("PDF URL cannot exceed 500 characters.")
-                .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _)).WithMessage("PDF URL must be a valid URL.")
-                .When(x => !string.IsNullOrEmpty(x.PdfUrl));
+            // PdfFile is optional — validate only when provided
+            When(x => x.PdfFile != null, () =>
+            {
+                RuleFor(x => x.PdfFile!)
+                    .Must(f => AllowedPdfExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
+                    .WithMessage("PDF must be a .pdf file.")
+                    .Must(f => f.Length <= MaxPdfSizeBytes)
+                    .WithMessage("PDF size cannot exceed 5 MB.");
+            });
 
             RuleFor(x => x)
                 .Must(x => x.EndAt > x.StartAt).WithMessage("End time must be after start time.")

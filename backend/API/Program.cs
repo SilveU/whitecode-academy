@@ -92,6 +92,8 @@ namespace API
 
             // 8. Register other services
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            builder.Services.AddScoped<IFileSecurityService, ClamAvFileScanner>();
 
             // 9. Register MediatR and scan the assembly where the Program class lives
             builder.Services.AddMediatR(cfg => 

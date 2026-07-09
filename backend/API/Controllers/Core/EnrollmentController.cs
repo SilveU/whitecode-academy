@@ -1,12 +1,14 @@
+using Application.Common;
 using Application.Features.Enrollments.Commands.CreateEnrollment;
 using Application.Features.Enrollments.Commands.DeleteEnrollment;
+using Application.Features.Enrollments.Queries.GetEnrollmentsByCourse;
+using Application.Features.Enrollments.Queries.GetEnrollmentsByStudent;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers.Core
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class EnrollmentController : BaseController
     {
@@ -15,6 +17,30 @@ namespace API.Controllers.Core
         public EnrollmentController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        // GET /api/enrollment/by-course/{courseId}
+        [HttpGet("by-course/{courseId:guid}")]
+        [Authorize(Roles = "Admin,Instructor")]
+        public async Task<IActionResult> GetEnrollmentsByCourse(Guid courseId)
+        {
+            var result = await _mediator.Send(new GetEnrollmentsByCourseQuery(courseId));
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return StatusCode(result.StatusCode, result);
+        }
+
+        // GET /api/enrollment/by-student/{studentId}
+        [HttpGet("by-student/{studentId:guid}")]
+        [Authorize]
+        public async Task<IActionResult> GetEnrollmentsByStudent(Guid studentId)
+        {
+            var result = await _mediator.Send(new GetEnrollmentsByStudentQuery(studentId));
+            if (result.IsSuccess)
+                return Ok(result.Value);
+
+            return StatusCode(result.StatusCode, result);
         }
 
         // POST /api/enrollment

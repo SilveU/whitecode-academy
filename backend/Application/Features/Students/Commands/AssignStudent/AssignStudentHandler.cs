@@ -28,7 +28,7 @@ namespace Application.Features.Students.Commands.AssignStudent
         {
             var user = await _userManager.FindByIdAsync(request.UserId);
             if (user == null)
-                return Result<StudentResponse>.NotFound($"User with ID {request.UserId} not found.");
+                return Result<StudentResponse>.NotFound($"User found.");
 
             var existingStudent = await _studentRepository.GetByUserIdAsync(request.UserId);
             if (existingStudent != null)
