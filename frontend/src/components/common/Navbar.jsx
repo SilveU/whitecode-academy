@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react'
 import BrandLogo from './BrandLogo'
+import { useAuth } from '../../context/AuthContext'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated, user, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -15,6 +18,11 @@ export default function Navbar() {
   }, [])
 
   const isHome = location.pathname === '/'
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/')
+  }
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} dir="rtl">
@@ -39,13 +47,33 @@ export default function Navbar() {
             </>
           )}
           <div className="nav-cta-mobile">
-            <Link to="/auth" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>ابدأ الآن</Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/dashboard" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>لوحة التحكم</Link>
+                <button onClick={() => { handleLogout(); setMobileOpen(false) }} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer', fontFamily: "'Cairo', sans-serif" }}>تسجيل الخروج</button>
+              </>
+            ) : (
+              <Link to="/auth" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>ابدأ الآن</Link>
+            )}
           </div>
         </div>
 
         <div className="nav-actions">
-          <Link to="/auth" className="nav-btn-outline">تسجيل الدخول</Link>
-          <Link to="/auth" className="nav-btn-primary">ابدأ مجاناً</Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard" className="nav-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <LayoutDashboard size={15} /> لوحة التحكم
+              </Link>
+              <button onClick={handleLogout} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer', fontFamily: "'Cairo', sans-serif", display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <LogOut size={14} /> خروج
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth" className="nav-btn-outline">تسجيل الدخول</Link>
+              <Link to="/auth" className="nav-btn-primary">ابدأ مجاناً</Link>
+            </>
+          )}
         </div>
 
         <button className="nav-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>

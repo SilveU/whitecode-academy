@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Mail,
   Lock,
@@ -10,6 +11,7 @@ import {
   ArrowLeft,
   Shield
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 // Password Strength helper
 function getPasswordStrength(password) {
@@ -88,6 +90,8 @@ const GitHubIcon = () => (
 
 // Login Form
 function LoginForm({ onSuccess }) {
+  const { login } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
@@ -106,27 +110,15 @@ function LoginForm({ onSuccess }) {
     setLoading(true)
     
     try {
-      const response = await fetch('/api/authentication/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({
-          identity: email,
-          password: password
-        })
-      });
+      const result = await login(email, password)
       
-      const data = await response.json().catch(() => null);
-      
-      if (!response.ok || (data && data.isAuthenticated === false)) {
+      if (!result.success) {
         setShake(true)
-        setErrorMsg(data?.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة')
+        setErrorMsg(result.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة')
         setTimeout(() => setShake(false), 600)
       } else {
-        // Success
-        onSuccess('تم تسجيل الدخول بنجاح', data?.message || 'مرحباً بعودتك، جاري تحويلك إلى المنصة')
+        // Success - redirect to dashboard
+        navigate('/dashboard')
       }
     } catch (error) {
       setShake(true)
