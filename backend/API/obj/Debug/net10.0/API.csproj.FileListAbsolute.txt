@@ -156,7 +156,6 @@ C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\API.csproj.CoreCompileInputs.cache
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\API.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\API.sourcelink.json
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\STAR4\source\repos\MVPs\WhiteCodeAcademy\backend\API\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
