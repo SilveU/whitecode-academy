@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "GOsqASZ+IQQ=",
+  "dgSpecHash": "+JPtLeadfp0=",
   "success": true,
-  "projectFilePath": "c:\\Users\\STAR4\\source\\repos\\MVPs\\WhiteCodeAcademy\\backend\\Infrastructure\\Infrastructure.csproj",
+  "projectFilePath": "C:\\Users\\STAR4\\source\\repos\\MVPs\\WhiteCodeAcademy\\backend\\Infrastructure\\Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\STAR4\\.nuget\\packages\\automapper\\16.2.0\\automapper.16.2.0.nupkg.sha512",
     "C:\\Users\\STAR4\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
