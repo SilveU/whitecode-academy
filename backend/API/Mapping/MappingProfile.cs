@@ -67,7 +67,8 @@ namespace API.Mapping
                 .ForSourceMember(src => src.ImageFile, opt => opt.DoNotValidate());
 
             // ── Section ──────────────────────────────────────────────────
-            CreateMap<Section, SectionResponse>();
+            CreateMap<Section, SectionResponse>()
+                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(x => x.DayOfWeek.ToString()));
 
             // Request → Command  (IFormFile fields map by name: VideoFile, PdfFile)
             CreateMap<CreateSectionRequest, CreateSectionCommand>()

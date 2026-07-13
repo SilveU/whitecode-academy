@@ -5,6 +5,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Validations;
 using Domain.Entites.Users;
+using FFMpegCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Infrastructure.Authentecation;
@@ -18,7 +19,8 @@ namespace API.Extentions
 {
     public static class DIExtention
     {
-        public static void AddDependencyInjectionExtention(this IServiceCollection service, IConfiguration configuration)
+        public static void AddDependencyInjectionExtention(this IServiceCollection service,
+        IConfiguration configuration, IWebHostEnvironment environment)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -61,6 +63,12 @@ namespace API.Extentions
             service.AddScoped<ISectionRepository, SectionRepository>();
             service.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
             service.AddScoped<IStudentRepository, StudentRepository>();
+
+            GlobalFFOptions.Configure(options =>
+            {
+                options.BinaryFolder = Path.Combine(environment.ContentRootPath, configuration["FFmpeg:BinaryFolder"]!);
+            });
+
         }
     }
 }

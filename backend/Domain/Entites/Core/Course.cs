@@ -8,7 +8,7 @@ namespace Domain.Entites.Core
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
 
-        public decimal TotalHours { get; set; }
+        public long TotalDurationInSeconds { get; set; }
         public int TotalSections { get; set; }
 
         public Guid InstructorId { get; set; }

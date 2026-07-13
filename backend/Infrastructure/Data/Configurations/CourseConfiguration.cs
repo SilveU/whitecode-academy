@@ -18,9 +18,8 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(500);
 
-            builder.Property(c => c.TotalHours)
-                .IsRequired()
-                .HasColumnType("decimal(18,2)");
+            builder.Property(c => c.TotalDurationInSeconds)
+                .IsRequired();
 
             builder.Property(c => c.TotalSections)
                 .IsRequired()
@@ -65,7 +64,7 @@ namespace Infrastructure.Data.Configurations
             builder.HasMany(c => c.Sections)    
                 .WithOne(s => s.Course)
                 .HasForeignKey(s => s.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

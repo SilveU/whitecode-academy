@@ -16,9 +16,6 @@ namespace Application.Features.Sections.Commands.CreateSection
 
             RuleFor(x => x.CourseId)
                 .NotEmpty().WithMessage("CourseId is required.");
-
-            RuleFor(x => x.EndAt)
-                .GreaterThan(x => x.StartAt).WithMessage("End time must be after start time.");
         }
     }
 }

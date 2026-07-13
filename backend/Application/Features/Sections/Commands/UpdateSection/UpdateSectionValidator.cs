@@ -4,7 +4,6 @@ namespace Application.Features.Sections.Commands.UpdateSection
 {
     public class UpdateSectionValidator : AbstractValidator<UpdateSectionCommand>
     {
-        private static readonly string[] AllowedVideoExtensions = { ".mp4" };
         private static readonly string[] AllowedPdfExtensions   = { ".pdf" };
         private const long MaxVideoSizeBytes = 1000L * 1024 * 1024; // 1000 MB
         private const long MaxPdfSizeBytes   = 5 * 1024 * 1024;     // 5 MB
@@ -19,16 +18,6 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.")
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
-            // VideoFile is optional on update — validate only when provided
-            When(x => x.VideoFile != null, () =>
-            {
-                RuleFor(x => x.VideoFile!)
-                    .Must(f => AllowedVideoExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
-                    .WithMessage("Video must be an .mp4 file.")
-                    .Must(f => f.Length <= MaxVideoSizeBytes)
-                    .WithMessage("Video size cannot exceed 1000 MB.");
-            });
-
             // PdfFile is optional — validate only when provided
             When(x => x.PdfFile != null, () =>
             {
@@ -38,10 +27,6 @@ namespace Application.Features.Sections.Commands.UpdateSection
                     .Must(f => f.Length <= MaxPdfSizeBytes)
                     .WithMessage("PDF size cannot exceed 5 MB.");
             });
-
-            RuleFor(x => x)
-                .Must(x => x.EndAt > x.StartAt).WithMessage("End time must be after start time.")
-                .When(x => x.StartAt.HasValue && x.EndAt.HasValue);
         }
     }
 }

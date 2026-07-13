@@ -52,28 +52,6 @@ namespace Application.Features.Sections.Commands.UpdateSection
             // Scalar field updates
             if (!string.IsNullOrEmpty(request.Name))        section.Name        = request.Name;
             if (!string.IsNullOrEmpty(request.Description)) section.Description = request.Description;
-            if (request.DayOfWeek.HasValue)                  section.DayOfWeek   = request.DayOfWeek.Value;
-
-            var newStart = request.StartAt ?? section.StartAt;
-            var newEnd   = request.EndAt   ?? section.EndAt;
-            if (newStart >= newEnd)
-                return Result<SectionResponse>.Failure("Start time must be before end time.");
-            section.StartAt = newStart;
-            section.EndAt   = newEnd;
-
-            // Video file replacement
-            if (request.VideoFile != null)
-            {
-                await _fileSecurityService.ValidateVideoAsync(request.VideoFile);
-                await _fileSecurityService.ScanAsync(request.VideoFile);
-
-                // Delete old file
-                if (!string.IsNullOrEmpty(section.VideoUrl))
-                    await _fileStorageService.DeleteAsync(section.VideoUrl);
-
-                var videoFolder = Path.Combine("Sections", section.Id.ToString(), "Videos");
-                section.VideoUrl = await _fileStorageService.UploadAsync(request.VideoFile, videoFolder);
-            }
 
             // PDF file replacement
             if (request.PdfFile != null)

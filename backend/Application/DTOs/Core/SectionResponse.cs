@@ -9,7 +9,7 @@ namespace Application.DTOs.Core
         public string? PdfUrl { get; set; }
         public TimeOnly StartAt { get; set; }
         public TimeOnly EndAt { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
+        public string DayOfWeek { get; set; } = null!;
         public Guid CourseId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
     }
