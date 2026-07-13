@@ -33,6 +33,7 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(c => c.DayOfWeek)
+                .HasConversion<string>()
                 .IsRequired();
 
             builder.Property(c => c.CreatedAt)
@@ -50,6 +51,10 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired(false);
                     
             builder.HasQueryFilter(c => !c.IsDeleted);
+
+            // Indexes
+            builder.HasIndex(c => new { c.Name, c.CourseId })
+                .IsUnique();
         }
     }
 }

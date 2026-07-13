@@ -12,9 +12,6 @@ namespace Application.Features.Sections.Commands.CreateSection
         public string Description { get; set; } = null!;
         public IFormFile VideoFile { get; set; } = null!;
         public IFormFile? PdfFile { get; set; }
-        public TimeOnly StartAt { get; set; }
-        public TimeOnly EndAt { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
         public Guid CourseId { get; set; }
 
         // Injected by the controller from the JWT — never from the request body

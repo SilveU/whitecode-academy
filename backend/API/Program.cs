@@ -18,13 +18,12 @@ namespace API
             // Add services to the container.
             // 1. Fetch the connection string (usually from appsettings.json)
 
-            builder.Services.AddDependencyInjectionExtention(builder.Configuration);
+            builder.Services.AddDependencyInjectionExtention(builder.Configuration, builder.Environment);
             builder.Services.AddAuthenticationExtention(builder.Configuration);
 
             var corsPolicy = builder.Configuration.GetValue<string>("CORS:CorsPolicy")!;
 
             builder.Services.AddCORSExtention(builder.Configuration, corsPolicy);
-
 
             // dotnet ef migrations add InitialCreate --startup-project ../API
 

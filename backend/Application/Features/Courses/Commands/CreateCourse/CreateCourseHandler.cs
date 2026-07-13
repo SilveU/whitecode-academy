@@ -48,12 +48,11 @@ namespace Application.Features.Courses.Commands.CreateCourse
             if (instructor.Department == null || instructor.DepartmentId != request.DepartmentId)
                 return Result<CourseResponse>.Failure("Instructor does not belong to the specified department.");
 
-            if (request.TotalHours <= 0 || request.TotalSections < 0)
-                return Result<CourseResponse>.Failure("Total hours must be greater than zero and total sections must be non-negative.");
-
             var course = _mapper.Map<Course>(request);
             course.InstructorId = instructor.Id;
             course.CreatedAt    = DateTimeOffset.UtcNow;
+            course.TotalDurationInSeconds = 0;
+            course.TotalSections = 0;
 
             instructor.Courses ??= new List<Course>();
             instructor.Courses.Add(course);

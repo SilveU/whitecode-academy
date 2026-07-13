@@ -44,8 +44,6 @@ namespace Application.Features.Courses.Commands.UpdateCourse
             request.DepartmentId  ??= course.DepartmentId;
             request.Name          ??= course.Name;
             request.Description   ??= course.Description;
-            request.TotalHours    ??= course.TotalHours;
-            request.TotalSections ??= course.TotalSections;
 
             // Validate the instructor/department relationship if either changed
             var targetInstructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.InstructorId.Value);
@@ -54,9 +52,6 @@ namespace Application.Features.Courses.Commands.UpdateCourse
 
             if (targetInstructor.Department == null || targetInstructor.DepartmentId != request.DepartmentId)
                 return Result<CourseResponse>.Failure("Instructor does not belong to the specified department.");
-
-            if (request.TotalHours <= 0 || request.TotalSections < 0)
-                return Result<CourseResponse>.Failure("Total hours must be greater than zero and total sections must be non-negative.");
 
             course = _mapper.Map(request, course);
             _courseRepository.Update(course);

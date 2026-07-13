@@ -68,11 +68,11 @@ namespace Infrastructure.Repositories
                 case "name":
                     query = query.OrderBy(c => c.Name);
                     break;
-                case "totalhours_asc":
-                    query = query.OrderBy(c => c.TotalHours); // Assuming TotalHours is used as a proxy for price
+                case "totaldurationinseconds_asc":
+                    query = query.OrderBy(c => c.TotalDurationInSeconds); // Assuming TotalDurationInSeconds is used as a proxy for price
                     break;
-                case "totalhours_desc":
-                    query = query.OrderByDescending(c => c.TotalHours); // Assuming TotalHours is used as a proxy for price
+                case "totaldurationinseconds_desc":
+                    query = query.OrderByDescending(c => c.TotalDurationInSeconds); // Assuming TotalDurationInSeconds is used as a proxy for price
                     break;
                 case "totalsections_asc":
                     query = query.OrderBy(c => c.TotalSections); // Assuming TotalSections is used as a proxy for sections

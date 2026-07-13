@@ -12,8 +12,5 @@ namespace Application.DTOs.Core.Requests
         public string? Description { get; set; }
         public IFormFile? VideoFile { get; set; }
         public IFormFile? PdfFile { get; set; }
-        public TimeOnly? StartAt { get; set; }
-        public TimeOnly? EndAt { get; set; }
-        public DayOfWeek? DayOfWeek { get; set; }
     }
 }
