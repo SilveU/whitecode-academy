@@ -8,10 +8,12 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Core
 {
     [Route("api/[controller]")]
+    [EnableRateLimiting("ReadPolicy")]
     public class SectionController : BaseController
     {
         private readonly IMediator _mediator;
@@ -39,6 +41,7 @@ namespace API.Controllers.Core
         // Multipart/form-data — VideoFile is required, PdfFile is optional
         [HttpPost]
         [Authorize(Roles = "Admin,Instructor")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> CreateSection([FromForm] CreateSectionRequest request)
         {
             var command = _mapper.Map<CreateSectionCommand>(request);
@@ -59,14 +62,15 @@ namespace API.Controllers.Core
         // Multipart/form-data — all fields optional; only provided values are updated
         [HttpPut("{id:guid}")]
         [Authorize(Roles = "Admin,Instructor")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> UpdateSection(Guid id, [FromForm] UpdateSectionRequest request)
         {
             var command = _mapper.Map<UpdateSectionCommand>(request);
             command = command with
             {
-                Id            = id,
+                Id = id,
                 CurrentUserId = GetCurrentUserId(),
-                IsInstructor  = User.IsInRole("Instructor")
+                IsInstructor = User.IsInRole("Instructor")
             };
 
             var result = await _mediator.Send(command);
@@ -79,6 +83,7 @@ namespace API.Controllers.Core
         // DELETE /api/section/{id}
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin,Instructor")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> DeleteSection(Guid id)
         {
             var result = await _mediator.Send(

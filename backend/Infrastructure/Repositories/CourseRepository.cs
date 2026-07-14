@@ -40,6 +40,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Course>> SearchAsync(QueryParameters query)
         {
             var queryable = _context.Courses
+                .AsNoTracking()
                 .Include(c => c.Instructor)
                     .ThenInclude(i => i.User)
                 .Include(c => c.Department)

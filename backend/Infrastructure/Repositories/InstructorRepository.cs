@@ -45,6 +45,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Instructor>> SearchAsync(QueryParameters query)
         {
             var queryable = _context.Instructors
+                .AsNoTracking()
                 .Include(i => i.User)
                 .Include(i => i.Department)
                 .Where(i => !i.IsDeleted)

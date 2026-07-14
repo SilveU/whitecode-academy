@@ -6,10 +6,12 @@ using Application.Features.Enrollments.Queries.GetEnrollmentsByStudent;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Core
 {
     [Route("api/[controller]")]
+    [EnableRateLimiting("ReadPolicy")]
     public class EnrollmentController : BaseController
     {
         private readonly IMediator _mediator;
@@ -45,14 +47,15 @@ namespace API.Controllers.Core
 
         // POST /api/enrollment
         // Only CourseId comes from the body — StudentId is resolved from the JWT inside the handler
-        [HttpPost]
+        [HttpPost("{courseId:guid}")]
         [Authorize(Roles = "User")]
-        public async Task<IActionResult> Enroll([FromBody] EnrollBody body)
+        [EnableRateLimiting("HeavyPolicy")]
+        public async Task<IActionResult> Enroll([FromQuery] Guid courseId)
         {
             var command = new CreateEnrollmentCommand
             {
                 CurrentUserId = GetCurrentUserId(),
-                CourseId      = body.CourseId
+                CourseId = courseId
             };
 
             var result = await _mediator.Send(command);
@@ -66,6 +69,7 @@ namespace API.Controllers.Core
         // Admin-only — can unenroll any student from any course
         [HttpDelete]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> Unenroll([FromQuery] Guid studentId, [FromQuery] Guid courseId)
         {
             var result = await _mediator.Send(new DeleteEnrollmentCommand(studentId, courseId));
@@ -75,10 +79,4 @@ namespace API.Controllers.Core
             return StatusCode(result.StatusCode, result);
         }
     }
-
-    /// <summary>
-    /// Only the target CourseId is accepted from the caller.
-    /// The student identity is always derived server-side from the JWT.
-    /// </summary>
-    public record EnrollBody(Guid CourseId);
 }

@@ -3,11 +3,13 @@ using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
 using Infrastructure.Helper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Authentication
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("AuthPolicy")]
     public class AuthenticationController : ControllerBase
     {
         private readonly IAuthenticationService auth;

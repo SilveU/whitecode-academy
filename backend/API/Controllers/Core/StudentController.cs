@@ -3,6 +3,7 @@ using Application.Features.Students.Commands.DeleteStudent;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Core
 {
@@ -21,6 +22,7 @@ namespace API.Controllers.Core
         // No body needed — the userId is taken from the JWT.
         [HttpPost]
         [Authorize(Roles = "User")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> AssignStudent()
         {
             var userId = GetCurrentUserId();
@@ -36,6 +38,7 @@ namespace API.Controllers.Core
         // Admin-only — soft-deletes the student profile and their enrollments
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> DeleteStudent(Guid id)
         {
             var result = await _mediator.Send(new DeleteStudentCommand(id));

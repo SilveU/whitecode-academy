@@ -38,6 +38,7 @@ namespace Infrastructure.Repositories
         public async Task<IEnumerable<Department>> SearchAsync(QueryParameters query)
         {
             var queryable = _context.Departments
+                .AsNoTracking()
                 .Where(d => !d.IsDeleted)
                 .AsQueryable();
 
