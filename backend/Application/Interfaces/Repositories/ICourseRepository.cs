@@ -1,4 +1,5 @@
 using Application.Common;
+using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using Domain.Entites.Users;
 
@@ -9,6 +10,13 @@ namespace Application.Interfaces.Repositories
         Task CreateAsync(T entity);
         Task<int> SaveChangesAsync();
         Task<T?> GetByIdAsync(Guid id);
+    }
+
+    public interface IAuditLogRepository
+    {
+        Task LogAsync(AuditLog auditLog);
+        Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityName, Guid entityId);
+        Task<IEnumerable<AuditLog>> GetByUserAsync(string userId);
     }
 
     public interface ICourseRepository : IRepository<Course>

@@ -1,3 +1,4 @@
+using API.Controllers.Common;
 using Application.Features.Students.Commands.AssignStudent;
 using Application.Features.Students.Commands.DeleteStudent;
 using MediatR;

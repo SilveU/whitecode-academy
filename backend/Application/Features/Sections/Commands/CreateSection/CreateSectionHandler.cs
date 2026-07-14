@@ -1,8 +1,10 @@
 using Application.Common;
 using Application.DTOs.Core;
+using Application.Helper;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
+using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using FFMpegCore;
 using MediatR;
@@ -18,33 +20,35 @@ namespace Application.Features.Sections.Commands.CreateSection
         private readonly IInstructorRepository _instructorRepository;
         private readonly IFileStorageService _fileStorageService;
         private readonly IFileSecurityService _fileSecurityService;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
         public CreateSectionHandler(
             ISectionRepository sectionRepository,
             ICourseRepository courseRepository,
             IInstructorRepository instructorRepository,
-            IMapper mapper,
             IFileStorageService fileStorageService,
             IFileSecurityService fileSecurityService,
-            IWebHostEnvironment environment)
+            IAuditLogRepository auditLogRepository,
+            IWebHostEnvironment environment,
+            IMapper mapper)
         {
-            _sectionRepository = sectionRepository;
-            _courseRepository = courseRepository;
+            _sectionRepository  = sectionRepository;
+            _courseRepository   = courseRepository;
             _instructorRepository = instructorRepository;
-            _mapper = mapper;
             _fileStorageService = fileStorageService;
             _fileSecurityService = fileSecurityService;
-            _environment = environment;
+            _auditLogRepository = auditLogRepository;
+            _environment        = environment;
+            _mapper             = mapper;
         }
 
         public async Task<Result<SectionResponse>> Handle(CreateSectionCommand request, CancellationToken cancellationToken)
         {
             var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.CourseId);
             if (course == null)
-                return Result<SectionResponse>.NotFound($"Course not found.");
+                return Result<SectionResponse>.NotFound("Course not found.");
 
-            // Ownership check — an Instructor can only add sections to their own courses
             if (request.IsInstructor)
             {
                 var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
@@ -56,9 +60,7 @@ namespace Application.Features.Sections.Commands.CreateSection
             }
 
             var section = _mapper.Map<Section>(request);
-
             section.Id = Guid.NewGuid();
-
 
             if (request.PdfFile != null)
             {
@@ -74,25 +76,33 @@ namespace Application.Features.Sections.Commands.CreateSection
             section.VideoUrl = await _fileStorageService.UploadAsync(request.VideoFile, videoFolder);
 
             var physicalVideoPath = Path.Combine(_environment.WebRootPath, section.VideoUrl);
-
             var mediaInfo = await FFProbe.AnalyseAsync(physicalVideoPath);
 
-            section.StartAt = TimeOnly.FromDateTime(DateTime.UtcNow);
-
-            section.EndAt = section.StartAt.Add(mediaInfo.Duration);
-
+            section.StartAt  = TimeOnly.FromDateTime(DateTime.UtcNow);
+            section.EndAt    = section.StartAt.Add(mediaInfo.Duration);
             section.DayOfWeek = DateTimeOffset.UtcNow.DayOfWeek;
-
             section.CreatedAt = DateTimeOffset.UtcNow;
 
             course.TotalDurationInSeconds += (long)mediaInfo.Duration.TotalSeconds;
-
-            course.TotalSections += 1;
+            course.TotalSections          += 1;
 
             await _sectionRepository.CreateAsync(section);
             await _sectionRepository.SaveChangesAsync();
 
-            return Result<SectionResponse>.Success(_mapper.Map<SectionResponse>(section), 201);
+            var response = _mapper.Map<SectionResponse>(section);
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId     = request.CurrentUserId,
+                Action     = "Create",
+                EntityName = nameof(Section),
+                EntityId   = section.Id,
+                OldValues  = null,
+                NewValues  = AuditSerializer.Serialize(response),
+                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
+            });
+
+            return Result<SectionResponse>.Success(response, 201);
         }
     }
 }

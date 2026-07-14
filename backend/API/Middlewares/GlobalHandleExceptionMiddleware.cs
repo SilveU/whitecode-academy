@@ -1,0 +1,96 @@
+using System.Text.Json;
+using Domain.Exceptions;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
+namespace API.Middlewares
+{
+    public class GlobalHandleExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalHandleExceptionMiddleware> _logger;
+
+        public GlobalHandleExceptionMiddleware(RequestDelegate next, ILogger<GlobalHandleExceptionMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+
+                if(context.Response. HasStarted)
+                {
+                    _logger.LogError(ex, "Response already started.");
+                    throw;
+                }
+
+                var (statusCode, message) = ex switch
+                {
+                    NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
+                    UnauthorizedAccessException => (StatusCodes.Status403Forbidden, ex.Message),
+                    ArgumentException => (StatusCodes.Status400BadRequest, "Invalid input provided."),
+                    BusinessRuleException => (StatusCodes.Status409Conflict, ex.Message),
+                    InvalidOperationException => (StatusCodes.Status409Conflict, "Operation cannot be completed due to current state."),
+                    DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The item was modified by someone else. Please reload and try again."),
+                    DbUpdateException => (StatusCodes.Status500InternalServerError, "A database update error occurred."),
+                    SqlException => (StatusCodes.Status500InternalServerError, "A database error occurred."),
+                    NullReferenceException => (StatusCodes.Status500InternalServerError, "An unexpected error occurred."),
+                    _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+                };
+
+                context.Response.Clear();
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = statusCode;
+
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    StatusCode = statusCode,
+                    Message = message
+                }));
+            }
+        }
+        private void HandleException(Exception ex)
+        {
+            if (ex is NotFoundException notFoundEx)
+                _logger.LogWarning(new EventId(1000), notFoundEx, notFoundEx.Message);
+
+            else if (ex is UnauthorizedAccessException unauthorizedEx)
+                _logger.LogWarning(new EventId(1001), unauthorizedEx, unauthorizedEx.Message);
+
+            else if (ex is ArgumentException argEx)
+                _logger.LogError(new EventId(1002), argEx, argEx.Message);
+
+            else if (ex is InvalidOperationException ioEx)
+            {
+                _logger.LogError(new EventId(1003), ioEx, "An Invalid Operation Exception occurred."
+                   + " This is usually caused by a database call that expects "
+                   + "one result, but receives none or more than one.");
+            }
+
+            else if (ex is BusinessRuleException businessEx)
+                _logger.LogWarning(new EventId(1008), businessEx, businessEx.Message);
+
+            else if (ex is SqlException sqlEx)
+                _logger.LogError(new EventId(1004), sqlEx, $"A SQL database exception occurred. Error Number {sqlEx.Number}");
+
+            else if (ex is NullReferenceException nullEx)
+                _logger.LogError(new EventId(1005), nullEx, $"A Null Reference Exception occurred. Source: {nullEx.Source}.");
+
+            else if (ex is DbUpdateConcurrencyException dbEx)
+            {
+                _logger.LogError(new EventId(1006), dbEx, "A database error occurred while trying to update your item." +
+                    " This is usually due to someone else modifying the item since you loaded it.");
+            }
+            else
+                _logger.LogError(new EventId(1007), ex, "An unhandled exception has occurred.");
+        }
+    }
+}

@@ -1,18 +1,25 @@
 using Application.Common;
 using Application.DTOs.Core;
+using Application.Helper;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
+using Domain.Entites.Audits;
+using Domain.Entites.Core;
+using FFMpegCore;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Application.Features.Sections.Commands.UpdateSection
 {
     public class UpdateSectionHandler : IRequestHandler<UpdateSectionCommand, Result<SectionResponse>>
     {
+        private readonly IWebHostEnvironment _environment;
         private readonly ISectionRepository _sectionRepository;
         private readonly IInstructorRepository _instructorRepository;
         private readonly IFileStorageService _fileStorageService;
         private readonly IFileSecurityService _fileSecurityService;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
         public UpdateSectionHandler(
@@ -20,12 +27,16 @@ namespace Application.Features.Sections.Commands.UpdateSection
             IInstructorRepository instructorRepository,
             IFileStorageService fileStorageService,
             IFileSecurityService fileSecurityService,
+            IAuditLogRepository auditLogRepository,
+            IWebHostEnvironment environment,
             IMapper mapper)
         {
-            _sectionRepository   = sectionRepository;
+            _sectionRepository    = sectionRepository;
             _instructorRepository = instructorRepository;
             _fileStorageService   = fileStorageService;
             _fileSecurityService  = fileSecurityService;
+            _auditLogRepository   = auditLogRepository;
+            _environment          = environment;
             _mapper               = mapper;
         }
 
@@ -38,7 +49,6 @@ namespace Application.Features.Sections.Commands.UpdateSection
             if (section == null)
                 return Result<SectionResponse>.NotFound($"Section with ID {request.Id} not found.");
 
-            // Ownership check
             if (request.IsInstructor)
             {
                 var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
@@ -49,9 +59,38 @@ namespace Application.Features.Sections.Commands.UpdateSection
                     return Result<SectionResponse>.Forbidden("You can only update sections of your own courses.");
             }
 
-            // Scalar field updates
-            if (!string.IsNullOrEmpty(request.Name))        section.Name        = request.Name;
-            if (!string.IsNullOrEmpty(request.Description)) section.Description = request.Description;
+            var oldValues = AuditSerializer.Serialize(_mapper.Map<SectionResponse>(section));
+
+            if (!string.IsNullOrEmpty(request.Name))        
+                section.Name = request.Name;
+
+            if (!string.IsNullOrEmpty(request.Description))
+                section.Description = request.Description;
+
+            // Video file replacement — recalculate duration from new file
+            if (request.VideoFile != null)
+            {
+                await _fileSecurityService.ValidateVideoAsync(request.VideoFile);
+                await _fileSecurityService.ScanAsync(request.VideoFile);
+
+                if (!string.IsNullOrEmpty(section.VideoUrl))
+                    await _fileStorageService.DeleteAsync(section.VideoUrl);
+
+                var videoFolder = Path.Combine("Sections", section.Id.ToString(), "Videos");
+                section.VideoUrl = await _fileStorageService.UploadAsync(request.VideoFile, videoFolder);
+
+                var physicalVideoPath = Path.Combine(_environment.WebRootPath, section.VideoUrl);
+                var mediaInfo = await FFProbe.AnalyseAsync(physicalVideoPath);
+
+                // Update course total duration: subtract old, add new
+                var oldDuration = (long)(section.EndAt - section.StartAt).TotalSeconds;
+
+                section.Course.TotalDurationInSeconds =
+                    section.Course.TotalDurationInSeconds - oldDuration + (long)mediaInfo.Duration.TotalSeconds;
+
+                section.StartAt = TimeOnly.FromDateTime(DateTime.UtcNow);
+                section.EndAt = section.StartAt.Add(mediaInfo.Duration);
+            }
 
             // PDF file replacement
             if (request.PdfFile != null)
@@ -69,7 +108,20 @@ namespace Application.Features.Sections.Commands.UpdateSection
             _sectionRepository.Update(section);
             await _sectionRepository.SaveChangesAsync();
 
-            return Result<SectionResponse>.Success(_mapper.Map<SectionResponse>(section));
+            var response = _mapper.Map<SectionResponse>(section);
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId = request.CurrentUserId,
+                Action = "Update",
+                EntityName = nameof(Section),
+                EntityId = section.Id,
+                OldValues = oldValues,
+                NewValues = AuditSerializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            });
+
+            return Result<SectionResponse>.Success(response);
         }
     }
 }

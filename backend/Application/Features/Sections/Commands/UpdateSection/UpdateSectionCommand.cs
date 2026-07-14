@@ -13,6 +13,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
         // Mapped from UpdateSectionRequest via AutoMapper
         public string? Name { get; set; }
         public string? Description { get; set; }
+        public IFormFile? VideoFile { get; set; }
         public IFormFile? PdfFile { get; set; }
 
         // Injected by the controller from the JWT — never from the request body

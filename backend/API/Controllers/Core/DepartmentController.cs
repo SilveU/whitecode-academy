@@ -1,3 +1,4 @@
+using API.Controllers.Common;
 using Application.Common;
 using Application.DTOs.Core.Requests;
 using Application.Features.Departments.Commands.CreateDepartment;

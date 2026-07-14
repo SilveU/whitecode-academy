@@ -1,7 +1,9 @@
 using Application.Common;
 using Application.DTOs.Core;
+using Application.Helper;
 using Application.Interfaces.Repositories;
 using AutoMapper;
+using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using Domain.Entites.Users;
 using MediatR;
@@ -12,13 +14,19 @@ namespace Application.Features.Courses.Commands.CreateCourse
     {
         private readonly ICourseRepository _courseRepository;
         private readonly IInstructorRepository _instructorRepository;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
-        public CreateCourseHandler(ICourseRepository courseRepository, IMapper mapper, IInstructorRepository instructorRepository)
+        public CreateCourseHandler(
+            ICourseRepository courseRepository,
+            IInstructorRepository instructorRepository,
+            IAuditLogRepository auditLogRepository,
+            IMapper mapper)
         {
             _courseRepository = courseRepository;
-            _mapper = mapper;
             _instructorRepository = instructorRepository;
+            _auditLogRepository = auditLogRepository;
+            _mapper = mapper;
         }
 
         public async Task<Result<CourseResponse>> Handle(CreateCourseCommand request, CancellationToken cancellationToken)
@@ -27,7 +35,6 @@ namespace Application.Features.Courses.Commands.CreateCourse
 
             if (request.IsInstructor)
             {
-                // The caller is an Instructor — resolve their profile from the JWT identity
                 var found = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
                 if (found == null)
                     return Result<CourseResponse>.NotFound("No instructor profile found for the current user.");
@@ -35,7 +42,6 @@ namespace Application.Features.Courses.Commands.CreateCourse
             }
             else
             {
-                // Admin creating a course on behalf of an instructor — InstructorId must be provided
                 if (!request.InstructorId.HasValue)
                     return Result<CourseResponse>.Failure("InstructorId is required when creating a course as Admin.");
 
@@ -50,7 +56,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
 
             var course = _mapper.Map<Course>(request);
             course.InstructorId = instructor.Id;
-            course.CreatedAt    = DateTimeOffset.UtcNow;
+            course.CreatedAt = DateTimeOffset.UtcNow;
             course.TotalDurationInSeconds = 0;
             course.TotalSections = 0;
 
@@ -62,6 +68,17 @@ namespace Application.Features.Courses.Commands.CreateCourse
 
             await _courseRepository.CreateAsync(course);
             await _courseRepository.SaveChangesAsync();
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId     = request.CurrentUserId,
+                Action     = "Create",
+                EntityName = nameof(Course),
+                EntityId   = course.Id,
+                OldValues  = null,
+                NewValues  = AuditSerializer.Serialize(_mapper.Map<CourseResponse>(course)),
+                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
+            });
 
             return Result<CourseResponse>.Success(_mapper.Map<CourseResponse>(course), 201);
         }
