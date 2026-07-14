@@ -31,6 +31,8 @@ namespace API
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            builder.Services.AddRateLimitConfiguration();
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -52,7 +54,14 @@ namespace API
                 app.UseSwaggerUI(); 
             }
 
+            app.UseSecurityHeaders();
             app.UseHttpsRedirection();
+
+            // Enforce HTTPS (HSTS) - Highly recommended for production
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+            }
 
             app.UseCors(corsPolicy);
 

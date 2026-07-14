@@ -1,0 +1,43 @@
+using Microsoft.AspNetCore.RateLimiting;
+
+namespace API.Extentions
+{
+    public static class RateLimitExtensions
+    {
+        public static void AddRateLimitConfiguration(this IServiceCollection services)
+        {
+            services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.AddFixedWindowLimiter("AuthPolicy", opt =>
+                {
+                    opt.PermitLimit = 10;
+                    opt.Window = TimeSpan.FromMinutes(3);
+                    opt.QueueLimit = 0;
+                });
+
+                options.AddFixedWindowLimiter("OtpPolicy", opt =>
+                {
+                    opt.PermitLimit = 5;
+                    opt.Window = TimeSpan.FromMinutes(3);
+                    opt.QueueLimit = 0;
+                });
+
+                options.AddFixedWindowLimiter("HeavyPolicy", opt =>
+                {
+                    opt.PermitLimit = 60;
+                    opt.Window = TimeSpan.FromMinutes(1);
+                    opt.QueueLimit = 0;
+                });
+
+                options.AddFixedWindowLimiter("ReadPolicy", opt =>
+                {
+                    opt.PermitLimit = 300;
+                    opt.Window = TimeSpan.FromMinutes(1);
+                    opt.QueueLimit = 0;
+                });
+            });
+
+        }
+    }
+}

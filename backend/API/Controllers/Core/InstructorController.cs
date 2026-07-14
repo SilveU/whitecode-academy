@@ -9,10 +9,12 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Core
 {
     [Route("api/[controller]")]
+    [EnableRateLimiting("ReadPolicy")]
     public class InstructorController : BaseController
     {
         private readonly IMediator _mediator;
@@ -52,6 +54,7 @@ namespace API.Controllers.Core
         // Admin assigns a registered user as an instructor.
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> AssignInstructor([FromBody] AssignInstructorRequest request)
         {
             var command = _mapper.Map<AssignInstructorCommand>(request);
@@ -66,6 +69,7 @@ namespace API.Controllers.Core
         // PUT /api/instructor/{id}
         [HttpPut("{id:guid}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> UpdateInstructor(Guid id, [FromBody] UpdateInstructorRequest request)
         {
             var command = _mapper.Map<UpdateInstructorCommand>(request);
@@ -81,6 +85,7 @@ namespace API.Controllers.Core
         // DELETE /api/instructor/{id}
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> DeleteInstructor(Guid id)
         {
             var result = await _mediator.Send(new DeleteInstructorCommand(id));

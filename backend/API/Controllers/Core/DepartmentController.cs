@@ -9,10 +9,12 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers.Core
 {
     [Route("api/[controller]")]
+    [EnableRateLimiting("ReadPolicy")]
     public class DepartmentController : BaseController
     {
         private readonly IMediator _mediator;
@@ -52,6 +54,7 @@ namespace API.Controllers.Core
         // Multipart/form-data — ImageFile is optional
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> CreateDepartment([FromForm] CreateDepartmentRequest request)
         {
             var command = _mapper.Map<CreateDepartmentCommand>(request);
@@ -67,6 +70,7 @@ namespace API.Controllers.Core
         // Multipart/form-data — all fields optional
         [HttpPut("{id:guid}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> UpdateDepartment(Guid id, [FromForm] UpdateDepartmentRequest request)
         {
             var command = _mapper.Map<UpdateDepartmentCommand>(request);
@@ -82,6 +86,7 @@ namespace API.Controllers.Core
         // DELETE /api/department/{id}
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
+        [EnableRateLimiting("HeavyPolicy")]
         public async Task<IActionResult> DeleteDepartment(Guid id)
         {
             var result = await _mediator.Send(new DeleteDepartmentCommand(id));
