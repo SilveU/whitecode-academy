@@ -3,6 +3,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Data.Seeding;
 using API.Extentions;
+using API.Middlewares;
 
 namespace API
 {
@@ -55,6 +56,9 @@ namespace API
             }
 
             app.UseSecurityHeaders();
+
+            app.UseMiddleware<GlobalHandleExceptionMiddleware>();
+
             app.UseHttpsRedirection();
 
             // Enforce HTTPS (HSTS) - Highly recommended for production
@@ -65,7 +69,12 @@ namespace API
 
             app.UseCors(corsPolicy);
 
+            app.UseStaticFiles();
+
             app.UseAuthentication();
+
+            app.UseRateLimiter();
+
             app.UseAuthorization();
 
             app.MapControllers();

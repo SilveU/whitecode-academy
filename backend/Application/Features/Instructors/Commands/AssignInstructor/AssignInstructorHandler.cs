@@ -1,7 +1,10 @@
 using Application.Common;
 using Application.DTOs.Core;
+using Application.Helper;
 using Application.Interfaces.Repositories;
 using AutoMapper;
+using Domain.Entites.Audits;
+using Domain.Entites.Enums;
 using Domain.Entites.Users;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -12,17 +15,20 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
     {
         private readonly IInstructorRepository _instructorRepository;
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
 
         public AssignInstructorHandler(
             IInstructorRepository instructorRepository,
             IDepartmentRepository departmentRepository,
+            IAuditLogRepository auditLogRepository,
             UserManager<ApplicationUser> userManager,
             IMapper mapper)
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
+            _auditLogRepository = auditLogRepository;
             _userManager = userManager;
             _mapper = mapper;
         }
@@ -46,20 +52,30 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
 
             var instructor = new Instructor
             {
-                UserId       = request.UserId,
+                UserId = request.UserId,
                 DepartmentId = request.DepartmentId,
-                CreatedAt    = DateTimeOffset.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             await _instructorRepository.CreateAsync(instructor);
-
-            // Assign role
-            await _userManager.AddToRoleAsync(user, "Instructor");
-
+            await _userManager.AddToRoleAsync(user, Role.Instructor.ToString());
             await _instructorRepository.SaveChangesAsync();
 
             var created = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(instructor.Id);
-            return Result<InstructorResponse>.Success(_mapper.Map<InstructorResponse>(created!), 201);
+            var response = _mapper.Map<InstructorResponse>(created!);
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId = "system",       // action performed by Admin; no self-reference field on command
+                Action = "Create",
+                EntityName = nameof(Instructor),
+                EntityId = instructor.Id,
+                OldValues = null,
+                NewValues = AuditSerializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            });
+
+            return Result<InstructorResponse>.Success(response, 201);
         }
     }
 }

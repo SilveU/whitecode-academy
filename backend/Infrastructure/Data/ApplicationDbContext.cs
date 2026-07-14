@@ -1,3 +1,4 @@
+using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using Domain.Entites.Users;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -15,8 +16,10 @@ namespace Infrastructure.Data
         public DbSet<Section> Sections { get; set; }
         public DbSet<Instructor> Instructors { get; set; }
         public DbSet<Student> Students { get; set; }
-
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

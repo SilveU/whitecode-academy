@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
-using Infrastructure.Helper;
+using Application.Helper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 

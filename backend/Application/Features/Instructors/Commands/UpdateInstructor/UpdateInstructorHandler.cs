@@ -1,7 +1,10 @@
 using Application.Common;
 using Application.DTOs.Core;
+using Application.Helper;
 using Application.Interfaces.Repositories;
 using AutoMapper;
+using Domain.Entites.Audits;
+using Domain.Entites.Users;
 using MediatR;
 
 namespace Application.Features.Instructors.Commands.UpdateInstructor
@@ -10,15 +13,18 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
     {
         private readonly IInstructorRepository _instructorRepository;
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
         public UpdateInstructorHandler(
             IInstructorRepository instructorRepository,
             IDepartmentRepository departmentRepository,
+            IAuditLogRepository auditLogRepository,
             IMapper mapper)
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
+            _auditLogRepository = auditLogRepository;
             _mapper = mapper;
         }
 
@@ -30,6 +36,8 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value);
             if (instructor == null)
                 return Result<InstructorResponse>.NotFound($"Instructor with ID {request.Id} not found.");
+
+            var oldValues = AuditSerializer.Serialize(_mapper.Map<InstructorResponse>(instructor));
 
             if (request.DepartmentId.HasValue)
             {
@@ -43,7 +51,20 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             _instructorRepository.Update(instructor);
             await _instructorRepository.SaveChangesAsync();
 
-            return Result<InstructorResponse>.Success(_mapper.Map<InstructorResponse>(instructor));
+            var response = _mapper.Map<InstructorResponse>(instructor);
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId = "system",
+                Action = "Update",
+                EntityName = nameof(Instructor),
+                EntityId = instructor.Id,
+                OldValues = oldValues,
+                NewValues = AuditSerializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            });
+
+            return Result<InstructorResponse>.Success(response);
         }
     }
 }

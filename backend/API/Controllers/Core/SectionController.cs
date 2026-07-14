@@ -1,4 +1,4 @@
-using Application.Common;
+using API.Controllers.Common;
 using Application.DTOs.Core.Requests;
 using Application.Features.Sections.Commands.CreateSection;
 using Application.Features.Sections.Commands.DeleteSection;
