@@ -1,48 +1,76 @@
 using Application.Common;
+using Application.Helper;
 using Application.Interfaces.Repositories;
+using Domain.Entites.Audits;
 using Domain.Entites.Users;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Instructors.Commands.DeleteInstructor
 {
     public class DeleteInstructorHandler : IRequestHandler<DeleteInstructorCommand, Result<bool>>
     {
+        private readonly ILogger<DeleteInstructorHandler> _logger;
         private readonly IInstructorRepository _instructorRepository;
         private readonly ICourseRepository _courseRepository;
+        private readonly IAuditLogRepository _auditLogRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public DeleteInstructorHandler(
             IInstructorRepository instructorRepository,
             ICourseRepository courseRepository,
-            UserManager<ApplicationUser> userManager)
+            IAuditLogRepository auditLogRepository,
+            UserManager<ApplicationUser> userManager,
+            ILogger<DeleteInstructorHandler> logger)
         {
             _instructorRepository = instructorRepository;
-            _courseRepository = courseRepository;
-            _userManager = userManager;
+            _courseRepository     = courseRepository;
+            _auditLogRepository   = auditLogRepository;
+            _userManager          = userManager;
+            _logger               = logger;
         }
 
         public async Task<Result<bool>> Handle(DeleteInstructorCommand request, CancellationToken cancellationToken)
         {
             var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (instructor == null)
+            {
+                _logger.LogWarning("Instructor {InstructorId} was not found.", request.Id);
                 return Result<bool>.NotFound($"Instructor with ID {request.Id} not found.");
+            }
 
-            // Block delete if the instructor has active courses
             var hasActiveCourses = instructor.Courses.Any(c => !c.IsDeleted);
             if (hasActiveCourses)
+            {
+                _logger.LogWarning(
+                    "Instructor {InstructorId} cannot be deleted because they have active courses.",
+                    request.Id);
                 return Result<bool>.Failure(
                     "Cannot remove this instructor because they have active courses assigned. " +
                     "Please reassign or delete those courses first.", 409);
+            }
 
             _instructorRepository.Delete(instructor);
 
-            // Remove the Instructor role from the user
             var user = await _userManager.FindByIdAsync(instructor.UserId);
             if (user != null)
                 await _userManager.RemoveFromRoleAsync(user, "Instructor");
 
             await _instructorRepository.SaveChangesAsync();
+
+            await _auditLogRepository.LogAsync(new AuditLog
+            {
+                UserId     = "system",
+                Action     = "Delete",
+                EntityName = nameof(Instructor),
+                EntityId   = instructor.Id,
+                OldValues  = null,
+                NewValues  = null,
+                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
+            });
+
+            _logger.LogInformation("Instructor {InstructorId} deleted successfully.", request.Id);
 
             return Result<bool>.Success(true);
         }

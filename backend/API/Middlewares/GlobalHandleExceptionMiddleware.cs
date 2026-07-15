@@ -26,7 +26,7 @@ namespace API.Middlewares
             {
                 HandleException(ex);
 
-                if(context.Response. HasStarted)
+                if(context.Response.HasStarted)
                 {
                     _logger.LogError(ex, "Response already started.");
                     throw;
