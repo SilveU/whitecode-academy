@@ -5,7 +5,7 @@
   display: flex;
   min-height: 100vh;
   background: var(--gray-950);
-  direction: rtl;
+  direction: ltr;
 }
 
 /* ===========================
@@ -14,12 +14,12 @@
 .dashboard-sidebar {
   width: 260px;
   background: rgba(17, 24, 39, 0.95);
-  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
   z-index: 50;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -103,7 +103,7 @@
 .sidebar-link.active::before {
   content: '';
   position: absolute;
-  right: 0;
+  left: 0;
   top: 8px;
   bottom: 8px;
   width: 3px;
@@ -191,7 +191,8 @@
    =========================== */
 .dashboard-main {
   flex: 1;
-  margin-right: 260px;
+  margin-left: 260px;
+  margin-right: 0;
   min-height: 100vh;
 }
 
@@ -272,7 +273,7 @@
 
 @media (max-width: 768px) {
   .dashboard-sidebar {
-    transform: translateX(100%);
+    transform: translateX(-100%);
   }
 
   .dashboard-sidebar.open {
@@ -284,6 +285,7 @@
   }
 
   .dashboard-main {
+    margin-left: 0;
     margin-right: 0;
   }
 
@@ -521,7 +523,7 @@
   font-family: 'Cairo', sans-serif;
   font-size: 0.85rem;
   flex: 1;
-  direction: rtl;
+  direction: ltr;
 }
 
 .search-input-wrapper input::placeholder {
@@ -539,7 +541,7 @@
 }
 
 .data-table thead th {
-  text-align: right;
+  text-align: left;
   padding: 12px 20px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -646,7 +648,7 @@
   max-height: 85vh;
   overflow-y: auto;
   animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  direction: rtl;
+  direction: ltr;
 }
 
 @keyframes modalSlideUp {
@@ -732,7 +734,7 @@
   font-size: 0.85rem;
   outline: none;
   transition: all 0.2s ease;
-  direction: rtl;
+  direction: ltr;
 }
 
 .dash-field input:focus,
@@ -753,8 +755,8 @@
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: 14px center;
-  padding-left: 36px;
+  background-position: right 14px center;
+  padding-right: 36px;
 }
 
 .dash-field-row {
