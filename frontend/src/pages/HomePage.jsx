@@ -9,7 +9,7 @@ import usePageTitle from '../hooks/usePageTitle'
 import './HomePage.css'
 
 export default function HomePage() {
-  usePageTitle('الرئيسية')
+  usePageTitle('Home')
   return (
     <div className="home-page">
       <Navbar />

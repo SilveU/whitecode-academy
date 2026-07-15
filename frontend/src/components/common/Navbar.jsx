@@ -25,7 +25,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} dir="rtl">
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} dir="ltr">
       <div className="nav-inner">
         <Link to="/" className="nav-logo">
           <BrandLogo />
@@ -35,25 +35,25 @@ export default function Navbar() {
         <div className={`nav-links ${mobileOpen ? 'open' : ''}`}>
           {isHome ? (
             <>
-              <a href="#paths" onClick={() => setMobileOpen(false)}>المسارات التعليمية</a>
-              <a href="#features" onClick={() => setMobileOpen(false)}>المميزات</a>
-              <a href="#testimonials" onClick={() => setMobileOpen(false)}>آراء الطلاب</a>
+              <a href="#paths" onClick={() => setMobileOpen(false)}>Learning Paths</a>
+              <a href="#features" onClick={() => setMobileOpen(false)}>Features</a>
+              <a href="#testimonials" onClick={() => setMobileOpen(false)}>Testimonials</a>
             </>
           ) : (
             <>
-              <Link to="/paths" onClick={() => setMobileOpen(false)}>المسارات التعليمية</Link>
-              <Link to="/about" onClick={() => setMobileOpen(false)}>عن الأكاديمية</Link>
-              <Link to="/blog" onClick={() => setMobileOpen(false)}>المدونة</Link>
+              <Link to="/paths" onClick={() => setMobileOpen(false)}>Learning Paths</Link>
+              <Link to="/about" onClick={() => setMobileOpen(false)}>About Us</Link>
+              <Link to="/blog" onClick={() => setMobileOpen(false)}>Blog</Link>
             </>
           )}
           <div className="nav-cta-mobile">
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>لوحة التحكم</Link>
-                <button onClick={() => { handleLogout(); setMobileOpen(false) }} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer', fontFamily: "'Cairo', sans-serif" }}>تسجيل الخروج</button>
+                <Link to="/dashboard" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                <button onClick={() => { handleLogout(); setMobileOpen(false) }} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer' }}>Logout</button>
               </>
             ) : (
-              <Link to="/auth" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>ابدأ الآن</Link>
+              <Link to="/auth?tab=register" className="nav-btn-primary" onClick={() => setMobileOpen(false)}>Get Started</Link>
             )}
           </div>
         </div>
@@ -62,16 +62,16 @@ export default function Navbar() {
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="nav-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <LayoutDashboard size={15} /> لوحة التحكم
+                <LayoutDashboard size={15} /> Dashboard
               </Link>
-              <button onClick={handleLogout} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer', fontFamily: "'Cairo', sans-serif", display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <LogOut size={14} /> خروج
+              <button onClick={handleLogout} className="nav-btn-outline" style={{ background: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <LogOut size={14} /> Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/auth" className="nav-btn-outline">تسجيل الدخول</Link>
-              <Link to="/auth" className="nav-btn-primary">ابدأ مجاناً</Link>
+              <Link to="/auth?tab=login" className="nav-btn-outline">Log In</Link>
+              <Link to="/auth?tab=register" className="nav-btn-primary">Start Free</Link>
             </>
           )}
         </div>

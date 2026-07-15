@@ -49,10 +49,10 @@ export default function EnrollmentsPage() {
       if (res.ok) {
         setEnrollments(Array.isArray(res.data) ? res.data : res.data?.items || res.data?.data || [])
       } else {
-        setAlert({ type: 'error', msg: res.message || 'لم يتم العثور على تسجيلات' })
+        setAlert({ type: 'error', msg: res.message || 'No enrollments found' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setLoading(false)
     }
@@ -65,12 +65,12 @@ export default function EnrollmentsPage() {
     try {
       const res = await enrollmentApi.enroll(enrollCourseId)
       if (res.ok) {
-        setAlert({ type: 'success', msg: 'تم الالتحاق بالكورس بنجاح!' })
+        setAlert({ type: 'success', msg: 'Successfully enrolled in course!' })
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الالتحاق' })
+        setAlert({ type: 'error', msg: res.message || 'Error occurred during enrollment' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setLoading(false)
     }
@@ -78,13 +78,13 @@ export default function EnrollmentsPage() {
   }
 
   const handleUnenroll = async (studentId, courseId) => {
-    if (!window.confirm('هل أنت متأكد من إلغاء التسجيل؟')) return
+    if (!window.confirm('Are you sure you want to unenroll this student?')) return
     const res = await enrollmentApi.unenroll(studentId, courseId)
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم إلغاء التسجيل بنجاح' })
+      setAlert({ type: 'success', msg: 'Unenrolled successfully' })
       setEnrollments(prev => prev.filter(e => !(e.studentId === studentId && e.courseId === courseId)))
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ' })
+      setAlert({ type: 'error', msg: res.message || 'An error occurred' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -93,8 +93,8 @@ export default function EnrollmentsPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>التسجيلات</h1>
-          <p>عرض وإدارة تسجيلات الطلاب في الكورسات</p>
+          <h1>Enrollments</h1>
+          <p>View and manage course enrollments across all students</p>
         </div>
       </div>
 
@@ -105,16 +105,16 @@ export default function EnrollmentsPage() {
         {isStudent && (
           <div className="data-table-wrapper" style={{ padding: '24px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Plus size={16} style={{ color: 'var(--green-400)' }} /> التحق بكورس
+              <Plus size={16} style={{ color: 'var(--green-400)' }} /> Enroll in Course
             </h3>
             <div className="dash-field" style={{ marginBottom: '12px' }}>
               <select value={enrollCourseId} onChange={(e) => setEnrollCourseId(e.target.value)}>
-                <option value="">اختر الكورس</option>
+                <option value="">Select a Course</option>
                 {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <button className="btn-primary" onClick={handleEnroll} disabled={!enrollCourseId || loading} style={{ width: '100%' }}>
-              التحق الآن
+              Enroll Now
             </button>
           </div>
         )}
@@ -122,13 +122,13 @@ export default function EnrollmentsPage() {
         {/* Search by student ID */}
         <div className="data-table-wrapper" style={{ padding: '24px' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Search size={16} style={{ color: '#60a5fa' }} /> بحث بمعرف الطالب
+            <Search size={16} style={{ color: '#60a5fa' }} /> Search by Student ID
           </h3>
           <div className="dash-field" style={{ marginBottom: '12px' }}>
-            <input placeholder="Student ID" value={studentIdInput} onChange={(e) => setStudentIdInput(e.target.value)} style={{ direction: 'ltr', textAlign: 'right' }} />
+            <input placeholder="Student ID" value={studentIdInput} onChange={(e) => setStudentIdInput(e.target.value)} style={{ direction: 'ltr', textAlign: 'left' }} />
           </div>
           <button className="btn-secondary" onClick={loadByStudent} disabled={loading} style={{ width: '100%' }}>
-            عرض التسجيلات
+            View Enrollments
           </button>
         </div>
       </div>
@@ -137,9 +137,9 @@ export default function EnrollmentsPage() {
       {(isAdmin || isInstructor) && (
         <div style={{ marginBottom: '20px' }}>
           <div className="dash-field" style={{ maxWidth: '360px' }}>
-            <label>عرض التسجيلات حسب الكورس</label>
+            <label>Filter Enrollments by Course</label>
             <select value={selectedCourse} onChange={(e) => { setSelectedCourse(e.target.value); loadByCourse(e.target.value) }}>
-              <option value="">— اختر كورس —</option>
+              <option value="">— Select a Course —</option>
               {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
@@ -153,28 +153,28 @@ export default function EnrollmentsPage() {
         ) : enrollments.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon"><ClipboardList size={28} /></div>
-            <h3>لا توجد تسجيلات</h3>
-            <p>اختر كورس أو ابحث بمعرف طالب لعرض التسجيلات</p>
+            <h3>No enrollments found</h3>
+            <p>Select a course or search by student ID to display enrollments</p>
           </div>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
-                <th>اسم الكورس</th>
-                <th>معرف الطالب</th>
-                <th>تاريخ التسجيل</th>
-                {isAdmin && <th>إجراءات</th>}
+                <th>Course Name</th>
+                <th>Student ID</th>
+                <th>Enrollment Date</th>
+                {isAdmin && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {enrollments.map((e) => (
                 <tr key={e.id}>
                   <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{e.courseName || '—'}</td>
-                  <td style={{ direction: 'ltr', textAlign: 'right', fontSize: '0.82rem' }}>{e.studentId}</td>
-                  <td>{e.createdAt ? new Date(e.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+                  <td style={{ direction: 'ltr', textAlign: 'left', fontSize: '0.82rem' }}>{e.studentId}</td>
+                  <td>{e.createdAt ? new Date(e.createdAt).toLocaleDateString('en-US') : '—'}</td>
                   {isAdmin && (
                     <td>
-                      <button className="btn-icon danger" title="إلغاء التسجيل" onClick={() => handleUnenroll(e.studentId, e.courseId)}>
+                      <button className="btn-icon danger" title="Unenroll" onClick={() => handleUnenroll(e.studentId, e.courseId)}>
                         <Trash2 size={15} />
                       </button>
                     </td>

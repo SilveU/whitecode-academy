@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import usePageTitle from '../../hooks/usePageTitle'
@@ -13,11 +13,11 @@ export default function PageLayout({ children, title, subtitle }) {
     <div className="page-layout">
       <Navbar />
       
-      <div className="page-header" dir="rtl">
+      <div className="page-header" dir="ltr">
         <div className="section-inner">
           <button onClick={() => navigate(-1)} className="btn-back">
-            <ArrowRight size={18} />
-            <span>رجوع</span>
+            <ArrowLeft size={18} />
+            <span>Back</span>
           </button>
           
           <div className="page-title-content">
@@ -27,7 +27,7 @@ export default function PageLayout({ children, title, subtitle }) {
         </div>
       </div>
 
-      <main className="page-content" dir="rtl">
+      <main className="page-content" dir="ltr">
         <div className="section-inner">
           {children}
         </div>

@@ -29,10 +29,10 @@ function getPasswordStrength(password) {
 
 const STRENGTH_LEVELS = [
   { cls: '', text: '', color: 'var(--text-muted)' },
-  { cls: 'weak', text: 'ضعيفة', color: '#ef4444' },
-  { cls: 'fair', text: 'متوسطة', color: '#f59e0b' },
-  { cls: 'good', text: 'جيدة', color: '#22c55e' },
-  { cls: 'strong', text: 'قوية', color: '#10b981' },
+  { cls: 'weak', text: 'Weak', color: '#ef4444' },
+  { cls: 'fair', text: 'Medium', color: '#f59e0b' },
+  { cls: 'good', text: 'Good', color: '#22c55e' },
+  { cls: 'strong', text: 'Strong', color: '#10b981' },
 ]
 
 function PasswordStrengthBar({ password }) {
@@ -100,6 +100,12 @@ function LoginForm({ onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [shake, setShake] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [socialNotice, setSocialNotice] = useState('')
+
+  const handleSocialClick = (provider) => {
+    setSocialNotice(`${provider} login is awaiting backend endpoint deployment. Please sign in with Email & Password.`)
+    setTimeout(() => setSocialNotice(''), 6000)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -116,7 +122,7 @@ function LoginForm({ onSuccess }) {
       
       if (!result.success) {
         setShake(true)
-        setErrorMsg(result.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة')
+        setErrorMsg(result.message || 'Incorrect email or password')
         setTimeout(() => setShake(false), 600)
       } else {
         // Success - redirect to dashboard
@@ -124,7 +130,7 @@ function LoginForm({ onSuccess }) {
       }
     } catch (error) {
       setShake(true)
-      setErrorMsg('حدث خطأ في الاتصال بالخادم. تأكد من تشغيل الباك اند.')
+      setErrorMsg('Server connection error. Please ensure the backend is running.')
       setTimeout(() => setShake(false), 600)
     } finally {
       setLoading(false)
@@ -138,19 +144,19 @@ function LoginForm({ onSuccess }) {
           <LogIn size={22} />
         </div>
         <div>
-          <h2>تسجيل الدخول</h2>
-          <p>أدخل بياناتك للوصول إلى حسابك</p>
+          <h2>Sign In</h2>
+          <p>Enter your credentials to access your account</p>
         </div>
       </div>
 
       <div className="input-group">
-        <label htmlFor="loginEmail">البريد الإلكتروني</label>
+        <label htmlFor="loginEmail">Email Address</label>
         <div className="input-wrapper">
           <span className="input-icon"><Mail size={18} /></span>
           <input
             type="text"
             id="loginEmail"
-            placeholder="البريد الإلكتروني أو اسم المستخدم"
+            placeholder="Email or username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -159,10 +165,10 @@ function LoginForm({ onSuccess }) {
       </div>
 
       <div className="input-group">
-        <label htmlFor="loginPassword">كلمة المرور</label>
+        <label htmlFor="loginPassword">Password</label>
         <PasswordInput
           id="loginPassword"
-          placeholder="أدخل كلمة المرور"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -173,28 +179,34 @@ function LoginForm({ onSuccess }) {
         <label className="checkbox-wrapper">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
           <span className="checkmark" />
-          <span>تذكرني</span>
+          <span>Remember me</span>
         </label>
-        <span className="forgot-link disabled-link" title="هذه الميزة قيد التطوير">نسيت كلمة المرور؟</span>
+        <span className="forgot-link disabled-link" title="This feature is coming soon">Forgot password?</span>
       </div>
 
       {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginBottom: '4px' }}>{errorMsg}</div>}
 
       <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} id="loginBtn">
-        <span className="btn-text">تسجيل الدخول</span>
+        <span className="btn-text">Sign In</span>
         <span className="btn-loader" />
       </button>
 
-      <div className="divider"><span>أو</span></div>
+      <div className="divider"><span>or</span></div>
+
+      {socialNotice && (
+        <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', color: '#fbbf24', fontSize: '0.82rem', textAlign: 'center', marginBottom: '12px', lineHeight: 1.5 }}>
+          {socialNotice}
+        </div>
+      )}
 
       <div className="social-buttons">
-        <button type="button" className="social-btn social-btn-disabled" id="googleLogin" title="تسجيل الدخول بـ Google - قريباً" disabled>
+        <button type="button" className="social-btn social-btn-disabled" id="googleLogin" title="Click for status" onClick={() => handleSocialClick('Google')}>
           <GoogleIcon /><span>Google</span>
-          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
+          <span className="coming-soon-badge"><Clock size={10} /> Soon</span>
         </button>
-        <button type="button" className="social-btn social-btn-disabled" id="githubLogin" title="تسجيل الدخول بـ GitHub - قريباً" disabled>
+        <button type="button" className="social-btn social-btn-disabled" id="githubLogin" title="Click for status" onClick={() => handleSocialClick('GitHub')}>
           <GitHubIcon /><span>GitHub</span>
-          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
+          <span className="coming-soon-badge"><Clock size={10} /> Soon</span>
         </button>
       </div>
     </form>
@@ -214,6 +226,12 @@ function RegisterForm({ onSuccess }) {
   const [shake, setShake] = useState(false)
   const [confirmError, setConfirmError] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [socialNotice, setSocialNotice] = useState('')
+
+  const handleSocialClick = (provider) => {
+    setSocialNotice(`${provider} registration is awaiting backend endpoint deployment. Please register with Email & Password.`)
+    setTimeout(() => setSocialNotice(''), 6000)
+  }
 
   const navigate = useNavigate()
 
@@ -240,7 +258,7 @@ function RegisterForm({ onSuccess }) {
 
       if (!res.ok) {
         setShake(true)
-        setApiError(res.message || 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.')
+        setApiError(res.message || 'An error occurred during registration. Please try again.')
         setTimeout(() => setShake(false), 600)
       } else {
         // Success - redirect to pending verification page (client-side)
@@ -248,7 +266,7 @@ function RegisterForm({ onSuccess }) {
       }
     } catch (err) {
       setShake(true)
-      setApiError('حدث خطأ في الاتصال بالخادم. تأكد من تشغيل الباك اند.')
+      setApiError('Server connection error. Please ensure the backend is running.')
       setTimeout(() => setShake(false), 600)
     } finally {
       setLoading(false)
@@ -262,38 +280,38 @@ function RegisterForm({ onSuccess }) {
           <UserPlus size={22} />
         </div>
         <div>
-          <h2>إنشاء حساب جديد</h2>
-          <p>سجّل الآن وابدأ رحلة التعلم</p>
+          <h2>Create New Account</h2>
+          <p>Register now and begin your learning journey</p>
         </div>
       </div>
 
       <div className="input-row">
         <div className="input-group">
-          <label htmlFor="firstName">الاسم الأول</label>
+          <label htmlFor="firstName">First Name</label>
           <div className="input-wrapper">
             <span className="input-icon"><User size={18} /></span>
-            <input type="text" id="firstName" placeholder="الاسم الأول" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            <input type="text" id="firstName" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
           </div>
         </div>
         <div className="input-group">
-          <label htmlFor="lastName">الاسم الأخير</label>
+          <label htmlFor="lastName">Last Name</label>
           <div className="input-wrapper">
             <span className="input-icon"><User size={18} /></span>
-            <input type="text" id="lastName" placeholder="الاسم الأخير" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            <input type="text" id="lastName" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
           </div>
         </div>
       </div>
 
       <div className="input-group">
-        <label htmlFor="userName">اسم المستخدم</label>
+        <label htmlFor="userName">Username</label>
         <div className="input-wrapper">
           <span className="input-icon"><User size={18} /></span>
-          <input type="text" id="userName" placeholder="مثال: youssef_99" value={userName} onChange={(e) => setUserName(e.target.value)} maxLength={30} required />
+          <input type="text" id="userName" placeholder="e.g. youssef_99" value={userName} onChange={(e) => setUserName(e.target.value)} maxLength={30} required />
         </div>
       </div>
 
       <div className="input-group">
-        <label htmlFor="registerEmail">البريد الإلكتروني</label>
+        <label htmlFor="registerEmail">Email Address</label>
         <div className="input-wrapper">
           <span className="input-icon"><Mail size={18} /></span>
           <input type="email" id="registerEmail" placeholder="example@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -301,10 +319,10 @@ function RegisterForm({ onSuccess }) {
       </div>
 
       <div className="input-group">
-        <label htmlFor="registerPassword">كلمة المرور</label>
+        <label htmlFor="registerPassword">Password</label>
         <PasswordInput
           id="registerPassword"
-          placeholder="أنشئ كلمة مرور قوية"
+          placeholder="Create a strong password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -313,15 +331,15 @@ function RegisterForm({ onSuccess }) {
       </div>
 
       <div className="input-group">
-        <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
+        <label htmlFor="confirmPassword">Confirm Password</label>
         <PasswordInput
           id="confirmPassword"
-          placeholder="أعد إدخال كلمة المرور"
+          placeholder="Re-enter your password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
         />
-        {confirmError && <span className="error-message">كلمة المرور غير متطابقة</span>}
+        {confirmError && <span className="error-message">Passwords do not match</span>}
       </div>
 
       {apiError && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginBottom: '4px', padding: '8px', background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>{apiError}</div>}
@@ -329,24 +347,30 @@ function RegisterForm({ onSuccess }) {
       <label className="checkbox-wrapper terms-checkbox">
         <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} required />
         <span className="checkmark" />
-        <span>أوافق على <Link to="/terms" target="_blank">الشروط والأحكام</Link> و<Link to="/terms" target="_blank">سياسة الخصوصية</Link></span>
+        <span>I agree to the <Link to="/terms" target="_blank">Terms & Conditions</Link> and <Link to="/terms" target="_blank">Privacy Policy</Link></span>
       </label>
 
       <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} id="registerBtn">
-        <span className="btn-text">إنشاء حساب</span>
+        <span className="btn-text">Create Account</span>
         <span className="btn-loader" />
       </button>
 
-      <div className="divider"><span>أو</span></div>
+      <div className="divider"><span>or</span></div>
+
+      {socialNotice && (
+        <div style={{ padding: '10px 14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', color: '#fbbf24', fontSize: '0.82rem', textAlign: 'center', marginBottom: '12px', lineHeight: 1.5 }}>
+          {socialNotice}
+        </div>
+      )}
 
       <div className="social-buttons">
-        <button type="button" className="social-btn social-btn-disabled" id="googleRegister" title="التسجيل بـ Google - قريباً" disabled>
+        <button type="button" className="social-btn social-btn-disabled" id="googleRegister" title="Click for status" onClick={() => handleSocialClick('Google')}>
           <GoogleIcon /><span>Google</span>
-          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
+          <span className="coming-soon-badge"><Clock size={10} /> Soon</span>
         </button>
-        <button type="button" className="social-btn social-btn-disabled" id="githubRegister" title="التسجيل بـ GitHub - قريباً" disabled>
+        <button type="button" className="social-btn social-btn-disabled" id="githubRegister" title="Click for status" onClick={() => handleSocialClick('GitHub')}>
           <GitHubIcon /><span>GitHub</span>
-          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
+          <span className="coming-soon-badge"><Clock size={10} /> Soon</span>
         </button>
       </div>
     </form>
@@ -362,14 +386,14 @@ export default function AuthForm({ activeTab, setActiveTab, onSuccess }) {
           onClick={() => setActiveTab('login')}
           type="button"
         >
-          تسجيل الدخول
+          Sign In
         </button>
         <button
           className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
           onClick={() => setActiveTab('register')}
           type="button"
         >
-          إنشاء حساب
+          Create Account
         </button>
         <div className={`tab-indicator ${activeTab === 'register' ? 'register' : ''}`} />
       </div>

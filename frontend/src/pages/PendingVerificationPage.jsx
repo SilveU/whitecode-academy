@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Mail, ArrowRight } from 'lucide-react'
+import { Mail, ArrowLeft } from 'lucide-react'
 import BackgroundAnimation from '../components/BackgroundAnimation'
 import BrandingSide from '../components/BrandingSide'
 
@@ -9,7 +9,7 @@ export default function PendingVerificationPage() {
   return (
     <>
       <BackgroundAnimation />
-      <div className="container" dir="rtl">
+      <div className="container" dir="ltr">
         <BrandingSide />
         <div className="form-side">
           <div className="form-container">
@@ -24,12 +24,12 @@ export default function PendingVerificationPage() {
                   <Mail size={40} style={{ color: 'var(--primary-color, #6366f1)' }} />
                 </div>
 
-                <h2 style={{ margin: 0 }}>تحقق من بريدك الإلكتروني</h2>
+                <h2 style={{ margin: 0 }}>Check Your Email</h2>
 
                 <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, maxWidth: '400px' }}>
-                  تم إرسال رابط التحقق إلى بريدك الإلكتروني.
+                  A verification link has been sent to your email address.
                   <br />
-                  يرجى فتح الإيميل والضغط على الرابط لتفعيل حسابك.
+                  Please open your inbox and click the link to activate your account.
                 </p>
 
                 <div style={{
@@ -39,7 +39,7 @@ export default function PendingVerificationPage() {
                   width: '100%', maxWidth: '400px'
                 }}>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
-                    💡 لم تجد الإيميل؟ تحقق من مجلد الـ Spam
+                    💡 Didn't receive the email? Check your Spam/Junk folder
                   </p>
                 </div>
 
@@ -49,8 +49,8 @@ export default function PendingVerificationPage() {
                   onClick={() => navigate('/auth')}
                 >
                   <span className="btn-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                    <ArrowRight size={18} />
-                    العودة لتسجيل الدخول
+                    <ArrowLeft size={18} />
+                    Back to Login
                   </span>
                 </button>
               </div>

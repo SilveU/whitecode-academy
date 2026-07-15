@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import BackgroundAnimation from '../components/BackgroundAnimation'
 import BrandingSide from '../components/BrandingSide'
 import AuthForm from '../components/AuthForm'
@@ -7,10 +7,24 @@ import SuccessModal from '../components/SuccessModal'
 import usePageTitle from '../hooks/usePageTitle'
 
 export default function AuthPage() {
-  usePageTitle('تسجيل الدخول')
-  const [activeTab, setActiveTab] = useState('login')
+  usePageTitle('Account Access')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') === 'register' ? 'register' : 'login'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [modal, setModal] = useState({ show: false, title: '', message: '' })
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') === 'register' ? 'register' : 'login'
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [searchParams])
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setSearchParams({ tab })
+  }
 
   const showModal = (title, message) => {
     setModal({ show: true, title, message })
@@ -24,13 +38,13 @@ export default function AuthPage() {
   return (
     <>
       <BackgroundAnimation />
-      <div className="container" dir="rtl">
+      <div className="container" dir="ltr">
         <button 
           onClick={() => navigate('/')} 
           style={{ 
             position: 'absolute', 
             top: '40px', 
-            right: '40px', 
+            left: '40px', 
             zIndex: 10,
             display: 'flex',
             alignItems: 'center',
@@ -62,15 +76,15 @@ export default function AuthPage() {
           }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
-          <span>الرئيسية</span>
+          <span>Home</span>
         </button>
         <BrandingSide />
         <div className="form-side">
           <AuthForm
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleTabChange}
             onSuccess={showModal}
           />
         </div>

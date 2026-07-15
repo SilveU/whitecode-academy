@@ -25,7 +25,7 @@ export default function BrandingSide() {
           </h1>
         </Link>
 
-        <p className="brand-tagline">منصتك الشاملة لتعلم المهارات وتطوير مستقبلك المهني</p>
+        <p className="brand-tagline">Your all-in-one platform to master modern skills and elevate your career</p>
 
         <div className="features-list">
           <div className="feature-item">
@@ -33,8 +33,8 @@ export default function BrandingSide() {
               <Briefcase size={22} />
             </div>
             <div className="feature-text">
-              <h3>مسارات مهنية</h3>
-              <p>محتوى عملي يواكب متطلبات سوق العمل</p>
+              <h3>Career Tracks</h3>
+              <p>Practical curriculum aligned with industry demand</p>
             </div>
           </div>
 
@@ -43,8 +43,8 @@ export default function BrandingSide() {
               <PenTool size={22} />
             </div>
             <div className="feature-text">
-              <h3>تطبيق عملي</h3>
-              <p>مشاريع حقيقية لتنمية مهاراتك</p>
+              <h3>Hands-on Execution</h3>
+              <p>Real-world projects to solidify your technical skills</p>
             </div>
           </div>
 
@@ -53,15 +53,15 @@ export default function BrandingSide() {
               <Award size={22} />
             </div>
             <div className="feature-text">
-              <h3>شهادات معتمدة</h3>
-              <p>شهادة إتمام لكل مسار تعليمي</p>
+              <h3>Verified Certificates</h3>
+              <p>Recognized completion certificate for every track</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="brand-footer">
-        <p>&copy; 2026 White Academy. جميع الحقوق محفوظة</p>
+        <p>&copy; 2026 White Academy. All rights reserved.</p>
       </div>
     </div>
   )

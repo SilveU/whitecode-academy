@@ -1,46 +1,46 @@
 import { Link } from 'react-router-dom'
-import { Briefcase, PenTool, TrendingUp, Monitor, Globe, Target, Clock, ArrowLeft } from 'lucide-react'
+import { Briefcase, PenTool, TrendingUp, Monitor, Globe, Target, Clock, ArrowRight } from 'lucide-react'
 
 export const PATHS = [
   {
-    title: 'إدارة الأعمال والمشاريع',
-    desc: 'تعلم استراتيجيات الإدارة، التخطيط المالي، وإدارة فرق العمل بنجاح.',
-    duration: '4 أشهر',
+    title: 'Business & Project Management',
+    desc: 'Learn management strategies, financial planning, and successful team leadership.',
+    duration: '4 Months',
     icon: <Briefcase size={22} />,
     color: '#3b82f6'
   },
   {
-    title: 'التصميم الجرافيكي وتجربة المستخدم',
-    desc: 'احترف أدوات التصميم وبناء واجهات مستخدم جذابة وعملية.',
-    duration: '6 أشهر',
+    title: 'Graphic Design & UI/UX',
+    desc: 'Master industry-standard design tools and create compelling, user-friendly digital interfaces.',
+    duration: '6 Months',
     icon: <PenTool size={22} />,
     color: '#a855f7'
   },
   {
-    title: 'التسويق الرقمي والمبيعات',
-    desc: 'استراتيجيات التسويق الحديثة، إدارة الحملات الإعلانية، وتحليل البيانات.',
-    duration: '3 أشهر',
+    title: 'Digital Marketing & Sales',
+    desc: 'Modern marketing strategies, advertising campaign management, and data analytics.',
+    duration: '3 Months',
     icon: <TrendingUp size={22} />,
     color: '#f59e0b'
   },
   {
-    title: 'المهارات التقنية والبرمجة',
-    desc: 'أساسيات التقنية، تطوير المواقع، والذكاء الاصطناعي للمبتدئين.',
-    duration: '8 أشهر',
+    title: 'Software Development & Tech',
+    desc: 'Core computer science fundamentals, web development, and AI concepts from scratch.',
+    duration: '8 Months',
     icon: <Monitor size={22} />,
     color: '#22c55e'
   },
   {
-    title: 'اللغات والتواصل الفعال',
-    desc: 'طوّر مهاراتك في اللغة الإنجليزية والتواصل المهني في بيئة العمل.',
-    duration: '5 أشهر',
+    title: 'Languages & Professional Communication',
+    desc: 'Boost your business English fluency and workplace communication skills.',
+    duration: '5 Months',
     icon: <Globe size={22} />,
     color: '#ec4899'
   },
   {
-    title: 'تطوير الذات والإنتاجية',
-    desc: 'مهارات تنظيم الوقت، التفكير النقدي، والقيادة الشخصية.',
-    duration: 'شهران',
+    title: 'Personal Development & Productivity',
+    desc: 'Time management, critical thinking, and leadership essentials for personal growth.',
+    duration: '2 Months',
     icon: <Target size={22} />,
     color: '#06b6d4'
   },
@@ -48,12 +48,12 @@ export const PATHS = [
 
 export default function PathsSection() {
   return (
-    <section className="paths-section" id="paths" dir="rtl" style={{ marginTop: '40px' }}>
+    <section className="paths-section" id="paths" dir="ltr" style={{ marginTop: '40px' }}>
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><Target size={14} /> مجالات التعلم</span>
-          <h2>استكشف مساراتنا التعليمية</h2>
-          <p>اختر المجال الذي يناسب طموحك وابدأ رحلة التطور المهني والشخصي</p>
+          <span className="section-tag"><Target size={14} /> Learning Tracks</span>
+          <h2>Explore Our Learning Paths</h2>
+          <p>Choose the domain that matches your career aspirations and start building future-proof skills</p>
         </div>
         <div className="paths-grid">
           {PATHS.map((path, i) => (
@@ -71,8 +71,8 @@ export default function PathsSection() {
               <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.6' }}>
                 {path.desc}
               </p>
-              <Link to="/auth" className="path-link">
-                تصفح المسار <ArrowLeft size={14} />
+              <Link to="/auth?tab=register" className="path-link">
+                Explore Path <ArrowRight size={14} />
               </Link>
             </div>
           ))}

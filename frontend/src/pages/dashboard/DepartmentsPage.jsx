@@ -70,13 +70,13 @@ export default function DepartmentsPage() {
 
       if (res.ok) {
         setModalOpen(false)
-        setAlert({ type: 'success', msg: editingDept ? 'تم تحديث القسم بنجاح' : 'تم إنشاء القسم بنجاح' })
+        setAlert({ type: 'success', msg: editingDept ? 'Department updated successfully' : 'Department created successfully' })
         loadDepartments()
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ' })
+        setAlert({ type: 'error', msg: res.message || 'An error occurred' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setSaving(false)
     }
@@ -84,13 +84,13 @@ export default function DepartmentsPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا القسم؟')) return
+    if (!window.confirm('Are you sure you want to delete this department?')) return
     const res = await departmentApi.delete(id)
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم حذف القسم بنجاح' })
+      setAlert({ type: 'success', msg: 'Department deleted successfully' })
       loadDepartments()
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الحذف' })
+      setAlert({ type: 'error', msg: res.message || 'Error occurred during deletion' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -99,12 +99,12 @@ export default function DepartmentsPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>الأقسام</h1>
-          <p>إدارة أقسام الأكاديمية وتنظيم الكورسات</p>
+          <h1>Departments</h1>
+          <p>Manage academy departments and categorize courses</p>
         </div>
         <div className="page-actions">
           <button className="btn-primary" onClick={openCreate}>
-            <Plus size={16} /> قسم جديد
+            <Plus size={16} /> New Department
           </button>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function DepartmentsPage() {
         <div className="data-table-header">
           <div className="search-input-wrapper">
             <Search size={16} />
-            <input placeholder="ابحث عن قسم..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+            <input placeholder="Search departments..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
           </div>
         </div>
 
@@ -124,20 +124,20 @@ export default function DepartmentsPage() {
         ) : departments.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon"><FolderTree size={28} /></div>
-            <h3>لا توجد أقسام</h3>
-            <p>ابدأ بإضافة أول قسم</p>
-            <button className="btn-primary" onClick={openCreate}><Plus size={16} /> إضافة قسم</button>
+            <h3>No departments found</h3>
+            <p>Start by creating the first department</p>
+            <button className="btn-primary" onClick={openCreate}><Plus size={16} /> Add Department</button>
           </div>
         ) : (
           <>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>اسم القسم</th>
-                  <th>الوصف</th>
-                  <th>الصورة</th>
-                  <th>تاريخ الإنشاء</th>
-                  <th>إجراءات</th>
+                  <th>Department Name</th>
+                  <th>Description</th>
+                  <th>Image</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,14 +149,14 @@ export default function DepartmentsPage() {
                       {d.imageUrl ? (
                         <img src={d.imageUrl} alt={d.name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }} />
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>بدون صورة</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No Image</span>
                       )}
                     </td>
-                    <td>{d.createdAt ? new Date(d.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td>{d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US') : '—'}</td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon" title="تعديل" onClick={() => openEdit(d)}><Edit3 size={15} /></button>
-                        <button className="btn-icon danger" title="حذف" onClick={() => handleDelete(d.id)}><Trash2 size={15} /></button>
+                        <button className="btn-icon" title="Edit" onClick={() => openEdit(d)}><Edit3 size={15} /></button>
+                        <button className="btn-icon danger" title="Delete" onClick={() => handleDelete(d.id)}><Trash2 size={15} /></button>
                       </div>
                     </td>
                   </tr>
@@ -164,10 +164,10 @@ export default function DepartmentsPage() {
               </tbody>
             </table>
             <div className="data-table-footer">
-              <span>صفحة {page} من {totalPages}</span>
+              <span>Page {page} of {totalPages}</span>
               <div className="pagination-btns">
-                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>السابق</button>
-                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>التالي</button>
+                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
               </div>
             </div>
           </>
@@ -178,23 +178,23 @@ export default function DepartmentsPage() {
         <div className="dash-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h2>{editingDept ? 'تعديل قسم' : 'قسم جديد'}</h2>
+              <h2>{editingDept ? 'Edit Department' : 'New Department'}</h2>
               <button className="dash-modal-close" onClick={() => setModalOpen(false)}><X size={18} /></button>
             </div>
             <div className="dash-modal-body">
               <div className="dash-field">
-                <label>اسم القسم</label>
-                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="مثال: قسم البرمجة" />
+                <label>Department Name</label>
+                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Software Engineering" />
               </div>
               <div className="dash-field">
-                <label>الوصف</label>
-                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="وصف القسم..." />
+                <label>Description</label>
+                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Department description..." />
               </div>
               <div className="dash-field">
-                <label>صورة القسم (اختياري)</label>
+                <label>Department Image (Optional)</label>
                 <div className="file-input-wrapper">
                   <label className="file-label" htmlFor="dept-image">
-                    <Upload size={14} /> اختر صورة
+                    <Upload size={14} /> Choose Image
                   </label>
                   <input id="dept-image" type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
                   {imageFile && <span className="file-name">{imageFile.name}</span>}
@@ -203,9 +203,9 @@ export default function DepartmentsPage() {
             </div>
             <div className="dash-modal-footer">
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'جاري الحفظ...' : (editingDept ? 'تحديث' : 'إنشاء')}
+                {saving ? 'Saving...' : (editingDept ? 'Update' : 'Create')}
               </button>
-              <button className="btn-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
+              <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>

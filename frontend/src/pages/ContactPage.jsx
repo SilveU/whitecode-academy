@@ -17,30 +17,30 @@ export default function ContactPage() {
 
   return (
     <PageLayout 
-      title="تواصل معنا" 
-      subtitle="يسعدنا الرد على استفساراتك واستقبال اقتراحاتك"
+      title="Contact Us" 
+      subtitle="We would love to hear from you and answer your inquiries"
     >
       <div className="page-text-content" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
         <div>
-          <h2>معلومات التواصل</h2>
-          <p><strong>البريد الإلكتروني:</strong><br /> hello@whiteacademy.com</p>
-          <p><strong>رقم الهاتف:</strong><br /> +971 50 123 4567</p>
-          <p><strong>العنوان:</strong><br /> دبي، الإمارات العربية المتحدة، مجمع الابتكار.</p>
+          <h2>Contact Information</h2>
+          <p><strong>Email Address:</strong><br /> hello@whiteacademy.com</p>
+          <p><strong>Phone Number:</strong><br /> +971 50 123 4567</p>
+          <p><strong>Address:</strong><br /> Dubai, United Arab Emirates, Innovation Park.</p>
         </div>
         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '30px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-          <h3 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>أرسل رسالة</h3>
+          <h3 style={{ marginBottom: '20px', color: 'var(--text-primary)' }}>Send a Message</h3>
 
           {submitted && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', marginBottom: '16px', background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '10px', color: 'var(--green-400)', fontSize: '0.85rem' }}>
               <CheckCircle2 size={16} />
-              تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.
+              Your message has been sent successfully! We will get back to you soon.
             </div>
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <input
               type="text"
-              placeholder="الاسم الكامل"
+              placeholder="Full Name"
               value={form.name}
               onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
               required
@@ -48,14 +48,14 @@ export default function ContactPage() {
             />
             <input
               type="email"
-              placeholder="البريد الإلكتروني"
+              placeholder="Email Address"
               value={form.email}
               onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
               required
               style={{ padding: '12px', background: 'var(--gray-900)', border: '1px solid var(--border)', borderRadius: '8px', color: 'white', fontFamily: "'Cairo', sans-serif" }}
             />
             <textarea
-              placeholder="رسالتك"
+              placeholder="Your Message"
               rows="4"
               value={form.message}
               onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))}
@@ -81,7 +81,7 @@ export default function ContactPage() {
               }}
             >
               <Send size={16} />
-              إرسال
+              Send Message
             </button>
           </form>
         </div>

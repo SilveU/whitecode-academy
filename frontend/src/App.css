@@ -708,6 +708,35 @@
     transform: translateY(0);
 }
 
+.social-btn-disabled {
+    cursor: pointer;
+    opacity: 0.85;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+    border-style: dashed;
+}
+
+.social-btn-disabled:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+}
+
+.coming-soon-badge {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 99px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+}
+
+
 /* ===========================
    Modal
    =========================== */

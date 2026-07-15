@@ -27,14 +27,28 @@ import EnrollmentsPage from './pages/dashboard/EnrollmentsPage'
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, initializing } = useAuth()
+  if (initializing) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)' }}>
+        <div className="spinner" />
+      </div>
+    )
+  }
   if (!isAuthenticated) return <Navigate to="/auth" replace />
   return children
 }
 
 // Redirect if already logged in
 function GuestRoute({ children }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, initializing } = useAuth()
+  if (initializing) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)' }}>
+        <div className="spinner" />
+      </div>
+    )
+  }
   if (isAuthenticated) return <Navigate to="/dashboard" replace />
   return children
 }

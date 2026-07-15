@@ -18,15 +18,15 @@ import BrandLogo from '../common/BrandLogo'
 import './DashboardLayout.css'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'الرئيسية', end: true, roles: ['Admin', 'Instructor', 'User'] },
-  { section: 'إدارة المحتوى' },
-  { to: '/dashboard/courses', icon: BookOpen, label: 'الكورسات', roles: ['Admin', 'Instructor', 'User'] },
-  { to: '/dashboard/departments', icon: FolderTree, label: 'الأقسام', roles: ['Admin'] },
-  { to: '/dashboard/sections', icon: Layers, label: 'السكشنات', roles: ['Admin', 'Instructor'] },
-  { section: 'إدارة المستخدمين' },
-  { to: '/dashboard/instructors', icon: GraduationCap, label: 'المدربين', roles: ['Admin'] },
-  { to: '/dashboard/students', icon: Users, label: 'الطلاب', roles: ['Admin', 'User'] },
-  { to: '/dashboard/enrollments', icon: ClipboardList, label: 'التسجيلات', roles: ['Admin', 'Instructor', 'User'] },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', end: true, roles: ['Admin', 'Instructor', 'User'] },
+  { section: 'Content Management' },
+  { to: '/dashboard/courses', icon: BookOpen, label: 'Courses', roles: ['Admin', 'Instructor', 'User'] },
+  { to: '/dashboard/departments', icon: FolderTree, label: 'Departments', roles: ['Admin'] },
+  { to: '/dashboard/sections', icon: Layers, label: 'Sections', roles: ['Admin', 'Instructor'] },
+  { section: 'User Management' },
+  { to: '/dashboard/instructors', icon: GraduationCap, label: 'Instructors', roles: ['Admin'] },
+  { to: '/dashboard/students', icon: Users, label: 'Students', roles: ['Admin', 'User'] },
+  { to: '/dashboard/enrollments', icon: ClipboardList, label: 'Enrollments', roles: ['Admin', 'Instructor', 'User'] },
 ]
 
 export default function DashboardLayout() {
@@ -44,10 +44,10 @@ export default function DashboardLayout() {
     : '?'
 
   const userRoleLabel = roles.includes('Admin')
-    ? 'مسؤول'
+    ? 'Administrator'
     : roles.includes('Instructor')
-    ? 'مدرب'
-    : 'طالب'
+    ? 'Instructor'
+    : 'Student'
 
   // Filter nav items based on user roles
   const filteredItems = NAV_ITEMS.filter((item) => {
@@ -120,7 +120,7 @@ export default function DashboardLayout() {
             <button
               className="sidebar-logout-btn"
               onClick={handleLogout}
-              title="تسجيل الخروج"
+              title="Logout"
             >
               <LogOut size={16} />
             </button>
@@ -138,12 +138,12 @@ export default function DashboardLayout() {
             >
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <span className="topbar-title">لوحة التحكم</span>
+            <span className="topbar-title">Dashboard</span>
           </div>
           <div className="topbar-left">
             <Link to="/" className="topbar-home-link">
               <Home size={16} />
-              <span>الصفحة الرئيسية</span>
+              <span>Home Page</span>
             </Link>
           </div>
         </header>

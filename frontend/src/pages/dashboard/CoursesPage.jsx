@@ -106,13 +106,13 @@ export default function CoursesPage() {
 
       if (res.ok) {
         setModalOpen(false)
-        setAlert({ type: 'success', msg: editingCourse ? 'تم تحديث الكورس بنجاح' : 'تم إنشاء الكورس بنجاح' })
+        setAlert({ type: 'success', msg: editingCourse ? 'Course updated successfully' : 'Course created successfully' })
         loadCourses()
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ' })
+        setAlert({ type: 'error', msg: res.message || 'An error occurred' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setSaving(false)
     }
@@ -120,13 +120,13 @@ export default function CoursesPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا الكورس؟')) return
+    if (!window.confirm('Are you sure you want to delete this course?')) return
     const res = await courseApi.delete(id)
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم حذف الكورس بنجاح' })
+      setAlert({ type: 'success', msg: 'Course deleted successfully' })
       loadCourses()
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الحذف' })
+      setAlert({ type: 'error', msg: res.message || 'Error occurred during deletion' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -135,13 +135,13 @@ export default function CoursesPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>الكورسات</h1>
-          <p>إدارة وتصفح جميع الكورسات المتاحة على المنصة</p>
+          <h1>Courses</h1>
+          <p>Browse and manage all available learning tracks and courses</p>
         </div>
         {canManage && (
           <div className="page-actions">
             <button className="btn-primary" onClick={openCreate}>
-              <Plus size={16} /> كورس جديد
+              <Plus size={16} /> New Course
             </button>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function CoursesPage() {
           <div className="search-input-wrapper">
             <Search size={16} />
             <input
-              placeholder="ابحث عن كورس..."
+              placeholder="Search courses..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             />
@@ -168,11 +168,11 @@ export default function CoursesPage() {
         ) : courses.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon"><BookOpen size={28} /></div>
-            <h3>لا توجد كورسات</h3>
-            <p>ابدأ بإضافة أول كورس على المنصة</p>
+            <h3>No courses found</h3>
+            <p>Start by adding the first course to the academy</p>
             {canManage && (
               <button className="btn-primary" onClick={openCreate}>
-                <Plus size={16} /> إضافة كورس
+                <Plus size={16} /> Add Course
               </button>
             )}
           </div>
@@ -181,12 +181,12 @@ export default function CoursesPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>اسم الكورس</th>
-                  <th>الوصف</th>
-                  <th>الساعات</th>
-                  <th>السكشنات</th>
-                  <th>تاريخ الإنشاء</th>
-                  {canManage && <th>إجراءات</th>}
+                  <th>Course Name</th>
+                  <th>Description</th>
+                  <th>Hours</th>
+                  <th>Sections</th>
+                  <th>Created Date</th>
+                  {canManage && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -195,17 +195,17 @@ export default function CoursesPage() {
                     <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</td>
                     <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.description}</td>
                     <td>
-                      <span className="badge badge-blue"><Clock size={11} /> {c.totalHours} ساعة</span>
+                      <span className="badge badge-blue"><Clock size={11} /> {c.totalHours} hrs</span>
                     </td>
                     <td>
                       <span className="badge badge-purple"><Layers size={11} /> {c.totalSections}</span>
                     </td>
-                    <td>{c.createdAt ? new Date(c.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td>{c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US') : '—'}</td>
                     {canManage && (
                       <td>
                         <div className="table-actions">
-                          <button className="btn-icon" title="تعديل" onClick={() => openEdit(c)}><Edit3 size={15} /></button>
-                          <button className="btn-icon danger" title="حذف" onClick={() => handleDelete(c.id)}><Trash2 size={15} /></button>
+                          <button className="btn-icon" title="Edit" onClick={() => openEdit(c)}><Edit3 size={15} /></button>
+                          <button className="btn-icon danger" title="Delete" onClick={() => handleDelete(c.id)}><Trash2 size={15} /></button>
                         </div>
                       </td>
                     )}
@@ -215,10 +215,10 @@ export default function CoursesPage() {
             </table>
 
             <div className="data-table-footer">
-              <span>صفحة {page} من {totalPages}</span>
+              <span>Page {page} of {totalPages}</span>
               <div className="pagination-btns">
-                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>السابق</button>
-                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>التالي</button>
+                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
               </div>
             </div>
           </>
@@ -230,40 +230,40 @@ export default function CoursesPage() {
         <div className="dash-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h2>{editingCourse ? 'تعديل كورس' : 'كورس جديد'}</h2>
+              <h2>{editingCourse ? 'Edit Course' : 'New Course'}</h2>
               <button className="dash-modal-close" onClick={() => setModalOpen(false)}><X size={18} /></button>
             </div>
             <div className="dash-modal-body">
               <div className="dash-field">
-                <label>اسم الكورس</label>
-                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="مثال: تطوير واجهات المستخدم" />
+                <label>Course Name</label>
+                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Frontend Development" />
               </div>
               <div className="dash-field">
-                <label>الوصف</label>
-                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="وصف مختصر للكورس..." />
+                <label>Description</label>
+                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description of the course..." />
               </div>
               <div className="dash-field-row">
                 <div className="dash-field">
-                  <label>إجمالي الساعات</label>
+                  <label>Total Hours</label>
                   <input type="number" value={form.totalHours} onChange={(e) => setForm(f => ({ ...f, totalHours: e.target.value }))} placeholder="0" />
                 </div>
                 <div className="dash-field">
-                  <label>عدد السكشنات</label>
+                  <label>Total Sections</label>
                   <input type="number" value={form.totalSections} onChange={(e) => setForm(f => ({ ...f, totalSections: e.target.value }))} placeholder="0" />
                 </div>
               </div>
               <div className="dash-field">
-                <label>القسم</label>
+                <label>Department</label>
                 <select value={form.departmentId} onChange={(e) => setForm(f => ({ ...f, departmentId: e.target.value }))}>
-                  <option value="">اختر القسم</option>
+                  <option value="">Select Department</option>
                   {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
               {isAdmin && (
                 <div className="dash-field">
-                  <label>المدرب</label>
+                  <label>Instructor</label>
                   <select value={form.instructorId} onChange={(e) => setForm(f => ({ ...f, instructorId: e.target.value }))}>
-                    <option value="">اختر المدرب</option>
+                    <option value="">Select Instructor</option>
                     {instructors.map(i => <option key={i.id} value={i.id}>{i.firstName} {i.lastName}</option>)}
                   </select>
                 </div>
@@ -271,9 +271,9 @@ export default function CoursesPage() {
             </div>
             <div className="dash-modal-footer">
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'جاري الحفظ...' : (editingCourse ? 'تحديث' : 'إنشاء')}
+                {saving ? 'Saving...' : (editingCourse ? 'Update' : 'Create')}
               </button>
-              <button className="btn-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
+              <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>

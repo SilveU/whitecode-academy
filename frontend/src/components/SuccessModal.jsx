@@ -29,7 +29,7 @@ export default function SuccessModal({ show, title, message, onClose }) {
         </div>
         <h3>{title}</h3>
         <p>{message}</p>
-        <button className="modal-btn" onClick={onClose}>متابعة</button>
+        <button className="modal-btn" onClick={onClose}>Continue</button>
       </div>
     </div>
   )

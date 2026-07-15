@@ -1,26 +1,26 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Search, BookOpen, Users, Star, Award, Flame } from 'lucide-react'
+import { ArrowRight, Search, BookOpen, Users, Star, Award, Flame } from 'lucide-react'
 
 export default function WelcomeBanner() {
   return (
-    <section className="welcome-banner" dir="rtl">
+    <section className="welcome-banner" dir="ltr">
       <div className="section-inner">
         <div className="welcome-grid">
           <div className="welcome-main">
             <div className="welcome-tag">
               <Flame size={14} />
-              <span>أكثر من 10,000 متعلم من جميع أنحاء العالم</span>
+              <span>Over 10,000 learners from around the globe</span>
             </div>
-            <h1>طوّر مهاراتك، <span className="text-gradient">واصنع مستقبلك</span></h1>
-            <p>منصتك الشاملة لتعلم المهارات الحديثة في الإدارة، التصميم، التسويق، والتقنية. مسارات عملية بشهادات معتمدة.</p>
+            <h1>Upgrade Your Skills, <span className="text-gradient">Shape Your Future</span></h1>
+            <p>Your comprehensive platform to master modern skills in technology, programming, management, and design. Hands-on learning paths with practical certifications.</p>
             <div className="welcome-actions">
-              <Link to="/auth" className="btn-primary-lg">
-                <span>ابدأ التعلم مجاناً</span>
-                <ArrowLeft size={16} />
+              <Link to="/auth?tab=register" className="btn-primary-lg">
+                <span>Start Learning Free</span>
+                <ArrowRight size={16} />
               </Link>
               <a href="#paths" className="btn-ghost-lg">
                 <Search size={15} />
-                <span>تصفح المسارات</span>
+                <span>Explore Paths</span>
               </a>
             </div>
           </div>
@@ -31,7 +31,7 @@ export default function WelcomeBanner() {
               </div>
               <div>
                 <div className="mini-stat-value">120+</div>
-                <div className="mini-stat-label">مسار تعليمي</div>
+                <div className="mini-stat-label">Learning Paths</div>
               </div>
             </div>
             <div className="mini-stat-card">
@@ -40,7 +40,7 @@ export default function WelcomeBanner() {
               </div>
               <div>
                 <div className="mini-stat-value">10k+</div>
-                <div className="mini-stat-label">طالب مسجّل</div>
+                <div className="mini-stat-label">Enrolled Students</div>
               </div>
             </div>
             <div className="mini-stat-card">
@@ -49,7 +49,7 @@ export default function WelcomeBanner() {
               </div>
               <div>
                 <div className="mini-stat-value">4.9</div>
-                <div className="mini-stat-label">تقييم الطلاب</div>
+                <div className="mini-stat-label">Student Rating</div>
               </div>
             </div>
             <div className="mini-stat-card">
@@ -58,7 +58,7 @@ export default function WelcomeBanner() {
               </div>
               <div>
                 <div className="mini-stat-value">15k+</div>
-                <div className="mini-stat-label">شهادة مُصدرة</div>
+                <div className="mini-stat-label">Certificates Issued</div>
               </div>
             </div>
           </div>

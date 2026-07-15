@@ -1,13 +1,13 @@
 import PageLayout from '../components/common/PageLayout'
 import { PATHS } from '../components/home/PathsSection'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Clock } from 'lucide-react'
+import { ArrowRight, Clock } from 'lucide-react'
 
 export default function PathsPage() {
   return (
     <PageLayout 
-      title="المسارات التعليمية" 
-      subtitle="اختر المجال الذي يناسب طموحك وابدأ رحلة التطور المهني"
+      title="Learning Tracks" 
+      subtitle="Select the track that aligns with your career goals and begin learning today"
     >
       <div className="paths-grid">
         {PATHS.map((path, i) => (
@@ -25,8 +25,8 @@ export default function PathsPage() {
             <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.6' }}>
               {path.desc}
             </p>
-            <Link to="/auth" className="path-link">
-              تصفح المسار <ArrowLeft size={14} />
+            <Link to="/auth?tab=register" className="path-link">
+              Explore Track <ArrowRight size={14} />
             </Link>
           </div>
         ))}

@@ -14,12 +14,12 @@ export default function StudentsPage() {
     try {
       const res = await studentApi.register()
       if (res.ok) {
-        setAlert({ type: 'success', msg: 'تم تسجيلك كطالب بنجاح! يمكنك الآن الالتحاق بالكورسات.' })
+        setAlert({ type: 'success', msg: 'Successfully registered as a student! You can now enroll in courses.' })
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء التسجيل' })
+        setAlert({ type: 'error', msg: res.message || 'Error occurred during student registration' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setLoading(false)
     }
@@ -28,13 +28,13 @@ export default function StudentsPage() {
 
   const handleDeleteStudent = async () => {
     if (!deleteId.trim()) return
-    if (!window.confirm('هل أنت متأكد من حذف هذا الطالب؟')) return
+    if (!window.confirm('Are you sure you want to delete this student?')) return
     const res = await studentApi.delete(deleteId.trim())
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم حذف الطالب بنجاح' })
+      setAlert({ type: 'success', msg: 'Student deleted successfully' })
       setDeleteId('')
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الحذف' })
+      setAlert({ type: 'error', msg: res.message || 'Error occurred during deletion' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -43,8 +43,8 @@ export default function StudentsPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>الطلاب</h1>
-          <p>إدارة الطلاب المسجلين في الأكاديمية</p>
+          <h1>Students</h1>
+          <p>Manage enrolled students in the academy</p>
         </div>
       </div>
 
@@ -59,12 +59,12 @@ export default function StudentsPage() {
                 <UserPlus size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>التسجيل كطالب</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>سجّل نفسك كطالب للالتحاق بالكورسات</p>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Register as a Student</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Enroll yourself as a student to join learning tracks</p>
               </div>
             </div>
             <button className="btn-primary" onClick={handleSelfRegister} disabled={loading} style={{ width: '100%' }}>
-              <UserPlus size={16} /> {loading ? 'جاري التسجيل...' : 'سجّل كطالب الآن'}
+              <UserPlus size={16} /> {loading ? 'Registering...' : 'Register as Student Now'}
             </button>
           </div>
         )}
@@ -77,8 +77,8 @@ export default function StudentsPage() {
                 <Trash2 size={20} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>حذف طالب</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>أدخل معرف الطالب لحذفه من المنصة</p>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Delete Student</h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Enter student ID to remove them from the platform</p>
               </div>
             </div>
             <div className="dash-field" style={{ marginBottom: '12px' }}>
@@ -86,11 +86,11 @@ export default function StudentsPage() {
                 placeholder="Student ID"
                 value={deleteId}
                 onChange={(e) => setDeleteId(e.target.value)}
-                style={{ direction: 'ltr', textAlign: 'right' }}
+                style={{ direction: 'ltr', textAlign: 'left' }}
               />
             </div>
             <button className="btn-danger" onClick={handleDeleteStudent} style={{ width: '100%', justifyContent: 'center', padding: '10px' }}>
-              <Trash2 size={16} /> حذف الطالب
+              <Trash2 size={16} /> Delete Student
             </button>
           </div>
         )}
@@ -100,11 +100,11 @@ export default function StudentsPage() {
       <div className="data-table-wrapper" style={{ padding: '24px', marginTop: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Users size={18} style={{ color: 'var(--green-400)' }} />
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>معلومات</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Information</h3>
         </div>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '10px', lineHeight: 1.7 }}>
-          يمكن للمستخدمين المسجلين تسجيل أنفسهم كطلاب، ثم الالتحاق بالكورسات المتاحة.
-          المسؤول يمكنه حذف أي طالب من المنصة.
+          Registered users can enroll themselves as students, allowing them to join available tracks.
+          Administrators have permission to remove any student from the platform.
         </p>
       </div>
     </div>

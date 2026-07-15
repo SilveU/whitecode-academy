@@ -8,7 +8,7 @@ export default function VerifyEmailPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [status, setStatus] = useState('loading')
-  const [message, setMessage] = useState('جاري التحقق من الحساب...')
+  const [message, setMessage] = useState('Verifying your account...')
   const hasFetched = useRef(false)
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function VerifyEmailPage() {
 
     if (!userId || !token) {
       setStatus('error')
-      setMessage('رابط التحقق غير صالح أو مفقود.')
+      setMessage('Verification link is invalid or missing.')
       return
     }
 
@@ -34,23 +34,23 @@ export default function VerifyEmailPage() {
       .then(data => {
         if (data.isAuthenticated) {
           setStatus('success')
-          setMessage(data.message || 'تم تأكيد حسابك بنجاح!')
+          setMessage(data.message || 'Your account has been successfully verified!')
           setTimeout(() => navigate('/'), 3000)
         } else {
           setStatus('error')
-          setMessage(data.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية.')
+          setMessage(data.message || 'Verification token is invalid or expired.')
         }
       })
       .catch(() => {
         setStatus('error')
-        setMessage('حدث خطأ أثناء الاتصال بالخادم.')
+        setMessage('Server error during verification.')
       })
   }, [searchParams, navigate])
 
   return (
     <>
       <BackgroundAnimation />
-      <div className="container" dir="rtl">
+      <div className="container" dir="ltr">
         <BrandingSide />
         <div className="form-side">
           <div className="form-container">
@@ -66,11 +66,11 @@ export default function VerifyEmailPage() {
               {status === 'success' && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                   <CheckCircle2 size={56} style={{ color: '#22c55e' }} />
-                  <h2 style={{ color: '#22c55e' }}>تم التأكيد بنجاح!</h2>
+                  <h2 style={{ color: '#22c55e' }}>Verified Successfully!</h2>
                   <p style={{ color: 'var(--text-muted)' }}>{message}</p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>سيتم تحويلك للصفحة الرئيسية...</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Redirecting to home page...</p>
                   <button className="submit-btn" onClick={() => navigate('/')}>
-                    <span className="btn-text">الصفحة الرئيسية</span>
+                    <span className="btn-text">Home Page</span>
                   </button>
                 </div>
               )}
@@ -78,10 +78,10 @@ export default function VerifyEmailPage() {
               {status === 'error' && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                   <XCircle size={56} style={{ color: '#ef4444' }} />
-                  <h2 style={{ color: '#ef4444' }}>فشل التأكيد</h2>
+                  <h2 style={{ color: '#ef4444' }}>Verification Failed</h2>
                   <p style={{ color: 'var(--text-muted)' }}>{message}</p>
                   <button className="submit-btn" onClick={() => navigate('/auth')}>
-                    <span className="btn-text">تسجيل الدخول</span>
+                    <span className="btn-text">Log In</span>
                   </button>
                 </div>
               )}

@@ -3,7 +3,7 @@ import { Plus, Search, Edit3, Trash2, Layers, X, Upload, Video, FileText } from 
 import { useAuth } from '../../context/AuthContext'
 import { sectionApi, courseApi } from '../../services/api'
 
-const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export default function SectionsPage() {
   const { isAdmin, isInstructor } = useAuth()
@@ -97,13 +97,13 @@ export default function SectionsPage() {
 
       if (res.ok) {
         setModalOpen(false)
-        setAlert({ type: 'success', msg: editingSection ? 'تم تحديث السكشن بنجاح' : 'تم إنشاء السكشن بنجاح' })
+        setAlert({ type: 'success', msg: editingSection ? 'Section updated successfully' : 'Section created successfully' })
         loadSections()
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ' })
+        setAlert({ type: 'error', msg: res.message || 'An error occurred' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setSaving(false)
     }
@@ -111,13 +111,13 @@ export default function SectionsPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا السكشن؟')) return
+    if (!window.confirm('Are you sure you want to delete this section?')) return
     const res = await sectionApi.delete(id)
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم حذف السكشن بنجاح' })
+      setAlert({ type: 'success', msg: 'Section deleted successfully' })
       loadSections()
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الحذف' })
+      setAlert({ type: 'error', msg: res.message || 'Error occurred during deletion' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -126,13 +126,13 @@ export default function SectionsPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>السكشنات</h1>
-          <p>إدارة المحتوى التعليمي: فيديوهات وملفات PDF لكل كورس</p>
+          <h1>Sections</h1>
+          <p>Manage learning content: video lectures and PDF resources for each course</p>
         </div>
         {canManage && selectedCourse && (
           <div className="page-actions">
             <button className="btn-primary" onClick={openCreate}>
-              <Plus size={16} /> سكشن جديد
+              <Plus size={16} /> New Section
             </button>
           </div>
         )}
@@ -143,9 +143,9 @@ export default function SectionsPage() {
       {/* Course selector */}
       <div style={{ marginBottom: '20px' }}>
         <div className="dash-field" style={{ maxWidth: '360px' }}>
-          <label>اختر الكورس</label>
+          <label>Select Course</label>
           <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-            <option value="">— اختر كورس لعرض السكشنات —</option>
+            <option value="">— Select a course to view sections —</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
@@ -155,8 +155,8 @@ export default function SectionsPage() {
         <div className="data-table-wrapper">
           <div className="empty-state">
             <div className="empty-state-icon"><Layers size={28} /></div>
-            <h3>اختر كورس أولاً</h3>
-            <p>حدد الكورس من القائمة أعلاه لعرض السكشنات الخاصة به</p>
+            <h3>Select a course first</h3>
+            <p>Choose a course from the dropdown above to view its content sections</p>
           </div>
         </div>
       ) : (
@@ -166,22 +166,22 @@ export default function SectionsPage() {
           ) : sections.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon"><Layers size={28} /></div>
-              <h3>لا توجد سكشنات</h3>
-              <p>ابدأ بإضافة محتوى تعليمي لهذا الكورس</p>
+              <h3>No sections found</h3>
+              <p>Start adding learning content to this course</p>
               {canManage && (
-                <button className="btn-primary" onClick={openCreate}><Plus size={16} /> إضافة سكشن</button>
+                <button className="btn-primary" onClick={openCreate}><Plus size={16} /> Add Section</button>
               )}
             </div>
           ) : (
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>الاسم</th>
-                  <th>الوصف</th>
-                  <th>اليوم</th>
-                  <th>الوقت</th>
-                  <th>المحتوى</th>
-                  {canManage && <th>إجراءات</th>}
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Day</th>
+                  <th>Time</th>
+                  <th>Content</th>
+                  {canManage && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -193,15 +193,15 @@ export default function SectionsPage() {
                     <td style={{ fontSize: '0.82rem', direction: 'ltr' }}>{s.startAt} - {s.endAt}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        {s.videoUrl && <span className="badge badge-green"><Video size={11} /> فيديو</span>}
+                        {s.videoUrl && <span className="badge badge-green"><Video size={11} /> Video</span>}
                         {s.pdfUrl && <span className="badge badge-amber"><FileText size={11} /> PDF</span>}
                       </div>
                     </td>
                     {canManage && (
                       <td>
                         <div className="table-actions">
-                          <button className="btn-icon" title="تعديل" onClick={() => openEdit(s)}><Edit3 size={15} /></button>
-                          <button className="btn-icon danger" title="حذف" onClick={() => handleDelete(s.id)}><Trash2 size={15} /></button>
+                          <button className="btn-icon" title="Edit" onClick={() => openEdit(s)}><Edit3 size={15} /></button>
+                          <button className="btn-icon danger" title="Delete" onClick={() => handleDelete(s.id)}><Trash2 size={15} /></button>
                         </div>
                       </td>
                     )}
@@ -218,53 +218,53 @@ export default function SectionsPage() {
         <div className="dash-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h2>{editingSection ? 'تعديل سكشن' : 'سكشن جديد'}</h2>
+              <h2>{editingSection ? 'Edit Section' : 'New Section'}</h2>
               <button className="dash-modal-close" onClick={() => setModalOpen(false)}><X size={18} /></button>
             </div>
             <div className="dash-modal-body">
               <div className="dash-field">
-                <label>الاسم</label>
-                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="اسم السكشن" />
+                <label>Name</label>
+                <input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Section Name" />
               </div>
               <div className="dash-field">
-                <label>الوصف</label>
-                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="وصف المحتوى..." />
+                <label>Description</label>
+                <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Content description..." />
               </div>
               <div className="dash-field">
-                <label>الكورس</label>
+                <label>Course</label>
                 <select value={form.courseId} onChange={(e) => setForm(f => ({ ...f, courseId: e.target.value }))}>
-                  <option value="">اختر الكورس</option>
+                  <option value="">Select a Course</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="dash-field-row">
                 <div className="dash-field">
-                  <label>وقت البداية</label>
+                  <label>Start Time</label>
                   <input type="time" value={form.startAt} onChange={(e) => setForm(f => ({ ...f, startAt: e.target.value }))} />
                 </div>
                 <div className="dash-field">
-                  <label>وقت النهاية</label>
+                  <label>End Time</label>
                   <input type="time" value={form.endAt} onChange={(e) => setForm(f => ({ ...f, endAt: e.target.value }))} />
                 </div>
               </div>
               <div className="dash-field">
-                <label>اليوم</label>
+                <label>Day of Week</label>
                 <select value={form.dayOfWeek} onChange={(e) => setForm(f => ({ ...f, dayOfWeek: e.target.value }))}>
                   {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                 </select>
               </div>
               <div className="dash-field">
-                <label>ملف الفيديو {!editingSection && '(مطلوب)'}</label>
+                <label>Video Lecture {!editingSection && '(Required)'}</label>
                 <div className="file-input-wrapper">
-                  <label className="file-label" htmlFor="sec-video"><Video size={14} /> اختر فيديو</label>
+                  <label className="file-label" htmlFor="sec-video"><Video size={14} /> Choose Video File</label>
                   <input id="sec-video" type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} />
                   {videoFile && <span className="file-name">{videoFile.name}</span>}
                 </div>
               </div>
               <div className="dash-field">
-                <label>ملف PDF (اختياري)</label>
+                <label>PDF Attachment (Optional)</label>
                 <div className="file-input-wrapper">
-                  <label className="file-label" htmlFor="sec-pdf"><FileText size={14} /> اختر ملف PDF</label>
+                  <label className="file-label" htmlFor="sec-pdf"><FileText size={14} /> Choose PDF File</label>
                   <input id="sec-pdf" type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} />
                   {pdfFile && <span className="file-name">{pdfFile.name}</span>}
                 </div>
@@ -272,9 +272,9 @@ export default function SectionsPage() {
             </div>
             <div className="dash-modal-footer">
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'جاري الحفظ...' : (editingSection ? 'تحديث' : 'إنشاء')}
+                {saving ? 'Saving...' : (editingSection ? 'Update' : 'Create')}
               </button>
-              <button className="btn-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
+              <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>

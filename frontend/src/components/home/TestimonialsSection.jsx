@@ -3,7 +3,7 @@ import { MessageSquare, Star } from 'lucide-react'
 function UserIcon({ size }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
   )
@@ -11,33 +11,33 @@ function UserIcon({ size }) {
 
 export const TESTIMONIALS = [
   {
-    name: 'سالم عبدالله',
-    role: 'مدير تسويق',
-    text: 'مسار التسويق الرقمي غيّر نظرتي بالكامل. المحتوى كان عملي جداً وساعدني في مضاعفة مبيعات شركتي في فترة قصيرة.',
+    name: 'Salem Abdullah',
+    role: 'Marketing Manager',
+    text: 'The digital marketing track completely changed my approach. The hands-on curriculum helped me double my company sales in a very short period.',
     rating: 5
   },
   {
-    name: 'منى حسن',
-    role: 'مصممة جرافيك',
-    text: 'الدورات هنا ليست مجرد تنظير. التطبيق العملي والمشاريع ساعدتني في بناء معرض أعمال قوي حصلت بسببه على وظيفتي الحالية.',
+    name: 'Mona Hassan',
+    role: 'Graphic Designer',
+    text: 'Courses here go way beyond theory. Real practical assignments allowed me to build a strong portfolio that landed me my current job.',
     rating: 5
   },
   {
-    name: 'كريم محمود',
-    role: 'رائد أعمال',
-    text: 'بدأت مشروعين ناشئين بفضل ما تعلمته في مسار إدارة الأعمال. المنصة توفر كل ما تحتاجه للنجاح في سوق العمل اليوم.',
+    name: 'Karim Mahmoud',
+    role: 'Entrepreneur',
+    text: 'I successfully launched two tech startups thanks to what I learned in the business management path. Highly recommended for modern careers.',
     rating: 5
   },
 ]
 
 export default function TestimonialsSection() {
   return (
-    <section className="testimonials-section" id="testimonials" dir="rtl">
+    <section className="testimonials-section" id="testimonials" dir="ltr">
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><MessageSquare size={14} /> آراء المتعلمين</span>
-          <h2>قصص نجاح نلهم بها</h2>
-          <p>تجارب حقيقية لأشخاص طوّروا مهاراتهم وحققوا أهدافهم معنا</p>
+          <span className="section-tag"><MessageSquare size={14} /> Student Testimonials</span>
+          <h2>Inspiring Success Stories</h2>
+          <p>Real experiences from ambitious individuals who leveled up their skills and careers with us</p>
         </div>
         <div className="testimonials-grid">
           {TESTIMONIALS.map((t, i) => (

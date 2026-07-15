@@ -73,9 +73,9 @@ export function AuthProvider({ children }) {
         setUserState(userData);
         return { success: true, user: userData };
       }
-      return { success: false, message: res.data?.message || res.message || 'فشل تسجيل الدخول' };
+      return { success: false, message: res.data?.message || res.message || 'Login failed' };
     } catch {
-      return { success: false, message: 'حدث خطأ في الاتصال بالخادم' };
+      return { success: false, message: 'Server connection error' };
     } finally {
       setLoading(false);
     }

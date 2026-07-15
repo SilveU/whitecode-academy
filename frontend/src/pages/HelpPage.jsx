@@ -3,23 +3,23 @@ import PageLayout from '../components/common/PageLayout'
 export default function HelpPage() {
   return (
     <PageLayout 
-      title="مركز المساعدة" 
-      subtitle="نحن هنا لمساعدتك. كيف يمكننا أن نسهل تجربتك اليوم؟"
+      title="Help Center" 
+      subtitle="We are here to support your learning journey. How can we assist you today?"
     >
       <div className="page-text-content">
-        <h2>أدلة الاستخدام السريعة</h2>
+        <h2>Quick Start Guides</h2>
         <ul>
-          <li>كيفية إنشاء حساب جديد وتفعيله.</li>
-          <li>طريقة التسجيل في مسار تعليمي ودفع الرسوم.</li>
-          <li>كيفية الوصول لشهاداتك بعد التخرج.</li>
-          <li>إعدادات الحساب وتغيير كلمة المرور.</li>
+          <li>How to create and verify your new account.</li>
+          <li>How to enroll in a learning track and manage payments.</li>
+          <li>How to download and verify your completion certificates.</li>
+          <li>Account settings and password reset procedures.</li>
         </ul>
 
-        <h2>الدعم الفني المباشر</h2>
-        <p>إذا واجهتك مشكلة تقنية في المنصة لا تتردد في التواصل معنا عبر المحادثة المباشرة (أيقونة الشات في أسفل الشاشة) أو عبر إرسال تذكرة دعم فني.</p>
+        <h2>Live Technical Support</h2>
+        <p>If you encounter any technical issues on the platform, please reach out via live chat or submit a technical support ticket through our contact page.</p>
         
-        <h2>أوقات العمل</h2>
-        <p>فريق الدعم متاح طوال أيام الأسبوع من الساعة 9 صباحاً حتى 9 مساءً بتوقيت مكة المكرمة.</p>
+        <h2>Operating Hours</h2>
+        <p>Our support team is available 7 days a week from 9:00 AM to 9:00 PM UTC.</p>
       </div>
     </PageLayout>
   )

@@ -3,44 +3,44 @@ import { GraduationCap, Award, MessageSquare, Briefcase, Target, Users } from 'l
 export const FEATURES = [
   {
     icon: <GraduationCap size={24} />,
-    title: 'محتوى شامل وحديث',
-    desc: 'مواد تعليمية مُصممة على يد خبراء وتُحدّث باستمرار لمواكبة سوق العمل.'
+    title: 'Comprehensive & Up-to-Date',
+    desc: 'Curriculum designed by industry experts and continuously updated to meet market demands.'
   },
   {
     icon: <Award size={24} />,
-    title: 'شهادات معتمدة',
-    desc: 'احصل على شهادة إتمام موثقة تعزز من سيرتك الذاتية وفرصك المهنية.'
+    title: 'Verified Certificates',
+    desc: 'Earn recognized completion certificates that bolster your CV and career opportunities.'
   },
   {
     icon: <MessageSquare size={24} />,
-    title: 'مجتمع تفاعلي',
-    desc: 'تواصل مع زملائك والمدربين، وتبادل الخبرات في بيئة تعليمية داعمة.'
+    title: 'Interactive Community',
+    desc: 'Connect with peers and instructors to exchange experiences in a collaborative learning environment.'
   },
   {
     icon: <Briefcase size={24} />,
-    title: 'تطبيق عملي',
-    desc: 'نركز على التطبيق العملي والمشاريع الحقيقية لضمان اكتساب المهارة.'
+    title: 'Hands-on Projects',
+    desc: 'We emphasize practical execution and real-world projects to ensure mastery of skills.'
   },
   {
     icon: <Target size={24} />,
-    title: 'مرونة في التعلم',
-    desc: 'تعلم بالسرعة التي تناسبك ومن أي مكان في العالم وفي أي وقت.'
+    title: 'Flexible Learning',
+    desc: 'Learn at your own pace, anytime, from anywhere around the world.'
   },
   {
     icon: <Users size={24} />,
-    title: 'توجيه مهني',
-    desc: 'جلسات إرشادية لمساعدتك في التخطيط لمسارك المهني بنجاح.'
+    title: 'Career Mentorship',
+    desc: 'Dedicated guidance and mentoring sessions to help you navigate and plan your professional path.'
   },
 ]
 
 export default function FeaturesSection() {
   return (
-    <section className="features-section" id="features" dir="rtl">
+    <section className="features-section" id="features" dir="ltr">
       <div className="section-inner">
         <div className="section-header">
-          <span className="section-tag"><Award size={14} /> لماذا تختارنا</span>
-          <h2>ما يميّز White Academy</h2>
-          <p>نوفر لك بيئة تعليمية متكاملة تساعدك على تحقيق أهدافك بأفضل الطرق</p>
+          <span className="section-tag"><Award size={14} /> Why Choose Us</span>
+          <h2>The White Academy Advantage</h2>
+          <p>We provide a comprehensive learning ecosystem designed to help you reach your goals effectively</p>
         </div>
         <div className="features-grid">
           {FEATURES.map((f, i) => (

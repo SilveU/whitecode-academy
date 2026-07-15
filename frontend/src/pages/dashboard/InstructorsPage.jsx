@@ -77,13 +77,13 @@ export default function InstructorsPage() {
 
       if (res.ok) {
         setModalOpen(false)
-        setAlert({ type: 'success', msg: editingInst ? 'تم تحديث المدرب بنجاح' : 'تم تعيين المدرب بنجاح' })
+        setAlert({ type: 'success', msg: editingInst ? 'Instructor updated successfully' : 'Instructor assigned successfully' })
         loadInstructors()
       } else {
-        setAlert({ type: 'error', msg: res.message || 'حدث خطأ' })
+        setAlert({ type: 'error', msg: res.message || 'An error occurred' })
       }
     } catch {
-      setAlert({ type: 'error', msg: 'حدث خطأ في الاتصال' })
+      setAlert({ type: 'error', msg: 'Connection error' })
     } finally {
       setSaving(false)
     }
@@ -91,13 +91,13 @@ export default function InstructorsPage() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا المدرب؟')) return
+    if (!window.confirm('Are you sure you want to remove this instructor?')) return
     const res = await instructorApi.delete(id)
     if (res.ok) {
-      setAlert({ type: 'success', msg: 'تم حذف المدرب بنجاح' })
+      setAlert({ type: 'success', msg: 'Instructor removed successfully' })
       loadInstructors()
     } else {
-      setAlert({ type: 'error', msg: res.message || 'حدث خطأ أثناء الحذف' })
+      setAlert({ type: 'error', msg: res.message || 'Error occurred during removal' })
     }
     setTimeout(() => setAlert(null), 4000)
   }
@@ -106,12 +106,12 @@ export default function InstructorsPage() {
     <div>
       <div className="page-header">
         <div className="page-header-info">
-          <h1>المدربين</h1>
-          <p>إدارة مدربي الأكاديمية وتعيين مدربين جدد</p>
+          <h1>Instructors</h1>
+          <p>Manage academy instructors and assign new faculty</p>
         </div>
         <div className="page-actions">
           <button className="btn-primary" onClick={openCreate}>
-            <Plus size={16} /> تعيين مدرب
+            <Plus size={16} /> Assign Instructor
           </button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function InstructorsPage() {
         <div className="data-table-header">
           <div className="search-input-wrapper">
             <Search size={16} />
-            <input placeholder="ابحث عن مدرب..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+            <input placeholder="Search instructors..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
           </div>
         </div>
 
@@ -131,39 +131,39 @@ export default function InstructorsPage() {
         ) : instructors.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon"><GraduationCap size={28} /></div>
-            <h3>لا يوجد مدربين</h3>
-            <p>عيّن أول مدرب على المنصة</p>
-            <button className="btn-primary" onClick={openCreate}><Plus size={16} /> تعيين مدرب</button>
+            <h3>No instructors found</h3>
+            <p>Assign the first instructor to the platform</p>
+            <button className="btn-primary" onClick={openCreate}><Plus size={16} /> Assign Instructor</button>
           </div>
         ) : (
           <>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>الاسم</th>
-                  <th>البريد الإلكتروني</th>
-                  <th>القسم</th>
-                  <th>تاريخ التعيين</th>
-                  <th>إجراءات</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Department</th>
+                  <th>Assigned Date</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {instructors.map((i) => (
                   <tr key={i.id}>
                     <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{i.firstName} {i.lastName}</td>
-                    <td style={{ direction: 'ltr', textAlign: 'right' }}>{i.email}</td>
+                    <td style={{ direction: 'ltr', textAlign: 'left' }}>{i.email}</td>
                     <td>
                       {i.departmentName ? (
                         <span className="badge badge-blue">{i.departmentName}</span>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>بدون قسم</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No Department</span>
                       )}
                     </td>
-                    <td>{i.createdAt ? new Date(i.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td>{i.createdAt ? new Date(i.createdAt).toLocaleDateString('en-US') : '—'}</td>
                     <td>
                       <div className="table-actions">
-                        <button className="btn-icon" title="تعديل" onClick={() => openEdit(i)}><Edit3 size={15} /></button>
-                        <button className="btn-icon danger" title="حذف" onClick={() => handleDelete(i.id)}><Trash2 size={15} /></button>
+                        <button className="btn-icon" title="Edit" onClick={() => openEdit(i)}><Edit3 size={15} /></button>
+                        <button className="btn-icon danger" title="Delete" onClick={() => handleDelete(i.id)}><Trash2 size={15} /></button>
                       </div>
                     </td>
                   </tr>
@@ -171,10 +171,10 @@ export default function InstructorsPage() {
               </tbody>
             </table>
             <div className="data-table-footer">
-              <span>صفحة {page} من {totalPages}</span>
+              <span>Page {page} of {totalPages}</span>
               <div className="pagination-btns">
-                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>السابق</button>
-                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>التالي</button>
+                <button className="pagination-btn" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</button>
+                <button className="pagination-btn" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
               </div>
             </div>
           </>
@@ -185,29 +185,29 @@ export default function InstructorsPage() {
         <div className="dash-modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h2>{editingInst ? 'تعديل مدرب' : 'تعيين مدرب جديد'}</h2>
+              <h2>{editingInst ? 'Edit Instructor' : 'Assign New Instructor'}</h2>
               <button className="dash-modal-close" onClick={() => setModalOpen(false)}><X size={18} /></button>
             </div>
             <div className="dash-modal-body">
               {!editingInst && (
                 <div className="dash-field">
-                  <label>User ID (معرف المستخدم)</label>
-                  <input value={form.userId} onChange={(e) => setForm(f => ({ ...f, userId: e.target.value }))} placeholder="أدخل معرف المستخدم المسجل" style={{ direction: 'ltr', textAlign: 'right' }} />
+                  <label>User ID</label>
+                  <input value={form.userId} onChange={(e) => setForm(f => ({ ...f, userId: e.target.value }))} placeholder="Enter registered user ID" style={{ direction: 'ltr', textAlign: 'left' }} />
                 </div>
               )}
               <div className="dash-field">
-                <label>القسم (اختياري)</label>
+                <label>Department (Optional)</label>
                 <select value={form.departmentId} onChange={(e) => setForm(f => ({ ...f, departmentId: e.target.value }))}>
-                  <option value="">بدون قسم</option>
+                  <option value="">No Department</option>
                   {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </div>
             </div>
             <div className="dash-modal-footer">
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? 'جاري الحفظ...' : (editingInst ? 'تحديث' : 'تعيين')}
+                {saving ? 'Saving...' : (editingInst ? 'Update' : 'Assign')}
               </button>
-              <button className="btn-secondary" onClick={() => setModalOpen(false)}>إلغاء</button>
+              <button className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
             </div>
           </div>
         </div>

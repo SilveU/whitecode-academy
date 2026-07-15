@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Home, ArrowRight } from 'lucide-react'
+import { Home, ArrowLeft } from 'lucide-react'
 import BackgroundAnimation from '../components/BackgroundAnimation'
 
 export default function NotFoundPage() {
@@ -16,7 +16,7 @@ export default function NotFoundPage() {
         minHeight: '100vh',
         textAlign: 'center',
         padding: '20px',
-        direction: 'rtl',
+        direction: 'ltr',
       }}>
         <div style={{
           fontSize: '8rem',
@@ -30,10 +30,10 @@ export default function NotFoundPage() {
           404
         </div>
         <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>
-          الصفحة غير موجودة
+          Page Not Found
         </h1>
         <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '32px', maxWidth: '400px', lineHeight: 1.7 }}>
-          الصفحة التي تبحث عنها غير موجودة أو تم نقلها. يمكنك العودة للصفحة الرئيسية.
+          The page you are looking for does not exist or has been moved. You can return to the home page.
         </p>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <Link
@@ -55,10 +55,10 @@ export default function NotFoundPage() {
             }}
           >
             <Home size={16} />
-            الصفحة الرئيسية
+            Home Page
           </Link>
           <Link
-            to="/auth"
+            to="/auth?tab=login"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -75,8 +75,8 @@ export default function NotFoundPage() {
               transition: 'all 0.3s ease',
             }}
           >
-            <ArrowRight size={16} />
-            تسجيل الدخول
+            <ArrowLeft size={16} />
+            Log In
           </Link>
         </div>
       </div>

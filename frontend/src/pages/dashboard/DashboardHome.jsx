@@ -5,7 +5,7 @@ import { courseApi, departmentApi } from '../../services/api'
 import usePageTitle from '../../hooks/usePageTitle'
 
 export default function DashboardHome() {
-  usePageTitle('لوحة التحكم')
+  usePageTitle('Dashboard')
   const { user, isAdmin, isInstructor } = useAuth()
   const [stats, setStats] = useState({ courses: '—', departments: '—' })
   const [loading, setLoading] = useState(true)
@@ -38,9 +38,9 @@ export default function DashboardHome() {
 
   const greeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return 'صباح الخير'
-    if (hour < 17) return 'مساء الخير'
-    return 'مساء الخير'
+    if (hour < 12) return 'Good Morning'
+    if (hour < 17) return 'Good Afternoon'
+    return 'Good Evening'
   }
 
   return (
@@ -50,11 +50,11 @@ export default function DashboardHome() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
           <Sparkles size={20} style={{ color: 'var(--green-400)' }} />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            {greeting()}، {user?.firstName || 'مستخدم'}!
+            {greeting()}, {user?.firstName || 'User'}!
           </h1>
         </div>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          مرحباً بك في لوحة التحكم. هنا يمكنك إدارة المحتوى ومتابعة نشاط المنصة.
+          Welcome to your dashboard. Here you can manage content and monitor platform activity.
         </p>
       </div>
 
@@ -65,7 +65,7 @@ export default function DashboardHome() {
             <BookOpen size={20} />
           </div>
           <div className="stat-card-value">{loading ? '...' : stats.courses}</div>
-          <div className="stat-card-label">الكورسات</div>
+          <div className="stat-card-label">Courses</div>
         </div>
 
         {isAdmin && (
@@ -74,7 +74,7 @@ export default function DashboardHome() {
               <FolderTree size={20} />
             </div>
             <div className="stat-card-value">{loading ? '...' : stats.departments}</div>
-            <div className="stat-card-label">الأقسام</div>
+            <div className="stat-card-label">Departments</div>
           </div>
         )}
 
@@ -83,7 +83,7 @@ export default function DashboardHome() {
             <Users size={20} />
           </div>
           <div className="stat-card-value">—</div>
-          <div className="stat-card-label">الطلاب</div>
+          <div className="stat-card-label">Students</div>
         </div>
 
         <div className="stat-card">
@@ -91,7 +91,7 @@ export default function DashboardHome() {
             <ClipboardList size={20} />
           </div>
           <div className="stat-card-value">—</div>
-          <div className="stat-card-label">التسجيلات</div>
+          <div className="stat-card-label">Enrollments</div>
         </div>
       </div>
 
@@ -99,14 +99,14 @@ export default function DashboardHome() {
       <div className="data-table-wrapper" style={{ padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <TrendingUp size={18} style={{ color: 'var(--green-400)' }} />
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>نصائح سريعة</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Quick Tips</h3>
         </div>
         <div style={{ display: 'grid', gap: '12px' }}>
           {(isAdmin || isInstructor) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid var(--border)' }}>
               <BookOpen size={16} style={{ color: 'var(--green-400)', flexShrink: 0 }} />
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                يمكنك إضافة كورسات جديدة من صفحة "الكورسات" ← اضغط على "كورس جديد"
+                You can add new courses from the "Courses" page → click "New Course"
               </span>
             </div>
           )}
@@ -114,14 +114,14 @@ export default function DashboardHome() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid var(--border)' }}>
               <FolderTree size={16} style={{ color: '#60a5fa', flexShrink: 0 }} />
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                أنشئ أقسام لتنظيم الكورسات وعيّن مدربين لكل قسم
+                Create departments to organize courses and assign instructors to each department
               </span>
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid var(--border)' }}>
             <ClipboardList size={16} style={{ color: '#fbbf24', flexShrink: 0 }} />
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              تابع تسجيلات الطلاب في الكورسات من صفحة "التسجيلات"
+              Track student enrollments across all courses from the "Enrollments" page
             </span>
           </div>
         </div>
