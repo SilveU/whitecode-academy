@@ -12,8 +12,8 @@ namespace Application.Helper
     {
         private static readonly JsonSerializerOptions Options = new()
         {
-            ReferenceHandler    = ReferenceHandler.IgnoreCycles,
-            WriteIndented       = false,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles,
+            WriteIndented = false,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 

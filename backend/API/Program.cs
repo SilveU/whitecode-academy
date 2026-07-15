@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Infrastructure.Data.Seeding;
 using API.Extentions;
 using API.Middlewares;
+using Serilog;
 
 namespace API
 {
@@ -13,7 +14,19 @@ namespace API
         {
             // run project -> dotnet run --launch-profile https 
 
+            // setup the initial bootstrap logger
+            Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
+
+            Log.Information("Starting web application up...");
+
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Host.UseSerilog((context, services, lc) =>
+            {
+                lc.ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information);
+            });
 
             builder.Services.AddSwaggerGen();
             // Add services to the container.
@@ -76,6 +89,9 @@ namespace API
             app.UseRateLimiter();
 
             app.UseAuthorization();
+
+            // 3. Add clean HTTP request logging middleware
+            app.UseSerilogRequestLogging();
 
             app.MapControllers();
 

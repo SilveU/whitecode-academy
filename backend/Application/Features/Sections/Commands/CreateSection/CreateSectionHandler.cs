@@ -9,11 +9,13 @@ using Domain.Entites.Core;
 using FFMpegCore;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Sections.Commands.CreateSection
 {
     public class CreateSectionHandler : IRequestHandler<CreateSectionCommand, Result<SectionResponse>>
     {
+        private readonly ILogger<CreateSectionHandler> _logger;
         private readonly IWebHostEnvironment _environment;
         private readonly ISectionRepository _sectionRepository;
         private readonly ICourseRepository _courseRepository;
@@ -31,32 +33,45 @@ namespace Application.Features.Sections.Commands.CreateSection
             IFileSecurityService fileSecurityService,
             IAuditLogRepository auditLogRepository,
             IWebHostEnvironment environment,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<CreateSectionHandler> logger)
         {
-            _sectionRepository  = sectionRepository;
-            _courseRepository   = courseRepository;
+            _sectionRepository   = sectionRepository;
+            _courseRepository    = courseRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService = fileStorageService;
+            _fileStorageService  = fileStorageService;
             _fileSecurityService = fileSecurityService;
-            _auditLogRepository = auditLogRepository;
-            _environment        = environment;
-            _mapper             = mapper;
+            _auditLogRepository  = auditLogRepository;
+            _environment         = environment;
+            _mapper              = mapper;
+            _logger              = logger;
         }
 
         public async Task<Result<SectionResponse>> Handle(CreateSectionCommand request, CancellationToken cancellationToken)
         {
             var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.CourseId);
             if (course == null)
+            {
+                _logger.LogWarning("Course {CourseId} was not found.", request.CourseId);
                 return Result<SectionResponse>.NotFound("Course not found.");
+            }
 
             if (request.IsInstructor)
             {
                 var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
                 if (instructor == null)
+                {
+                    _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
                     return Result<SectionResponse>.NotFound("No instructor profile found for the current user.");
+                }
 
                 if (course.InstructorId != instructor.Id)
+                {
+                    _logger.LogWarning(
+                        "User {UserId} attempted to add a section to course {CourseId} without ownership.",
+                        request.CurrentUserId, request.CourseId);
                     return Result<SectionResponse>.Forbidden("You can only add sections to your own courses.");
+                }
             }
 
             var section = _mapper.Map<Section>(request);
@@ -78,8 +93,8 @@ namespace Application.Features.Sections.Commands.CreateSection
             var physicalVideoPath = Path.Combine(_environment.WebRootPath, section.VideoUrl);
             var mediaInfo = await FFProbe.AnalyseAsync(physicalVideoPath);
 
-            section.StartAt  = TimeOnly.FromDateTime(DateTime.UtcNow);
-            section.EndAt    = section.StartAt.Add(mediaInfo.Duration);
+            section.StartAt   = TimeOnly.FromDateTime(DateTime.UtcNow);
+            section.EndAt     = section.StartAt.Add(mediaInfo.Duration);
             section.DayOfWeek = DateTimeOffset.UtcNow.DayOfWeek;
             section.CreatedAt = DateTimeOffset.UtcNow;
 
@@ -101,6 +116,10 @@ namespace Application.Features.Sections.Commands.CreateSection
                 NewValues  = AuditSerializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
+
+            _logger.LogInformation(
+                "Section {SectionId} created successfully in course {CourseId} by user {UserId}.",
+                section.Id, request.CourseId, request.CurrentUserId);
 
             return Result<SectionResponse>.Success(response, 201);
         }
