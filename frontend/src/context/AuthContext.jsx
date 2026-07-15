@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [user, setUserState] = useState(() => getUser());
   const [token, setTokenState] = useState(() => getToken());
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   const isAuthenticated = !!token;
 
@@ -15,6 +16,42 @@ export function AuthProvider({ children }) {
   const isAdmin = roles.includes('Admin');
   const isInstructor = roles.includes('Instructor');
   const isStudent = roles.includes('User'); // Backend uses "User" role for students
+
+  // Force logout (clear everything)
+  const forceLogout = useCallback(() => {
+    removeToken();
+    removeUser();
+    setTokenState(null);
+    setUserState(null);
+  }, []);
+
+  // Validate stored token on app startup
+  useEffect(() => {
+    async function validateToken() {
+      const storedToken = getToken();
+      if (!storedToken) {
+        setInitializing(false);
+        return;
+      }
+
+      try {
+        // Try to refresh the token to verify it's still valid
+        const res = await authApi.refresh();
+        if (res.ok && res.data?.token) {
+          setToken(res.data.token);
+          setTokenState(res.data.token);
+        }
+        // If refresh fails with 401, the token is expired but we keep the
+        // user logged in — the next API call will fail and show an error.
+        // We only force logout on network errors or if there's no token.
+      } catch {
+        // Network error — keep user logged in, they might be offline
+      } finally {
+        setInitializing(false);
+      }
+    }
+    validateToken();
+  }, []);
 
   const login = useCallback(async (identity, password) => {
     setLoading(true);
@@ -50,11 +87,8 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore
     }
-    removeToken();
-    removeUser();
-    setTokenState(null);
-    setUserState(null);
-  }, []);
+    forceLogout();
+  }, [forceLogout]);
 
   const refreshAuthToken = useCallback(async () => {
     try {
@@ -70,10 +104,16 @@ export function AuthProvider({ children }) {
     return false;
   }, []);
 
+  // Handle 401 responses globally — auto-logout on unauthorized
+  const handleUnauthorized = useCallback(() => {
+    forceLogout();
+  }, [forceLogout]);
+
   const value = {
     user,
     token,
     loading,
+    initializing,
     isAuthenticated,
     isAdmin,
     isInstructor,
@@ -82,6 +122,7 @@ export function AuthProvider({ children }) {
     login,
     logout,
     refreshAuthToken,
+    handleUnauthorized,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -92,3 +133,4 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+

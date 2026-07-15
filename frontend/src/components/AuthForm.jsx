@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Mail,
   Lock,
@@ -9,9 +9,11 @@ import {
   LogIn,
   UserPlus,
   ArrowLeft,
-  Shield
+  Shield,
+  Clock
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { authApi } from '../services/api'
 
 // Password Strength helper
 function getPasswordStrength(password) {
@@ -173,7 +175,7 @@ function LoginForm({ onSuccess }) {
           <span className="checkmark" />
           <span>تذكرني</span>
         </label>
-        <a href="#" className="forgot-link">نسيت كلمة المرور؟</a>
+        <span className="forgot-link disabled-link" title="هذه الميزة قيد التطوير">نسيت كلمة المرور؟</span>
       </div>
 
       {errorMsg && <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginBottom: '4px' }}>{errorMsg}</div>}
@@ -186,11 +188,13 @@ function LoginForm({ onSuccess }) {
       <div className="divider"><span>أو</span></div>
 
       <div className="social-buttons">
-        <button type="button" className="social-btn" id="googleLogin">
+        <button type="button" className="social-btn social-btn-disabled" id="googleLogin" title="تسجيل الدخول بـ Google - قريباً" disabled>
           <GoogleIcon /><span>Google</span>
+          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
         </button>
-        <button type="button" className="social-btn" id="githubLogin">
+        <button type="button" className="social-btn social-btn-disabled" id="githubLogin" title="تسجيل الدخول بـ GitHub - قريباً" disabled>
           <GitHubIcon /><span>GitHub</span>
+          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
         </button>
       </div>
     </form>
@@ -211,6 +215,8 @@ function RegisterForm({ onSuccess }) {
   const [confirmError, setConfirmError] = useState(false)
   const [apiError, setApiError] = useState('')
 
+  const navigate = useNavigate()
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setApiError('')
@@ -223,40 +229,22 @@ function RegisterForm({ onSuccess }) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/authentication/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          userName,
-          email,
-          password,
-          confirmPassword
-        })
+      const res = await authApi.register({
+        firstName,
+        lastName,
+        userName,
+        email,
+        password,
+        confirmPassword
       })
 
-      const data = await response.json().catch(() => null)
-
-      if (!response.ok) {
+      if (!res.ok) {
         setShake(true)
-        // Extract actual error message from backend
-        let msg = ''
-        if (data?.errors) {
-          msg = Object.values(data.errors).flat().join(' | ')
-        } else if (data?.message) {
-          msg = data.message
-        } else {
-          msg = 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.'
-        }
-        setApiError(msg)
+        setApiError(res.message || 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.')
         setTimeout(() => setShake(false), 600)
       } else {
-        // Success - redirect to pending verification page
-        window.location.href = '/pending-verification'
+        // Success - redirect to pending verification page (client-side)
+        navigate('/pending-verification')
       }
     } catch (err) {
       setShake(true)
@@ -341,7 +329,7 @@ function RegisterForm({ onSuccess }) {
       <label className="checkbox-wrapper terms-checkbox">
         <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} required />
         <span className="checkmark" />
-        <span>أوافق على <a href="#">الشروط والأحكام</a> و<a href="#">سياسة الخصوصية</a></span>
+        <span>أوافق على <Link to="/terms" target="_blank">الشروط والأحكام</Link> و<Link to="/terms" target="_blank">سياسة الخصوصية</Link></span>
       </label>
 
       <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} id="registerBtn">
@@ -352,11 +340,13 @@ function RegisterForm({ onSuccess }) {
       <div className="divider"><span>أو</span></div>
 
       <div className="social-buttons">
-        <button type="button" className="social-btn" id="googleRegister">
+        <button type="button" className="social-btn social-btn-disabled" id="googleRegister" title="التسجيل بـ Google - قريباً" disabled>
           <GoogleIcon /><span>Google</span>
+          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
         </button>
-        <button type="button" className="social-btn" id="githubRegister">
+        <button type="button" className="social-btn social-btn-disabled" id="githubRegister" title="التسجيل بـ GitHub - قريباً" disabled>
           <GitHubIcon /><span>GitHub</span>
+          <span className="coming-soon-badge"><Clock size={10} /> قريباً</span>
         </button>
       </div>
     </form>

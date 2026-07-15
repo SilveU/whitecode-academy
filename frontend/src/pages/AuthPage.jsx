@@ -4,8 +4,10 @@ import BackgroundAnimation from '../components/BackgroundAnimation'
 import BrandingSide from '../components/BrandingSide'
 import AuthForm from '../components/AuthForm'
 import SuccessModal from '../components/SuccessModal'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function AuthPage() {
+  usePageTitle('تسجيل الدخول')
   const [activeTab, setActiveTab] = useState('login')
   const [modal, setModal] = useState({ show: false, title: '', message: '' })
   const navigate = useNavigate()

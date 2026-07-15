@@ -13,6 +13,7 @@ import PathsPage from './pages/PathsPage'
 import VerifyEmailPage from './pages/VerifyEmailPage'
 import PendingVerificationPage from './pages/PendingVerificationPage'
 import ScrollToTopButton from './components/common/ScrollToTopButton'
+import NotFoundPage from './pages/NotFoundPage'
 
 // Dashboard
 import DashboardLayout from './components/dashboard/DashboardLayout'
@@ -70,6 +71,9 @@ function AppRoutes() {
         <Route path="students" element={<StudentsPage />} />
         <Route path="enrollments" element={<EnrollmentsPage />} />
       </Route>
+
+      {/* 404 Catch-All */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
 }

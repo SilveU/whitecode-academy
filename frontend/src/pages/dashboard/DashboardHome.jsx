@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { BookOpen, FolderTree, Users, ClipboardList, TrendingUp, Sparkles } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { courseApi, departmentApi } from '../../services/api'
+import usePageTitle from '../../hooks/usePageTitle'
 
 export default function DashboardHome() {
+  usePageTitle('لوحة التحكم')
   const { user, isAdmin, isInstructor } = useAuth()
   const [stats, setStats] = useState({ courses: '—', departments: '—' })
   const [loading, setLoading] = useState(true)

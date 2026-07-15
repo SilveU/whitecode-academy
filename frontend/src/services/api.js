@@ -19,8 +19,13 @@ export function removeToken() {
 }
 
 export function getUser() {
-  const raw = localStorage.getItem('wca_user');
-  return raw ? JSON.parse(raw) : null;
+  try {
+    const raw = localStorage.getItem('wca_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    removeUser();
+    return null;
+  }
 }
 
 export function setUser(user) {

@@ -2,9 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import usePageTitle from '../../hooks/usePageTitle'
 import './PageLayout.css'
 
 export default function PageLayout({ children, title, subtitle }) {
+  usePageTitle(title)
   const navigate = useNavigate()
 
   return (

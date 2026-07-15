@@ -21,7 +21,7 @@ export default function Footer() {
           <div className="footer-links-group">
             <h4>المنصة</h4>
             <Link to="/paths">المسارات</Link>
-            <Link to="/#features">المميزات</Link>
+            <Link to="/about">المميزات</Link>
             <Link to="/blog">المدونة</Link>
             <Link to="/about">عن الأكاديمية</Link>
           </div>
@@ -35,9 +35,9 @@ export default function Footer() {
           <div className="footer-links-group">
             <h4>تواصل معنا</h4>
             <a href="mailto:hello@whiteacademy.com">hello@whiteacademy.com</a>
-            <a href="#" target="_blank" rel="noreferrer">Twitter / X</a>
-            <a href="#" target="_blank" rel="noreferrer">LinkedIn</a>
-            <a href="#" target="_blank" rel="noreferrer">Instagram</a>
+            <a href="https://x.com" target="_blank" rel="noreferrer">Twitter / X</a>
+            <a href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a>
           </div>
         </div>
         <div className="footer-bottom">
