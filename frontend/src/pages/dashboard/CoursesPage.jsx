@@ -17,7 +17,7 @@ export default function CoursesPage() {
   // Modal state
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', totalHours: '', totalSections: '', departmentId: '', instructorId: '' })
+  const [form, setForm] = useState({ name: '', description: '', departmentId: '', instructorId: '' })
   const [departments, setDepartments] = useState([])
   const [instructors, setInstructors] = useState([])
   const [saving, setSaving] = useState(false)
@@ -47,7 +47,7 @@ export default function CoursesPage() {
 
   const openCreate = async () => {
     setEditingCourse(null)
-    setForm({ name: '', description: '', totalHours: '', totalSections: '', departmentId: '', instructorId: '' })
+    setForm({ name: '', description: '', departmentId: '', instructorId: '' })
     await loadDropdowns()
     setModalOpen(true)
   }
@@ -57,8 +57,6 @@ export default function CoursesPage() {
     setForm({
       name: course.name,
       description: course.description,
-      totalHours: course.totalHours?.toString() || '',
-      totalSections: course.totalSections?.toString() || '',
       departmentId: course.departmentId || '',
       instructorId: course.instructorId || '',
     })
@@ -91,8 +89,6 @@ export default function CoursesPage() {
       const body = {
         name: form.name,
         description: form.description,
-        totalHours: parseFloat(form.totalHours) || 0,
-        totalSections: parseInt(form.totalSections) || 0,
         departmentId: form.departmentId || undefined,
         instructorId: form.instructorId || undefined,
       }
@@ -241,16 +237,6 @@ export default function CoursesPage() {
               <div className="dash-field">
                 <label>Description</label>
                 <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Brief description of the course..." />
-              </div>
-              <div className="dash-field-row">
-                <div className="dash-field">
-                  <label>Total Hours</label>
-                  <input type="number" value={form.totalHours} onChange={(e) => setForm(f => ({ ...f, totalHours: e.target.value }))} placeholder="0" />
-                </div>
-                <div className="dash-field">
-                  <label>Total Sections</label>
-                  <input type="number" value={form.totalSections} onChange={(e) => setForm(f => ({ ...f, totalSections: e.target.value }))} placeholder="0" />
-                </div>
               </div>
               <div className="dash-field">
                 <label>Department</label>

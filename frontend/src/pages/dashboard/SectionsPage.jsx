@@ -17,7 +17,7 @@ export default function SectionsPage() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingSection, setEditingSection] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', startAt: '', endAt: '', dayOfWeek: '0', courseId: '' })
+  const [form, setForm] = useState({ name: '', description: '', courseId: '' })
   const [videoFile, setVideoFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -54,7 +54,7 @@ export default function SectionsPage() {
 
   const openCreate = () => {
     setEditingSection(null)
-    setForm({ name: '', description: '', startAt: '', endAt: '', dayOfWeek: '0', courseId: selectedCourse })
+    setForm({ name: '', description: '', courseId: selectedCourse })
     setVideoFile(null)
     setPdfFile(null)
     setModalOpen(true)
@@ -65,9 +65,6 @@ export default function SectionsPage() {
     setForm({
       name: sec.name,
       description: sec.description,
-      startAt: sec.startAt || '',
-      endAt: sec.endAt || '',
-      dayOfWeek: sec.dayOfWeek?.toString() || '0',
       courseId: sec.courseId || selectedCourse,
     })
     setVideoFile(null)
@@ -81,9 +78,6 @@ export default function SectionsPage() {
       const fd = new FormData()
       fd.append('Name', form.name)
       fd.append('Description', form.description)
-      fd.append('StartAt', form.startAt)
-      fd.append('EndAt', form.endAt)
-      fd.append('DayOfWeek', form.dayOfWeek)
       fd.append('CourseId', form.courseId)
       if (videoFile) fd.append('VideoFile', videoFile)
       if (pdfFile) fd.append('PdfFile', pdfFile)
@@ -178,8 +172,6 @@ export default function SectionsPage() {
                 <tr>
                   <th>Name</th>
                   <th>Description</th>
-                  <th>Day</th>
-                  <th>Time</th>
                   <th>Content</th>
                   {canManage && <th>Actions</th>}
                 </tr>
@@ -189,8 +181,6 @@ export default function SectionsPage() {
                   <tr key={s.id}>
                     <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.name}</td>
                     <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.description}</td>
-                    <td><span className="badge badge-blue">{DAYS[s.dayOfWeek] || '—'}</span></td>
-                    <td style={{ fontSize: '0.82rem', direction: 'ltr' }}>{s.startAt} - {s.endAt}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         {s.videoUrl && <span className="badge badge-green"><Video size={11} /> Video</span>}
@@ -235,22 +225,6 @@ export default function SectionsPage() {
                 <select value={form.courseId} onChange={(e) => setForm(f => ({ ...f, courseId: e.target.value }))}>
                   <option value="">Select a Course</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="dash-field-row">
-                <div className="dash-field">
-                  <label>Start Time</label>
-                  <input type="time" value={form.startAt} onChange={(e) => setForm(f => ({ ...f, startAt: e.target.value }))} />
-                </div>
-                <div className="dash-field">
-                  <label>End Time</label>
-                  <input type="time" value={form.endAt} onChange={(e) => setForm(f => ({ ...f, endAt: e.target.value }))} />
-                </div>
-              </div>
-              <div className="dash-field">
-                <label>Day of Week</label>
-                <select value={form.dayOfWeek} onChange={(e) => setForm(f => ({ ...f, dayOfWeek: e.target.value }))}>
-                  {DAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                 </select>
               </div>
               <div className="dash-field">
