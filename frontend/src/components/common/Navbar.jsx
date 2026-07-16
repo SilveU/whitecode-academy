@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, X, LogOut, LayoutDashboard, Sun, Moon } from 'lucide-react'
 import BrandLogo from './BrandLogo'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -10,6 +11,7 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -59,6 +61,10 @@ export default function Navbar() {
         </div>
 
         <div className="nav-actions">
+          <button className="theme-toggle" onClick={toggleTheme} title="Toggle Theme" style={{ marginRight: '8px' }}>
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="nav-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>

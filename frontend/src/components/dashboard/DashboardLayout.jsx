@@ -12,8 +12,11 @@ import {
   Menu,
   X,
   Home,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import BrandLogo from '../common/BrandLogo'
 import './DashboardLayout.css'
 
@@ -31,6 +34,7 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout() {
   const { user, roles, logout } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -141,6 +145,9 @@ export default function DashboardLayout() {
             <span className="topbar-title">Dashboard</span>
           </div>
           <div className="topbar-left">
+            <button className="theme-toggle" onClick={toggleTheme} title="Toggle Theme" style={{ marginRight: '8px' }}>
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <Link to="/" className="topbar-home-link">
               <Home size={16} />
               <span>Home Page</span>

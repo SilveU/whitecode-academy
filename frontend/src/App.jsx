@@ -92,13 +92,17 @@ function AppRoutes() {
   )
 }
 
+import { ThemeProvider } from './context/ThemeContext'
+
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppRoutes />
-        <ScrollToTopButton />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+          <ScrollToTopButton />
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   )
 }
