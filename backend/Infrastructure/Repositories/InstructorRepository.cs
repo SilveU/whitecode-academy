@@ -56,7 +56,7 @@ namespace Infrastructure.Repositories
 
         private async Task<IEnumerable<Instructor>> ApplyQueryParameters(IQueryable<Instructor> query, QueryParameters queryParameters)
         {
-            if (!string.IsNullOrEmpty(queryParameters.WordForSearch))
+            if (!string.IsNullOrEmpty(queryParameters.WordForSearch) || !queryParameters.WordForSearch!.Equals("all"))
             {
                 var searchTerm = $"%{queryParameters.WordForSearch.Trim().ToLower()}%";
                 query = query.Where(i =>

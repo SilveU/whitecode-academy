@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using MediatR;
@@ -10,6 +11,7 @@ namespace Application.Features.Enrollments.Commands.DeleteEnrollment
 {
     public class DeleteEnrollmentHandler : IRequestHandler<DeleteEnrollmentCommand, Result<bool>>
     {
+        private readonly ICacheService _cache;
         private readonly ILogger<DeleteEnrollmentHandler> _logger;
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IAuditLogRepository _auditLogRepository;
@@ -17,11 +19,13 @@ namespace Application.Features.Enrollments.Commands.DeleteEnrollment
         public DeleteEnrollmentHandler(
             IEnrollmentRepository enrollmentRepository,
             IAuditLogRepository auditLogRepository,
-            ILogger<DeleteEnrollmentHandler> logger)
+            ILogger<DeleteEnrollmentHandler> logger,
+            ICacheService cache)
         {
             _enrollmentRepository = enrollmentRepository;
             _auditLogRepository   = auditLogRepository;
             _logger               = logger;
+            _cache                = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteEnrollmentCommand request, CancellationToken cancellationToken)
@@ -37,6 +41,9 @@ namespace Application.Features.Enrollments.Commands.DeleteEnrollment
 
             _enrollmentRepository.Delete(enrollment);
             await _enrollmentRepository.SaveChangesAsync();
+
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByCoursePrefix(request.CourseId));
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(request.StudentId));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

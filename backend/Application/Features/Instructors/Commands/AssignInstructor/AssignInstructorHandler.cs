@@ -2,18 +2,22 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Enums;
 using Domain.Entites.Users;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Instructors.Commands.AssignInstructor
 {
     public class AssignInstructorHandler : IRequestHandler<AssignInstructorCommand, Result<InstructorResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<AssignInstructorHandler> _logger;
         private readonly IInstructorRepository _instructorRepository;
         private readonly IDepartmentRepository _departmentRepository;
@@ -27,7 +31,9 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
             IAuditLogRepository auditLogRepository,
             UserManager<ApplicationUser> userManager,
             IMapper mapper,
-            ILogger<AssignInstructorHandler> logger)
+            ILogger<AssignInstructorHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
@@ -35,6 +41,8 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
             _userManager          = userManager;
             _mapper               = mapper;
             _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(AssignInstructorCommand request, CancellationToken cancellationToken)
@@ -74,8 +82,14 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
             await _userManager.AddToRoleAsync(user, Role.Instructor.ToString());
             await _instructorRepository.SaveChangesAsync();
 
-            var created = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(instructor.Id);
+            var created  = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(instructor.Id);
             var response = _mapper.Map<InstructorResponse>(created!);
+
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
+
+            var redisKey = CacheKeys.Instructor(instructor.Id);
+            await _cache.SetAsync<InstructorResponse>(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

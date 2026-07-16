@@ -2,17 +2,21 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Users;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Students.Commands.AssignStudent
 {
     public class AssignStudentHandler : IRequestHandler<AssignStudentCommand, Result<StudentResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<AssignStudentHandler> _logger;
         private readonly IStudentRepository _studentRepository;
         private readonly IAuditLogRepository _auditLogRepository;
@@ -24,13 +28,17 @@ namespace Application.Features.Students.Commands.AssignStudent
             IAuditLogRepository auditLogRepository,
             UserManager<ApplicationUser> userManager,
             IMapper mapper,
-            ILogger<AssignStudentHandler> logger)
+            ILogger<AssignStudentHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _studentRepository  = studentRepository;
             _auditLogRepository = auditLogRepository;
             _userManager        = userManager;
             _mapper             = mapper;
             _logger             = logger;
+            _cache              = cache;
+            _configuration      = configuration;
         }
 
         public async Task<Result<StudentResponse>> Handle(AssignStudentCommand request, CancellationToken cancellationToken)
@@ -58,8 +66,14 @@ namespace Application.Features.Students.Commands.AssignStudent
             await _studentRepository.CreateAsync(student);
             await _studentRepository.SaveChangesAsync();
 
-            var created = await _studentRepository.GetByIdWithNavigationPropertiesAsync(student.Id);
+            var created  = await _studentRepository.GetByIdWithNavigationPropertiesAsync(student.Id);
             var response = _mapper.Map<StudentResponse>(created!);
+
+            await _cache.RemoveByPrefixAsync(CacheKeys.StudentsPrefix());
+
+            var redisKey = CacheKeys.Student(student.Id);
+            await _cache.SetAsync<StudentResponse>(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:StudentExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

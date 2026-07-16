@@ -9,12 +9,15 @@ using Domain.Entites.Core;
 using FFMpegCore;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Sections.Commands.UpdateSection
 {
     public class UpdateSectionHandler : IRequestHandler<UpdateSectionCommand, Result<SectionResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<UpdateSectionHandler> _logger;
         private readonly IWebHostEnvironment _environment;
         private readonly ISectionRepository _sectionRepository;
@@ -32,16 +35,20 @@ namespace Application.Features.Sections.Commands.UpdateSection
             IAuditLogRepository auditLogRepository,
             IWebHostEnvironment environment,
             IMapper mapper,
-            ILogger<UpdateSectionHandler> logger)
+            ILogger<UpdateSectionHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
-            _sectionRepository   = sectionRepository;
+            _sectionRepository    = sectionRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService  = fileStorageService;
-            _fileSecurityService = fileSecurityService;
-            _auditLogRepository  = auditLogRepository;
-            _environment         = environment;
-            _mapper              = mapper;
-            _logger              = logger;
+            _fileStorageService   = fileStorageService;
+            _fileSecurityService  = fileSecurityService;
+            _auditLogRepository   = auditLogRepository;
+            _environment          = environment;
+            _mapper               = mapper;
+            _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<SectionResponse>> Handle(UpdateSectionCommand request, CancellationToken cancellationToken)
@@ -120,6 +127,12 @@ namespace Application.Features.Sections.Commands.UpdateSection
             await _sectionRepository.SaveChangesAsync();
 
             var response = _mapper.Map<SectionResponse>(section);
+
+            await _cache.RemoveAsync(CacheKeys.Section(section.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId));
+            // Update single-section cache
+            await _cache.SetAsync<SectionResponse>(CacheKeys.Section(section.Id), response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

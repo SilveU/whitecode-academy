@@ -2,16 +2,20 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Enrollments.Commands.CreateEnrollment
 {
     public class CreateEnrollmentHandler : IRequestHandler<CreateEnrollmentCommand, Result<EnrollmentResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<CreateEnrollmentHandler> _logger;
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IStudentRepository _studentRepository;
@@ -25,7 +29,9 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
             ICourseRepository courseRepository,
             IAuditLogRepository auditLogRepository,
             IMapper mapper,
-            ILogger<CreateEnrollmentHandler> logger)
+            ILogger<CreateEnrollmentHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _enrollmentRepository = enrollmentRepository;
             _studentRepository    = studentRepository;
@@ -33,6 +39,8 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
             _auditLogRepository   = auditLogRepository;
             _mapper               = mapper;
             _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<EnrollmentResponse>> Handle(CreateEnrollmentCommand request, CancellationToken cancellationToken)
@@ -72,6 +80,9 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
 
             var response = _mapper.Map<EnrollmentResponse>(enrollment);
             response = response with { CourseName = course.Name };
+
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByCoursePrefix(request.CourseId));
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(student.Id));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

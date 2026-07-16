@@ -2,17 +2,22 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using Domain.Entites.Users;
+using Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Courses.Commands.CreateCourse
 {
     public class CreateCourseHandler : IRequestHandler<CreateCourseCommand, Result<CourseResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<CreateCourseHandler> _logger;
         private readonly ICourseRepository _courseRepository;
         private readonly IInstructorRepository _instructorRepository;
@@ -24,13 +29,17 @@ namespace Application.Features.Courses.Commands.CreateCourse
             IInstructorRepository instructorRepository,
             IAuditLogRepository auditLogRepository,
             IMapper mapper,
-            ILogger<CreateCourseHandler> logger)
+            ILogger<CreateCourseHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _courseRepository = courseRepository;
             _instructorRepository = instructorRepository;
             _auditLogRepository = auditLogRepository;
             _mapper = mapper;
             _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<CourseResponse>> Handle(CreateCourseCommand request, CancellationToken cancellationToken)
@@ -86,6 +95,15 @@ namespace Application.Features.Courses.Commands.CreateCourse
             await _courseRepository.CreateAsync(course);
             await _courseRepository.SaveChangesAsync();
 
+            var response = _mapper.Map<CourseResponse>(course);
+
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+
+            var redisKey = CacheKeys.Course(course.Id);
+
+            await _cache.SetAsync<CourseResponse>(redisKey, response,
+            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")));
+
             await _auditLogRepository.LogAsync(new AuditLog
             {
                 UserId = request.CurrentUserId,
@@ -93,13 +111,13 @@ namespace Application.Features.Courses.Commands.CreateCourse
                 EntityName = nameof(Course),
                 EntityId = course.Id,
                 OldValues = null,
-                NewValues = AuditSerializer.Serialize(_mapper.Map<CourseResponse>(course)),
+                NewValues = AuditSerializer.Serialize(response),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
             });
 
             _logger.LogInformation("Course {CourseId} created successfully by user {UserId}.", course.Id, request.CurrentUserId);
 
-            return Result<CourseResponse>.Success(_mapper.Map<CourseResponse>(course), 201);
+            return Result<CourseResponse>.Success(response, 201);
         }
     }
 }

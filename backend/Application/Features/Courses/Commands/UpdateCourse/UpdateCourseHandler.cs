@@ -2,16 +2,20 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Courses.Commands.UpdateCourse
 {
     public class UpdateCourseHandler : IRequestHandler<UpdateCourseCommand, Result<CourseResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<UpdateCourseHandler> _logger;
         private readonly ICourseRepository _courseRepository;
         private readonly IInstructorRepository _instructorRepository;
@@ -23,13 +27,17 @@ namespace Application.Features.Courses.Commands.UpdateCourse
             IInstructorRepository instructorRepository,
             IAuditLogRepository auditLogRepository,
             IMapper mapper,
-            ILogger<UpdateCourseHandler> logger)
+            ILogger<UpdateCourseHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _courseRepository = courseRepository;
             _instructorRepository = instructorRepository;
             _auditLogRepository = auditLogRepository;
             _mapper = mapper;
             _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<CourseResponse>> Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
@@ -112,6 +120,16 @@ namespace Application.Features.Courses.Commands.UpdateCourse
 
             _courseRepository.Update(course);
             await _courseRepository.SaveChangesAsync();
+            
+            var response = _mapper.Map<CourseResponse>(course);
+
+            await _cache.RemoveAsync(CacheKeys.Course(course.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+
+            var redisKey = CacheKeys.Course(course.Id);
+
+            await _cache.SetAsync<CourseResponse>(redisKey, response,
+            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")));
 
             _logger.LogInformation(
                 "Course {CourseId} updated successfully by user {UserId}.",

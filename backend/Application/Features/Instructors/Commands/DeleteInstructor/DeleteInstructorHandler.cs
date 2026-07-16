@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Domain.Entites.Audits;
 using Domain.Entites.Users;
 using MediatR;
@@ -11,6 +12,7 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
 {
     public class DeleteInstructorHandler : IRequestHandler<DeleteInstructorCommand, Result<bool>>
     {
+        private readonly ICacheService _cache;
         private readonly ILogger<DeleteInstructorHandler> _logger;
         private readonly IInstructorRepository _instructorRepository;
         private readonly ICourseRepository _courseRepository;
@@ -22,13 +24,15 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             ICourseRepository courseRepository,
             IAuditLogRepository auditLogRepository,
             UserManager<ApplicationUser> userManager,
-            ILogger<DeleteInstructorHandler> logger)
+            ILogger<DeleteInstructorHandler> logger,
+            ICacheService cache)
         {
             _instructorRepository = instructorRepository;
             _courseRepository     = courseRepository;
             _auditLogRepository   = auditLogRepository;
             _userManager          = userManager;
             _logger               = logger;
+            _cache                = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteInstructorCommand request, CancellationToken cancellationToken)
@@ -58,6 +62,9 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
                 await _userManager.RemoveFromRoleAsync(user, "Instructor");
 
             await _instructorRepository.SaveChangesAsync();
+
+            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

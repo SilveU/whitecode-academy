@@ -86,6 +86,11 @@ namespace API
 
             app.UseAuthentication();
 
+            // Must run after UseAuthentication so context.User is populated
+            app.UseMiddleware<TokenRevocationMiddleware>();
+            
+            app.UseMiddleware<IdempotencyMiddleware>();
+
             app.UseRateLimiter();
 
             app.UseAuthorization();

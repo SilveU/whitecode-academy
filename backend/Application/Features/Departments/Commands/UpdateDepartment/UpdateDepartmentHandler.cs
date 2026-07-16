@@ -7,12 +7,15 @@ using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Departments.Commands.UpdateDepartment
 {
     public class UpdateDepartmentHandler : IRequestHandler<UpdateDepartmentCommand, Result<DepartmentResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<UpdateDepartmentHandler> _logger;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IFileStorageService _fileStorageService;
@@ -26,7 +29,9 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             IFileSecurityService fileSecurityService,
             IAuditLogRepository auditLogRepository,
             IMapper mapper,
-            ILogger<UpdateDepartmentHandler> logger)
+            ILogger<UpdateDepartmentHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _departmentRepository = departmentRepository;
             _fileStorageService   = fileStorageService;
@@ -34,6 +39,8 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             _auditLogRepository   = auditLogRepository;
             _mapper               = mapper;
             _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<DepartmentResponse>> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
@@ -72,6 +79,13 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             await _departmentRepository.SaveChangesAsync();
 
             var response = _mapper.Map<DepartmentResponse>(department);
+
+            await _cache.RemoveAsync(CacheKeys.Department(department.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix());
+
+            var redisKey = CacheKeys.Department(department.Id);
+            await _cache.SetAsync<DepartmentResponse>(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

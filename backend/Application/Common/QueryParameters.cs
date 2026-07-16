@@ -34,7 +34,7 @@ namespace Application.Common
         }
         
         [MaxLength(100, ErrorMessage = "Search term cannot exceed 100 characters")]
-        public string? WordForSearch { get; set; }
+        public string? WordForSearch { get; set; } = "all";
         
         [MaxLength(50, ErrorMessage = "Sort field cannot exceed 50 characters")]
         public string? SortBy { get; set; } = "name"; // name, price_asc, price_desc
