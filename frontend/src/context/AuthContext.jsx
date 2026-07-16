@@ -1,6 +1,28 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getToken, setToken, removeToken, getUser, setUser, removeUser, authApi } from '../services/api';
 
+// --- Helper to parse JWT payload ---
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
+// --- Helper to extract roles from ASP.NET Core JWT ---
+function extractRolesFromToken(token) {
+  const payload = parseJwt(token);
+  if (!payload) return [];
+  const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || payload.roles || [];
+  return Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -37,13 +59,20 @@ export function AuthProvider({ children }) {
       try {
         // Try to refresh the token to verify it's still valid
         const res = await authApi.refresh();
-        if (res.ok && res.data?.token) {
-          setToken(res.data.token);
-          setTokenState(res.data.token);
+        if (res.ok && res.data?.accessToken) {
+          const newToken = res.data.accessToken;
+          const parsedRoles = extractRolesFromToken(newToken);
+          
+          setToken(newToken);
+          setTokenState(newToken);
+          
+          // Optionally update user roles if they changed
+          if (user) {
+             const updatedUser = { ...user, roles: parsedRoles };
+             setUser(updatedUser);
+             setUserState(updatedUser);
+          }
         }
-        // If refresh fails with 401, the token is expired but we keep the
-        // user logged in — the next API call will fail and show an error.
-        // We only force logout on network errors or if there's no token.
       } catch {
         // Network error — keep user logged in, they might be offline
       } finally {
@@ -51,25 +80,26 @@ export function AuthProvider({ children }) {
       }
     }
     validateToken();
-  }, []);
+  }, []); // user is omitted intentionally to avoid infinite loop on mount
 
   const login = useCallback(async (identity, password) => {
     setLoading(true);
     try {
       const res = await authApi.login(identity, password);
       if (res.ok && res.data?.isAuthenticated) {
+        const accessToken = res.data.accessToken;
+        const parsedRoles = extractRolesFromToken(accessToken);
+        
         const userData = {
           id: res.data.id,
           email: res.data.email,
           userName: res.data.userName,
-          firstName: res.data.firstName,
-          lastName: res.data.lastName,
-          roles: res.data.roles || [],
+          roles: parsedRoles,
           message: res.data.message,
         };
-        setToken(res.data.token);
+        setToken(accessToken);
         setUser(userData);
-        setTokenState(res.data.token);
+        setTokenState(accessToken);
         setUserState(userData);
         return { success: true, user: userData };
       }
@@ -93,9 +123,9 @@ export function AuthProvider({ children }) {
   const refreshAuthToken = useCallback(async () => {
     try {
       const res = await authApi.refresh();
-      if (res.ok && res.data?.token) {
-        setToken(res.data.token);
-        setTokenState(res.data.token);
+      if (res.ok && res.data?.accessToken) {
+        setToken(res.data.accessToken);
+        setTokenState(res.data.accessToken);
         return true;
       }
     } catch {

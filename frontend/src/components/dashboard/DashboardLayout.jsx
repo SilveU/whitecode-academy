@@ -39,8 +39,8 @@ export default function DashboardLayout() {
     navigate('/')
   }
 
-  const userInitials = user
-    ? `${(user.firstName?.[0] || '')}${(user.lastName?.[0] || '')}`
+  const userInitials = user?.userName
+    ? user.userName.slice(0, 2).toUpperCase()
     : '?'
 
   const userRoleLabel = roles.includes('Admin')
@@ -113,7 +113,7 @@ export default function DashboardLayout() {
             <div className="sidebar-avatar">{userInitials}</div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name">
-                {user?.firstName} {user?.lastName}
+                {user?.userName || 'User'}
               </div>
               <div className="sidebar-user-role">{userRoleLabel}</div>
             </div>

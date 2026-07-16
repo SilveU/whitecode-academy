@@ -35,7 +35,7 @@ export default function VerifyEmailPage() {
         if (data.isAuthenticated) {
           setStatus('success')
           setMessage(data.message || 'Your account has been successfully verified!')
-          setTimeout(() => navigate('/'), 3000)
+          setTimeout(() => navigate('/auth'), 3000)
         } else {
           setStatus('error')
           setMessage(data.message || 'Verification token is invalid or expired.')
@@ -68,9 +68,9 @@ export default function VerifyEmailPage() {
                   <CheckCircle2 size={56} style={{ color: '#22c55e' }} />
                   <h2 style={{ color: '#22c55e' }}>Verified Successfully!</h2>
                   <p style={{ color: 'var(--text-muted)' }}>{message}</p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Redirecting to home page...</p>
-                  <button className="submit-btn" onClick={() => navigate('/')}>
-                    <span className="btn-text">Home Page</span>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Redirecting to login page...</p>
+                  <button className="submit-btn" onClick={() => navigate('/auth')}>
+                    <span className="btn-text">Go to Login</span>
                   </button>
                 </div>
               )}

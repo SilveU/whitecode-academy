@@ -142,7 +142,7 @@ export const sectionApi = {
 export const enrollmentApi = {
   byCourse:  (courseId)  => api.get(`/enrollment/by-course/${courseId}`),
   byStudent: (studentId) => api.get(`/enrollment/by-student/${studentId}`),
-  enroll:    (courseId)  => api.post('/enrollment', { courseId }),
+  enroll:    (courseId)  => api.post(`/enrollment/${courseId}`),
   unenroll:  (studentId, courseId) => api.delQuery('/enrollment', { studentId, courseId }),
 };
 
