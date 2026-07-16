@@ -2,6 +2,7 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
@@ -12,6 +13,7 @@ namespace Application.Features.Courses.Commands.DeleteCourse
 {
     public class DeleteCourseHandler : IRequestHandler<DeleteCourseCommand, Result<bool>>
     {
+        private readonly ICacheService _cache;
         private readonly ILogger<DeleteCourseHandler> _logger;
         private readonly IMapper _mapper;
         private readonly IAuditLogRepository _auditLogRepository;
@@ -19,13 +21,14 @@ namespace Application.Features.Courses.Commands.DeleteCourse
         private readonly IInstructorRepository _instructorRepository;
 
         public DeleteCourseHandler(ICourseRepository courseRepository, IInstructorRepository instructorRepository,
-        ILogger<DeleteCourseHandler> logger, IAuditLogRepository auditLogRepository, IMapper mapper)
+        ILogger<DeleteCourseHandler> logger, IAuditLogRepository auditLogRepository, IMapper mapper, ICacheService cache)
         {
             _courseRepository = courseRepository;
             _instructorRepository = instructorRepository;
             _logger = logger;
             _auditLogRepository = auditLogRepository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteCourseCommand request, CancellationToken cancellationToken)
@@ -83,6 +86,10 @@ namespace Application.Features.Courses.Commands.DeleteCourse
             });
 
             await _courseRepository.SaveChangesAsync();
+
+            await _cache.RemoveAsync(CacheKeys.Course(course.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+
 
             _logger.LogInformation("Course {CourseId} was deleted successfully by user {UserId}.", request.Id, request.CurrentUserId);
 

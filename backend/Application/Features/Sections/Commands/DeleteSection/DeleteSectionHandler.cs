@@ -11,6 +11,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
 {
     public class DeleteSectionHandler : IRequestHandler<DeleteSectionCommand, Result<bool>>
     {
+        private readonly ICacheService _cache;
         private readonly ILogger<DeleteSectionHandler> _logger;
         private readonly ISectionRepository _sectionRepository;
         private readonly IInstructorRepository _instructorRepository;
@@ -22,13 +23,15 @@ namespace Application.Features.Sections.Commands.DeleteSection
             IInstructorRepository instructorRepository,
             IFileStorageService fileStorageService,
             IAuditLogRepository auditLogRepository,
-            ILogger<DeleteSectionHandler> logger)
+            ILogger<DeleteSectionHandler> logger,
+            ICacheService cache)
         {
-            _sectionRepository   = sectionRepository;
+            _sectionRepository    = sectionRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService  = fileStorageService;
-            _auditLogRepository  = auditLogRepository;
-            _logger              = logger;
+            _fileStorageService   = fileStorageService;
+            _auditLogRepository   = auditLogRepository;
+            _logger               = logger;
+            _cache                = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteSectionCommand request, CancellationToken cancellationToken)
@@ -66,6 +69,12 @@ namespace Application.Features.Sections.Commands.DeleteSection
 
             _sectionRepository.Delete(section);
             await _sectionRepository.SaveChangesAsync();
+
+            await _cache.RemoveAsync(CacheKeys.Section(section.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId));
+            // Also bust the course cache since TotalSections / TotalDuration changed
+            await _cache.RemoveAsync(CacheKeys.Course(section.CourseId));
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

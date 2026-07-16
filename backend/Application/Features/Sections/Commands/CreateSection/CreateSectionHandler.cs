@@ -9,12 +9,15 @@ using Domain.Entites.Core;
 using FFMpegCore;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Sections.Commands.CreateSection
 {
     public class CreateSectionHandler : IRequestHandler<CreateSectionCommand, Result<SectionResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<CreateSectionHandler> _logger;
         private readonly IWebHostEnvironment _environment;
         private readonly ISectionRepository _sectionRepository;
@@ -34,17 +37,21 @@ namespace Application.Features.Sections.Commands.CreateSection
             IAuditLogRepository auditLogRepository,
             IWebHostEnvironment environment,
             IMapper mapper,
-            ILogger<CreateSectionHandler> logger)
+            ILogger<CreateSectionHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
-            _sectionRepository   = sectionRepository;
-            _courseRepository    = courseRepository;
+            _sectionRepository    = sectionRepository;
+            _courseRepository     = courseRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService  = fileStorageService;
-            _fileSecurityService = fileSecurityService;
-            _auditLogRepository  = auditLogRepository;
-            _environment         = environment;
-            _mapper              = mapper;
-            _logger              = logger;
+            _fileStorageService   = fileStorageService;
+            _fileSecurityService  = fileSecurityService;
+            _auditLogRepository   = auditLogRepository;
+            _environment          = environment;
+            _mapper               = mapper;
+            _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<SectionResponse>> Handle(CreateSectionCommand request, CancellationToken cancellationToken)
@@ -105,6 +112,15 @@ namespace Application.Features.Sections.Commands.CreateSection
             await _sectionRepository.SaveChangesAsync();
 
             var response = _mapper.Map<SectionResponse>(section);
+
+            // Invalidate course cache (TotalSections / TotalDuration changed) and sections list for this course
+            await _cache.RemoveAsync(CacheKeys.Course(course.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(course.Id));
+
+            var redisKey = CacheKeys.Section(section.Id);
+            await _cache.SetAsync<SectionResponse>(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

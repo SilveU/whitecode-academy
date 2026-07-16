@@ -1,8 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Application.Common;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Enums;
 using Domain.Entites.Users;
@@ -17,35 +19,44 @@ namespace Infrastructure.Authentecation
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper mapper;
         private readonly ApplicationDbContext _context;
         private readonly IEmailVerificationService _emailVerificationService;
         private readonly IRefreshTokenService _refreshTokenSerivce;
-        public AuthenticationService(IConfiguration configuration, UserManager<ApplicationUser> userManager, IMapper mapper,
-            ApplicationDbContext context, IEmailVerificationService emailVerificationService, IRefreshTokenService refreshTokenSerivce)
+
+        public AuthenticationService(
+            IConfiguration configuration,
+            UserManager<ApplicationUser> userManager,
+            IMapper mapper,
+            ApplicationDbContext context,
+            IEmailVerificationService emailVerificationService,
+            IRefreshTokenService refreshTokenSerivce,
+            ICacheService cache)
         {
-            _configuration = configuration;
-            _userManager = userManager;
-            this.mapper = mapper;
-            this._context = context;
+            _configuration           = configuration;
+            _userManager             = userManager;
+            this.mapper              = mapper;
+            _context                 = context;
             _emailVerificationService = emailVerificationService;
-            _refreshTokenSerivce = refreshTokenSerivce;
+            _refreshTokenSerivce     = refreshTokenSerivce;
+            _cache                   = cache;
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
         {
             var user = await _userManager.FindByEmailAsync(request.Identity) ??
-                    await _userManager.FindByNameAsync(request.Identity);
+                       await _userManager.FindByNameAsync(request.Identity);
 
             if (user == null)
             {
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message = "Invalid email, username, phone number, or password.",
-                    Expiration = DateTime.UtcNow,
-                    AccessToken = string.Empty
+                    Message         = "Invalid email, username, phone number, or password.",
+                    Expiration      = DateTime.UtcNow,
+                    AccessToken     = string.Empty
                 };
             }
 
@@ -55,9 +66,9 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message = "Invalid email, username, phone number, or password.",
-                    Expiration = DateTime.UtcNow,
-                    AccessToken = string.Empty
+                    Message         = "Invalid email, username, phone number, or password.",
+                    Expiration      = DateTime.UtcNow,
+                    AccessToken     = string.Empty
                 };
             }
 
@@ -66,27 +77,43 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Id = user.Id,
-                    Email = user.Email,
-                    UserName = user.UserName,
-                    PhoneNumber = user.PhoneNumber,
-                    Message = "Please confirm your email before logging in.",
-                    Expiration = DateTime.UtcNow,
-                    AccessToken = string.Empty
+                    Id              = user.Id,
+                    Email           = user.Email,
+                    UserName        = user.UserName,
+                    PhoneNumber     = user.PhoneNumber,
+                    Message         = "Please confirm your email before logging in.",
+                    Expiration      = DateTime.UtcNow,
+                    AccessToken     = string.Empty
                 };
             }
 
-            var dto = mapper.Map<AuthResponse>(user);
+            var jwtExpireMinutes   = _configuration.GetValue<double>("Jwt:ExpiryMinutes");
+            var cacheExpireMinutes = _configuration.GetValue<double>("Redis:AuthTokenActiveCacheMinutes");
 
+            var dto     = mapper.Map<AuthResponse>(user);
             var refresh = await _refreshTokenSerivce.GenerateAsync(user.Id, ipAddress);
 
             await _context.SaveChangesAsync();
 
+            var accessToken = await GenerateJwtToken(user);
+
+            // Mark this user as having an active JWT (TTL matches JWT expiry)
+            await _cache.SetAsync<bool>(
+                CacheKeys.AuthTokenActive(user.Id),
+                true,
+                TimeSpan.FromMinutes(jwtExpireMinutes));
+
+            // Track the raw refresh token hash so we can detect active refresh sessions
+            await _cache.SetAsync<string>(
+                CacheKeys.RefreshTokenActive(user.Id),
+                _refreshTokenSerivce.HashToken(refresh.RawToken),
+                TimeSpan.FromMinutes(cacheExpireMinutes));
+
             dto.IsAuthenticated = true;
-            dto.Message = "Login successful.";
-            dto.AccessToken = await GenerateJwtToken(user);
-            dto.Expiration = DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:ExpiryMinutes"));
-            dto.RefreshToken = refresh.RawToken;
+            dto.Message         = "Login successful.";
+            dto.AccessToken     = accessToken;
+            dto.Expiration      = DateTime.UtcNow.AddMinutes(jwtExpireMinutes);
+            dto.RefreshToken    = refresh.RawToken;
             return dto;
         }
 
@@ -94,23 +121,21 @@ namespace Infrastructure.Authentecation
         {
             try
             {
-                var userExists = await _userManager.FindByEmailAsync(request.Email) ?? 
-                await _userManager.FindByNameAsync(request.UserName);
-
+                var userExists = await _userManager.FindByEmailAsync(request.Email) ??
+                                 await _userManager.FindByNameAsync(request.UserName);
 
                 if (userExists != null)
                 {
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message = "Email, username, or phone number already exists.",
-                        Expiration = DateTime.UtcNow,
-                        AccessToken = string.Empty
+                        Message         = "Email, username, or phone number already exists.",
+                        Expiration      = DateTime.UtcNow,
+                        AccessToken     = string.Empty
                     };
                 }
 
                 var user = mapper.Map<ApplicationUser>(request);
-
                 user.EmailConfirmed = false;
 
                 var result = await _userManager.CreateAsync(user, request.Password);
@@ -120,9 +145,9 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message = string.Join(" | ", result.Errors.Select(e => e.Description)),
-                        Expiration = DateTime.UtcNow,
-                        AccessToken = string.Empty
+                        Message         = string.Join(" | ", result.Errors.Select(e => e.Description)),
+                        Expiration      = DateTime.UtcNow,
+                        AccessToken     = string.Empty
                     };
                 }
 
@@ -134,19 +159,20 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message = string.Join(" | ", addToRoleResult.Errors.Select(e => e.Description))
+                        Message         = string.Join(" | ", addToRoleResult.Errors.Select(e => e.Description))
                     };
                 }
+
                 await _emailVerificationService.SendEmailConfirmationAsync(user.Id);
 
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message = "Account created successfully. Please check your email to confirm your account before logging in.",
-                    Id = user.Id,
-                    Email = user.Email,
-                    UserName = user.UserName,
-                    PhoneNumber = user.PhoneNumber
+                    Message         = "Account created successfully. Please check your email to confirm your account before logging in.",
+                    Id              = user.Id,
+                    Email           = user.Email,
+                    UserName        = user.UserName,
+                    PhoneNumber     = user.PhoneNumber
                 };
             }
             catch (Exception)
@@ -154,7 +180,7 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message = "An error occurred during registration."
+                    Message         = "An error occurred during registration."
                 };
             }
         }
@@ -162,7 +188,7 @@ namespace Infrastructure.Authentecation
         public async Task<string> GenerateJwtToken(ApplicationUser user)
         {
             var userClaims = await _userManager.GetClaimsAsync(user);
-            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRoles  = await _userManager.GetRolesAsync(user);
 
             var claims = new List<Claim>
             {
@@ -183,10 +209,10 @@ namespace Infrastructure.Authentecation
 
             var token = new JwtSecurityToken
             (
-                issuer: _configuration.GetValue<string>("Jwt:Issuer"),
-                audience: _configuration.GetValue<string>("Jwt:Audience"),
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:ExpiryMinutes")),
+                issuer:             _configuration.GetValue<string>("Jwt:Issuer"),
+                audience:           _configuration.GetValue<string>("Jwt:Audience"),
+                claims:             claims,
+                expires:            DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:ExpiryMinutes")),
                 signingCredentials: credentials
             );
 
@@ -203,34 +229,46 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message = "Invalid refresh token.",
-                        Expiration = DateTime.UtcNow,
-                        AccessToken = string.Empty
+                        Message         = "Invalid refresh token.",
+                        Expiration      = DateTime.UtcNow,
+                        AccessToken     = string.Empty
                     };
                 }
-                var token = await _refreshTokenSerivce.RotateAsync(oldToken,
-                oldToken.ApplicationUserId, ipAddress);
 
-                var accessToken = await GenerateJwtToken(oldToken.ApplicationUser);
+                var token = await _refreshTokenSerivce.RotateAsync(oldToken, oldToken.ApplicationUserId, ipAddress);
+
+                var accessToken      = await GenerateJwtToken(oldToken.ApplicationUser);
+                var jwtExpireMinutes = _configuration.GetValue<double>("Jwt:ExpiryMinutes");
+                var cacheExpireMinutes = _configuration.GetValue<double>("Redis:AuthTokenActiveCacheMinutes");
+
                 await _context.SaveChangesAsync();
+
+                // Refresh the active-token keys with the new tokens
+                await _cache.SetAsync<bool>(
+                    CacheKeys.AuthTokenActive(oldToken.ApplicationUserId),
+                    true,
+                    TimeSpan.FromMinutes(jwtExpireMinutes));
+
+                await _cache.SetAsync<string>(
+                    CacheKeys.RefreshTokenActive(oldToken.ApplicationUserId),
+                    _refreshTokenSerivce.HashToken(token.RawToken),
+                    TimeSpan.FromMinutes(cacheExpireMinutes));
+
                 return new AuthResponse
                 {
                     IsAuthenticated = true,
-                    Message = "Token refreshed successfully.",
-                    Id = oldToken.ApplicationUserId,
-                    Email = oldToken.ApplicationUser.Email,
-                    UserName = oldToken.ApplicationUser.UserName,
-                    AccessToken = accessToken,
-                    Expiration = DateTime.UtcNow.AddMinutes(_configuration.GetValue<double>("Jwt:ExpiryMinutes")),
-                    RefreshToken = token.RawToken
+                    Message         = "Token refreshed successfully.",
+                    Id              = oldToken.ApplicationUserId,
+                    Email           = oldToken.ApplicationUser.Email,
+                    UserName        = oldToken.ApplicationUser.UserName,
+                    AccessToken     = accessToken,
+                    Expiration      = DateTime.UtcNow.AddMinutes(jwtExpireMinutes),
+                    RefreshToken    = token.RawToken
                 };
             }
             catch (Exception ex)
             {
-                return new AuthResponse
-                {
-                    Message = ex.Message
-                };
+                return new AuthResponse { Message = ex.Message };
             }
         }
 
@@ -245,6 +283,10 @@ namespace Infrastructure.Authentecation
 
             await _context.SaveChangesAsync();
 
+            // Clear both active-token cache keys on logout
+            await _cache.RemoveAsync(CacheKeys.AuthTokenActive(token.ApplicationUserId));
+            await _cache.RemoveAsync(CacheKeys.RefreshTokenActive(token.ApplicationUserId));
+
             return revoked;
         }
 
@@ -256,11 +298,16 @@ namespace Infrastructure.Authentecation
 
             foreach (var item in tokens!)
             {
-                item.RevokedAt = DateTimeOffset.UtcNow;
-                item.RevokedByIp = ipAddress;
+                item.RevokedAt    = DateTimeOffset.UtcNow;
+                item.RevokedByIp  = ipAddress;
             }
 
             await _context.SaveChangesAsync();
+
+            // Clear cache for all sessions
+            await _cache.RemoveAsync(CacheKeys.AuthTokenActive(userId));
+            await _cache.RemoveAsync(CacheKeys.RefreshTokenActive(userId));
+
             return true;
         }
     }

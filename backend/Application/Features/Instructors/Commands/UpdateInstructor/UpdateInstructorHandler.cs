@@ -2,16 +2,20 @@ using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Users;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Instructors.Commands.UpdateInstructor
 {
     public class UpdateInstructorHandler : IRequestHandler<UpdateInstructorCommand, Result<InstructorResponse>>
     {
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
         private readonly ILogger<UpdateInstructorHandler> _logger;
         private readonly IInstructorRepository _instructorRepository;
         private readonly IDepartmentRepository _departmentRepository;
@@ -23,13 +27,17 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             IDepartmentRepository departmentRepository,
             IAuditLogRepository auditLogRepository,
             IMapper mapper,
-            ILogger<UpdateInstructorHandler> logger)
+            ILogger<UpdateInstructorHandler> logger,
+            ICacheService cache,
+            IConfiguration configuration)
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
             _auditLogRepository   = auditLogRepository;
             _mapper               = mapper;
             _logger               = logger;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(UpdateInstructorCommand request, CancellationToken cancellationToken)
@@ -65,6 +73,13 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             await _instructorRepository.SaveChangesAsync();
 
             var response = _mapper.Map<InstructorResponse>(instructor);
+
+            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
+
+            var redisKey = CacheKeys.Instructor(instructor.Id);
+            await _cache.SetAsync<InstructorResponse>(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {

@@ -14,6 +14,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace API.Extentions
 {
@@ -27,6 +28,12 @@ namespace API.Extentions
             // 2. Register your DbContext in the DI container
             service.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            // cache
+            var redisConnectionString =configuration.GetConnectionString("Redis");
+
+            service.AddSingleton<IConnectionMultiplexer>(sp =>
+            ConnectionMultiplexer.Connect(redisConnectionString!));
 
             // 3. Register Identity services
             service
@@ -50,6 +57,8 @@ namespace API.Extentions
             service.AddScoped<IEmailSender, EmailSender>();
             service.AddScoped<IFileStorageService, LocalFileStorageService>();
             service.AddScoped<IFileSecurityService, ClamAvFileScanner>();
+            service.AddScoped<IIdempotencyService, IdempotencyService>();
+            service.AddScoped<ICacheService, RedisService>();
 
             // 9. Register MediatR and scan the assembly where the Program class lives
             service.AddMediatR(cfg => 

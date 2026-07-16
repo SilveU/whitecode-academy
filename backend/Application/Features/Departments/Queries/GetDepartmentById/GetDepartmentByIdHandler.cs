@@ -1,29 +1,47 @@
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Features.Departments.Queries.GetDepartmentById
 {
     public class GetDepartmentByIdHandler : IRequestHandler<GetDepartmentByIdQuery, Result<DepartmentResponse>>
     {
+        private readonly IConfiguration _configuration;
         private readonly IDepartmentRepository _departmentRepository;
+        private readonly ICacheService _cache;
         private readonly IMapper _mapper;
 
-        public GetDepartmentByIdHandler(IDepartmentRepository departmentRepository, IMapper mapper)
+        public GetDepartmentByIdHandler(IDepartmentRepository departmentRepository, IMapper mapper,
+            ICacheService cache, IConfiguration configuration)
         {
             _departmentRepository = departmentRepository;
-            _mapper = mapper;
+            _mapper               = mapper;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<DepartmentResponse>> Handle(GetDepartmentByIdQuery request, CancellationToken cancellationToken)
         {
+            var redisKey = CacheKeys.Department(request.Id);
+            var cached   = await _cache.GetAsync<DepartmentResponse>(redisKey);
+
+            if (cached is not null)
+                return Result<DepartmentResponse>.Success(cached);
+
             var department = await _departmentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (department == null)
                 return Result<DepartmentResponse>.NotFound($"Department with ID {request.Id} not found.");
 
-            return Result<DepartmentResponse>.Success(_mapper.Map<DepartmentResponse>(department));
+            var response = _mapper.Map<DepartmentResponse>(department);
+
+            await _cache.SetAsync(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")));
+
+            return Result<DepartmentResponse>.Success(response);
         }
     }
 }

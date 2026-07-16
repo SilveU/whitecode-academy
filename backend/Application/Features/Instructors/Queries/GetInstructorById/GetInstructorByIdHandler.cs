@@ -1,29 +1,47 @@
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Features.Instructors.Queries.GetInstructorById
 {
     public class GetInstructorByIdHandler : IRequestHandler<GetInstructorByIdQuery, Result<InstructorResponse>>
     {
+        private readonly IConfiguration _configuration;
         private readonly IInstructorRepository _instructorRepository;
+        private readonly ICacheService _cache;
         private readonly IMapper _mapper;
 
-        public GetInstructorByIdHandler(IInstructorRepository instructorRepository, IMapper mapper)
+        public GetInstructorByIdHandler(IInstructorRepository instructorRepository, IMapper mapper,
+            ICacheService cache, IConfiguration configuration)
         {
             _instructorRepository = instructorRepository;
-            _mapper = mapper;
+            _mapper               = mapper;
+            _cache                = cache;
+            _configuration        = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(GetInstructorByIdQuery request, CancellationToken cancellationToken)
         {
+            var redisKey = CacheKeys.Instructor(request.Id);
+            var cached   = await _cache.GetAsync<InstructorResponse>(redisKey);
+
+            if (cached is not null)
+                return Result<InstructorResponse>.Success(cached);
+
             var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (instructor == null)
                 return Result<InstructorResponse>.NotFound($"Instructor with ID {request.Id} not found.");
 
-            return Result<InstructorResponse>.Success(_mapper.Map<InstructorResponse>(instructor));
+            var response = _mapper.Map<InstructorResponse>(instructor);
+
+            await _cache.SetAsync(redisKey, response,
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
+
+            return Result<InstructorResponse>.Success(response);
         }
     }
 }

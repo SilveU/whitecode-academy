@@ -1,0 +1,99 @@
+using Application.Helper;
+using Application.Interfaces.Services;
+using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+
+namespace Infrastructure.Services
+{
+    public class RedisService : ICacheService
+    {
+        private readonly IDatabase _database;
+        private readonly IServer _server;
+        private readonly ILogger<RedisService> _logger;
+        public RedisService(IConnectionMultiplexer connection, ILogger<RedisService> logger)
+        {
+            _database = connection.GetDatabase();
+            var endPoint = connection.GetEndPoints().First();
+            _server = connection.GetServer(endPoint);
+            _logger = logger;
+        }
+        public async Task<bool> SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+        {
+            try
+            {
+                var json = CacheSerializer.Serialize(value);
+                var expiration = expiry ?? TimeSpan.FromHours(1);
+
+                return await _database.StringSetAsync(key, json, expiration);
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to set cache for key {CacheKey}.", key);
+                return false;
+            }
+        }
+
+        public async Task<bool> SetIfNotExistsAsync<T>(string key, T value, TimeSpan? expiry = null)
+        {
+            try
+            {
+                var json = CacheSerializer.Serialize(value);
+                var expiration = expiry ?? TimeSpan.FromHours(1);
+
+                return await _database.StringSetAsync(key, json, expiration, When.NotExists);
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to set idempotency key {CacheKey}.", key);
+                return false;
+            }
+        }
+
+        public async Task RemoveAsync(string key)
+        {
+            try
+            {
+                await _database.KeyDeleteAsync(key);
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to remove cache key {CacheKey}.", key);
+            }
+        }
+
+        public async Task<T?> GetAsync<T>(string key)
+        {
+            try
+            {
+                var value = await _database.StringGetAsync(key);
+
+                if (value.IsNullOrEmpty)
+                    return default;
+
+                return CacheSerializer.Deserialize<T>(value!);
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to get cache for key {CacheKey}.", key);
+                return default;
+            }
+        }
+
+        public async Task RemoveByPrefixAsync(string prefix)
+        {
+            try
+            {
+                var keys = _server.Keys(_database.Database, $"{prefix}:*").ToArray();
+
+                if (keys.Length == 0)
+                    return;
+
+                await _database.KeyDeleteAsync(keys);
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to remove cache keys with prefix {Prefix}.", prefix);
+            }
+        }
+    }
+}

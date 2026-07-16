@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using MediatR;
@@ -10,6 +11,7 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
 {
     public class DeleteDepartmentHandler : IRequestHandler<DeleteDepartmentCommand, Result<bool>>
     {
+        private readonly ICacheService _cache;
         private readonly ILogger<DeleteDepartmentHandler> _logger;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly IAuditLogRepository _auditLogRepository;
@@ -17,11 +19,13 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
         public DeleteDepartmentHandler(
             IDepartmentRepository departmentRepository,
             IAuditLogRepository auditLogRepository,
-            ILogger<DeleteDepartmentHandler> logger)
+            ILogger<DeleteDepartmentHandler> logger,
+            ICacheService cache)
         {
             _departmentRepository = departmentRepository;
             _auditLogRepository   = auditLogRepository;
             _logger               = logger;
+            _cache                = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteDepartmentCommand request, CancellationToken cancellationToken)
@@ -46,15 +50,18 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
             _departmentRepository.Delete(department);
             await _departmentRepository.SaveChangesAsync();
 
+            await _cache.RemoveAsync(CacheKeys.Department(department.Id));
+            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix());
+
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId = "system",
-                Action = "Delete",
+                UserId     = "system",
+                Action     = "Delete",
                 EntityName = nameof(Department),
-                EntityId = department.Id,
-                OldValues = null,
-                NewValues = null,
-                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+                EntityId   = department.Id,
+                OldValues  = null,
+                NewValues  = null,
+                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 
             _logger.LogInformation("Department {DepartmentId} '{Name}' deleted successfully.", department.Id, department.Name);
