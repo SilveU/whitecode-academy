@@ -93,6 +93,7 @@ function AppRoutes() {
 }
 
 import { ThemeProvider } from './context/ThemeContext'
+import AIChatWidget from './components/common/AIChatWidget'
 
 function App() {
   return (
@@ -101,6 +102,7 @@ function App() {
         <AuthProvider>
           <AppRoutes />
           <ScrollToTopButton />
+          <AIChatWidget />
         </AuthProvider>
       </ThemeProvider>
     </Router>
