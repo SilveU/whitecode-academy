@@ -1,3 +1,4 @@
+using API.Attributes;
 using API.Controllers.Common;
 using Application.Common;
 using Application.DTOs.Core.Requests;
@@ -56,6 +57,7 @@ namespace API.Controllers.Core
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [EnableRateLimiting("HeavyPolicy")]
+        [Idempotent]
         public async Task<IActionResult> CreateDepartment([FromForm] CreateDepartmentRequest request)
         {
             var command = _mapper.Map<CreateDepartmentCommand>(request);

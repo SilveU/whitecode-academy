@@ -78,6 +78,7 @@ namespace API.Extentions
             service.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
             service.AddScoped<IStudentRepository, StudentRepository>();
             service.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            service.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 
             GlobalFFOptions.Configure(options =>
             {

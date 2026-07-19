@@ -1,3 +1,4 @@
+using API.Attributes;
 using API.Controllers.Common;
 using Application.Features.Students.Commands.AssignStudent;
 using Application.Features.Students.Commands.DeleteStudent;
@@ -24,6 +25,7 @@ namespace API.Controllers.Core
         [HttpPost]
         [Authorize(Roles = "User")]
         [EnableRateLimiting("HeavyPolicy")]
+        [Idempotent]
         public async Task<IActionResult> AssignStudent()
         {
             var userId = GetCurrentUserId();

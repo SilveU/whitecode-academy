@@ -26,7 +26,7 @@ namespace Infrastructure.Services
 
                 return await _database.StringSetAsync(key, json, expiration);
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to set cache for key {CacheKey}.", key);
                 return false;
@@ -42,7 +42,7 @@ namespace Infrastructure.Services
 
                 return await _database.StringSetAsync(key, json, expiration, When.NotExists);
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to set idempotency key {CacheKey}.", key);
                 return false;
@@ -55,7 +55,7 @@ namespace Infrastructure.Services
             {
                 await _database.KeyDeleteAsync(key);
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to remove cache key {CacheKey}.", key);
             }
@@ -72,7 +72,7 @@ namespace Infrastructure.Services
 
                 return (true, Serializer.Deserialize<T>(value!));
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to get cache for key {CacheKey}.", key);
                 return (false, default(T));
@@ -85,7 +85,7 @@ namespace Infrastructure.Services
             {
                 return (true, await _database.KeyExistsAsync(key));
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to get cache for key {CacheKey}.", key);
                 return (false, false);
@@ -103,7 +103,7 @@ namespace Infrastructure.Services
 
                 await _database.KeyDeleteAsync(keys);
             }
-            catch (RedisException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to remove cache keys with prefix {Prefix}.", prefix);
             }

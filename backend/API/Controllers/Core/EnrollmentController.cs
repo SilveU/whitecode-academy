@@ -1,3 +1,4 @@
+using API.Attributes;
 using API.Controllers.Common;
 using Application.Common;
 using Application.Features.Enrollments.Commands.CreateEnrollment;
@@ -51,6 +52,7 @@ namespace API.Controllers.Core
         [HttpPost("{courseId:guid}")]
         [Authorize(Roles = "User")]
         [EnableRateLimiting("HeavyPolicy")]
+        [Idempotent]
         public async Task<IActionResult> Enroll([FromQuery] Guid courseId)
         {
             var command = new CreateEnrollmentCommand
