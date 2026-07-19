@@ -1,24 +1,28 @@
 # White Code Academy 🚀
 
-منصة تعليمية متطورة لتقديم دورات تدريبية وتكليفات عملية متخصصة في مجالات البرمجة والتكنولوجيا. تهدف المنصة إلى تزويد الطلاب والمطورين في الوطن العربي بأفضل محتوى علمي وعملي لضمان تأهيلهم لسوق العمل بمهارات حقيقية.
+An advanced educational platform offering specialized training courses and practical assignments in programming and technology. The platform aims to provide students and developers in the Arab world with the best theoretical and practical content to ensure they are equipped with real-world skills for the job market.
 
-## 🌟 المميزات (Features)
+## 🌟 Features
 
-- **واجهة مستخدم احترافية:** تم تصميم واجهة المنصة (Frontend) لتوفير تجربة مستخدم سلسة وعصرية (Modern & Glassmorphism Design).
-- **تجربة متجاوبة 100%:** متوافقة تماماً مع جميع الأجهزة (موبايل، تابلت، ديسكتوب).
-- **تأمين البيانات:** حماية حسابات المستخدمين باستخدام أحدث تقنيات الـ JWT (JSON Web Tokens).
-- **مسارات تعليمية واضحة:** تنظيم المحتوى التعليمي في مسارات متسلسلة للبدء من الصفر حتى الاحتراف.
-- **تطبيق عملي:** كل دورة مزودة بأسئلة (Quizzes) وتكليفات عملية (Assignments) لضمان الفهم.
+- **Professional User Interface:** The platform's front-end interface is designed to provide a smooth and modern user experience (Modern & Glassmorphism Design).
 
-## 💻 التقنيات المستخدمة (Tech Stack)
+- **100% Responsive Experience:** Fully compatible with all devices (mobile, tablet, desktop).
 
-### Frontend (واجهة المستخدم)
+- **Data Security:** Protecting user accounts using the latest JWT (JSON Web Tokens) technology.
+
+- **Clear Learning Paths:** The educational content is organized into sequential paths, from beginner to expert.
+
+- **Practical Application:** Each course includes quizzes and practical assignments to ensure comprehension.
+
+## 💻 Technologies Used (Tech Stack)
+
+### Frontend (User Interface)
 - **React.js (Vite)**
 - **Vanilla CSS** (Custom Design System & Modern Aesthetics)
-- **React Router DOM** (للتحكم في المسارات)
-- **Lucide React** (للأيقونات)
+- **React Router DOM** (For route control)
+- **Lucide React** (For icons)
 
-### Backend (الخادم وقواعد البيانات)
+### Backend (Server and Databases)
 - **C# .NET Web API**
 - **Entity Framework Core**
 - **SQL Server**
@@ -26,34 +30,36 @@
 
 ---
 
-## 🚀 تشغيل المشروع محلياً (Run Locally)
+## 🚀 Run the Project Locally
 
-المشروع مقسم إلى جزئين رئيسيين: `frontend` و `backend`. لتشغيل المشروع على جهازك، يرجى اتباع الخطوات التالية:
+The project is divided into two main parts: `frontend` and `backend`. To run the project on your machine, please follow these steps:
 
-### 1️⃣ تشغيل واجهة المستخدم (Frontend)
+### 1️⃣ Run the Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-سيعمل السيرفر المحلي للفرونت اند على الرابط: `http://localhost:5174`
+The local server for the frontend will run at: `http://localhost:5174`
 
-### 2️⃣ تشغيل الخادم (Backend)
-الباك اند مبني باستخدام بيئة تطوير C# .NET. يمكنك تشغيله عن طريق Visual Studio، أو باستخدام أداة الـ CLI:
+### 2️⃣ Run the Backend
+The backend is built using the C# .NET development environment. You can run it using Visual Studio or the CLI:
+
 ```bash
 cd backend/API
 dotnet restore
 dotnet run
 ```
-سيعمل السيرفر المحلي للباك اند على الرابط: `http://localhost:5076`
+The local server for the backend will run at: `https://localhost:7045`
 
 ---
 
-## 🌐 روابط المشروع (Live Demo)
-- **الفرونت اند (Frontend):** مرفوع ويعمل مباشرة عبر Vercel.
-- **رابط المنصة:** [White Code Academy](https://frontend-eight-kappa-3f9vl72nk2.vercel.app/)
+## 🌐 Project Links (Live Demo)
+- **Frontend:** Uploaded and running directly via Vercel.
+
+- **Platform Link:** [White Code Academy](https://frontend-eight-kappa-3f9vl72nk2.vercel.app/)
 
 ---
 
-## ⚖️ حقوق الملكية (Disclaimer)
-المحتوى المتوفر على هذه المنصة عبارة عن دورات وفيديوهات مدفوعة قمنا بشراؤها وترجمتها للغة العربية، مع إضافة أسئلة وتكليفات عملية وتوفير بيئة تعليمية متكاملة لخدمة الطلاب في الوطن العربي. حقوق الملكية الفكرية الأصلية للمحتوى المرئي تعود لأصحابها الأساسيين.
+## ⚖️ Copyright (Disclaimer)
+The content available on this platform consists of paid courses and videos that we have purchased and translated into Arabic. We have also added practical questions and assignments, providing a comprehensive learning environment to serve students in the Arab world. The original intellectual property rights for the video content belong to their respective owners.
