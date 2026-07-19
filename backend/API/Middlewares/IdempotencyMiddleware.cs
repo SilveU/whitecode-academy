@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using System.Text;
 using Application.Common;
+using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Domain.Entites.System;
 
 namespace API.Middlewares
 {
@@ -8,111 +11,201 @@ namespace API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<IdempotencyMiddleware> _logger;
+        private readonly IIdempotencyRepository _idempo;
 
-        public IdempotencyMiddleware(RequestDelegate next, ILogger<IdempotencyMiddleware> logger)
+        public IdempotencyMiddleware(RequestDelegate next, ILogger<IdempotencyMiddleware> logger, IIdempotencyRepository idempo)
         {
             _next = next;
             _logger = logger;
+            _idempo = idempo;
         }
 
-        public async Task Invoke(HttpContext context, ICacheService _cache)
+        public async Task Invoke(HttpContext context, ICacheService cache)
         {
             var originalBody = context.Response.Body;
+
             try
             {
-                var idempotencyKeyHeader = context.Request.Headers[HeaderNames.IdempotencyKey];
-                if(string.IsNullOrEmpty(idempotencyKeyHeader))
+                var idempotencyKey = context.Request.Headers[HeaderNames.IdempotencyKey];
+
+                if (string.IsNullOrEmpty(idempotencyKey))
                 {
                     await _next(context);
                     return;
                 }
 
-                var redisKey = CacheKeys.IdempotencyResponseKey(idempotencyKeyHeader!);
+                var redisKey = CacheKeys.IdempotencyResponseKey(idempotencyKey!);
 
-                var cached = await _cache.GetAsync<CachedHttpResponse>(redisKey);
+                var cached = await cache.GetAsync<CachedHttpResponse>(redisKey);
 
-                if (cached != null)
+                // Redis Available
+                if (cached.Success)
                 {
-                    context.Response.StatusCode = cached.StatusCode;
-                    context.Response.ContentType = cached.ContentType;
-
-                    await context.Response.WriteAsync(cached.Body);
-                    return;
-                }
-                var redisLockKey = CacheKeys.IdempotencyLockKey(idempotencyKeyHeader!);
-
-                var acquired = await _cache.SetIfNotExistsAsync(redisLockKey, $"processing", TimeSpan.FromSeconds(60));
-
-                if (!acquired)
-                {
-                    for (int i = 0; i < 10; i++)
+                    if (cached.Item2 != null)
                     {
-                        await Task.Delay(200);
+                        context.Response.StatusCode = cached.Item2.StatusCode;
+                        context.Response.ContentType = cached.Item2.ContentType;
 
-                        var response = await _cache.GetAsync<CachedHttpResponse>(redisKey);
+                        await context.Response.WriteAsync(cached.Item2.Body);
+                        return;
+                    }
 
-                        if(response != null)
+                    var redisLockKey = CacheKeys.IdempotencyLockKey(idempotencyKey!);
+
+                    var acquired = await cache.SetIfNotExistsAsync(redisLockKey, "processing", TimeSpan.FromSeconds(60));
+
+                    if (!acquired)
+                    {
+                        for (int i = 0; i < 10; i++)
                         {
-                            context.Response.StatusCode = response.StatusCode;
-                            context.Response.ContentType = response.ContentType;
-                            
-                            await context.Response.WriteAsync(response.Body);
-                            return;
+                            await Task.Delay(200);
+
+                            var response = await cache.GetAsync<CachedHttpResponse>(redisKey);
+
+                            if (response.Item2 != null)
+                            {
+                                context.Response.StatusCode = response.Item2.StatusCode;
+                                context.Response.ContentType = response.Item2.ContentType;
+
+                                await context.Response.WriteAsync(response.Item2.Body);
+                                return;
+                            }
+                        }
+
+                        context.Response.StatusCode = StatusCodes.Status409Conflict;
+                        context.Response.ContentType = "application/json";
+
+                        await context.Response.WriteAsync("Request is still processing");
+                        return;
+                    }
+
+                    using var memoryStream = new MemoryStream();
+                    context.Response.Body = memoryStream;
+
+                    try
+                    {
+                        await _next(context);
+
+                        memoryStream.Position = 0;
+
+                        using var reader = new StreamReader(memoryStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+
+                        var text = await reader.ReadToEndAsync();
+
+                        if (context.Response.StatusCode is StatusCodes.Status200OK
+                            or StatusCodes.Status201Created
+                            or StatusCodes.Status400BadRequest
+                            or StatusCodes.Status422UnprocessableEntity)
+                        {
+                            var response = new CachedHttpResponse
+                            {
+                                Body = text,
+                                ContentType = context.Response.ContentType ?? "application/json",
+                                StatusCode = context.Response.StatusCode
+                            };
+
+                            await cache.SetAsync(redisKey, response, TimeSpan.FromMinutes(15));
                         }
                     }
-                    context.Response.StatusCode = StatusCodes.Status409Conflict;
-                    context.Response.ContentType = "application/json";
+                    finally
+                    {
+                        await cache.RemoveAsync(redisLockKey);
+                    }
 
-                    await context.Response.WriteAsync("Request is still processing");
-                    return;
+                    memoryStream.Position = 0;
+                    await memoryStream.CopyToAsync(originalBody);
                 }
-                
-                using var memoryStream = new MemoryStream();
-                context.Response.Body = memoryStream;
 
-                // استبدلنا ال body بالميموري ستريم عشان الكنترولر هيكتب في الريسبونس مره واحده ونا محتاج اقرا اللي اتكتب قبل ما يروح للكلاينت عشان اقدر اخزنه في ريديس
-
-                try
+                // Redis Unavailable
+                else
                 {
+                    _logger.LogWarning("Redis is unavailable.");
+
+                    var served = await TryServeFromDatabaseAsync(context);
+
+                    if (served)
+                        return;
+
+                    using var memoryStream = new MemoryStream();
+                    context.Response.Body = memoryStream;
+
                     await _next(context);
 
                     memoryStream.Position = 0;
-                    using var reader = new StreamReader(memoryStream, Encoding.UTF8, 
-                    detectEncodingFromByteOrderMarks: false, leaveOpen: true);
 
-                    // leaveOpen: true معناها: لما الستريم ريدر يتعمله ديسبوز متقفلش الميموري ستريم 
+                    using var reader = new StreamReader(
+                        memoryStream,
+                        Encoding.UTF8,
+                        detectEncodingFromByteOrderMarks: false,
+                        leaveOpen: true);
 
-                    string text = await reader.ReadToEndAsync();
+                    var text = await reader.ReadToEndAsync();
 
-                    if (context.Response.StatusCode == StatusCodes.Status200OK || 
-                    context.Response.StatusCode == StatusCodes.Status201Created ||
-                    context.Response.StatusCode == StatusCodes.Status400BadRequest ||
-                    context.Response.StatusCode == StatusCodes.Status422UnprocessableEntity)
+                    if (context.Response.StatusCode is StatusCodes.Status200OK
+                        or StatusCodes.Status201Created
+                        or StatusCodes.Status400BadRequest
+                        or StatusCodes.Status422UnprocessableEntity)
                     {
-                        var respone = new CachedHttpResponse
-                        {
-                            Body = text,
-                            ContentType = context.Response.ContentType ?? "application/json",
-                            StatusCode = context.Response.StatusCode
-                        };
-                        await _cache.SetAsync(redisKey, respone, TimeSpan.FromMinutes(15));
+                        await SaveToDatabaseAsync(context, text);
                     }
+
+                    memoryStream.Position = 0;
+                    await memoryStream.CopyToAsync(originalBody);
                 }
-                finally
-                {
-                    await _cache.RemoveAsync(redisLockKey);
-                }
-
-                memoryStream.Position = 0;
-
-                await memoryStream.CopyToAsync(originalBody);
-
-                // نسخنا محتوي الميموري ستريم في الاوريجينال body
             }
             finally
             {
                 context.Response.Body = originalBody;
             }
-        }   
+        }  
+
+        private async Task<bool> TryServeFromDatabaseAsync(HttpContext context)
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var httpMethod = context.Request.Method;
+            var path = context.Request.Path.Value ?? string.Empty;
+
+            var idempotencyKey = context.Request.Headers[HeaderNames.IdempotencyKey];
+            if(string.IsNullOrEmpty(idempotencyKey))
+                return false;
+
+            var idempotency = await _idempo.GetAsync(userId, httpMethod, path, idempotencyKey!);
+            if(idempotency == null)
+                return false; 
+
+            context.Response.StatusCode = idempotency.StatusCode;
+            context.Response.ContentType = idempotency.ContentType;
+
+            await context.Response.WriteAsync(idempotency.ResponseBody);
+            return true;
+        }
+        
+        private async Task SaveToDatabaseAsync(HttpContext context, string responseBody)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var idempotencyKey = context.Request.Headers[HeaderNames.IdempotencyKey];
+            if (string.IsNullOrEmpty(idempotencyKey))
+                return ;
+
+            var entity = new Idempotency
+            {
+                UserId = userId,
+                HttpMethod = context.Request.Method,
+                Path = context.Request.Path.Value ?? string.Empty,
+                IdempotencyKey = idempotencyKey!,
+                StatusCode = context.Response.StatusCode,
+                ContentType = context.Response.ContentType ?? "application/json",
+                ResponseBody = responseBody,
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(15)
+            };
+
+            await _idempo.CreateAsync(entity);
+
+            await _idempo.SaveChangesAsync();
+        }
     }
 }

@@ -8,7 +8,6 @@ using Domain.Entites.Users;
 using FFMpegCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using HealthChecks.Network.Core;
 using Infrastructure.Authentecation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
@@ -32,10 +31,15 @@ namespace API.Extentions
                 options.UseSqlServer(connectionString));
 
             // cache
-            var redisConnectionString =configuration.GetConnectionString("Redis");
+            var redisConnectionString = configuration.GetConnectionString("Redis");
+            var options = ConfigurationOptions.Parse(redisConnectionString!);
+            options.AbortOnConnectFail = false;
+            options.ConnectTimeout = 300;
+            options.AsyncTimeout = 300;
+            options.SyncTimeout = 300;
 
             service.AddSingleton<IConnectionMultiplexer>(sp =>
-            ConnectionMultiplexer.Connect(redisConnectionString!));
+            ConnectionMultiplexer.Connect(options!));
 
             // 3. Register Identity services
             service

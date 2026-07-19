@@ -27,7 +27,7 @@ namespace API.Middlewares
 
         public TokenRevocationMiddleware(RequestDelegate next, ILogger<TokenRevocationMiddleware> logger)
         {
-            _next   = next;
+            _next = next;
             _logger = logger;
         }
 
@@ -48,9 +48,9 @@ namespace API.Middlewares
 
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    var isActive = await cache.GetAsync<bool?>(CacheKeys.AuthTokenActive(userId));
+                    var session = await cache.ExistsAsync(CacheKeys.AuthTokenActive(userId));
 
-                    if (isActive is not true)
+                    if (session.Success && !session.Exists)
                     {
                         _logger.LogWarning("Token revocation check failed for user {UserId}. Session not found in Redis.", userId);
 
@@ -60,9 +60,16 @@ namespace API.Middlewares
                         await context.Response.WriteAsync(JsonSerializer.Serialize(new
                         {
                             StatusCode = 401,
-                            Message    = "Your session has expired or you have been logged out. Please log in again."
+                            Message = "Your session has expired or you have been logged out. Please log in again."
                         }));
 
+                        return;
+                    }
+
+                    else if (!session.Success)
+                    {
+                        _logger.LogWarning("Redis is unavailable. Skipping token revocation check for user {UserId}.", userId);
+                        await _next(context);
                         return;
                     }
                 }

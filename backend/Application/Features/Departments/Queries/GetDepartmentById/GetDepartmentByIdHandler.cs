@@ -29,8 +29,8 @@ namespace Application.Features.Departments.Queries.GetDepartmentById
             var redisKey = CacheKeys.Department(request.Id);
             var cached   = await _cache.GetAsync<DepartmentResponse>(redisKey);
 
-            if (cached is not null)
-                return Result<DepartmentResponse>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<DepartmentResponse>.Success(cached.Item2);
 
             var department = await _departmentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (department == null)

@@ -28,8 +28,8 @@ namespace Application.Features.Courses.Queries.GetCourses
             var redisKey = CacheKeys.SearchCourses(request.Parameters);
             var cached = await _cache.GetAsync<IEnumerable<CourseResponse>>(redisKey);
 
-            if (cached is not null)
-                return Result<IEnumerable<CourseResponse>>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<IEnumerable<CourseResponse>>.Success(cached.Item2);
 
             var courses = await _courseRepository.SearchAsync(request.Parameters);
             var response = _mapper.Map<IEnumerable<CourseResponse>>(courses);

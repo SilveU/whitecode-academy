@@ -33,8 +33,8 @@ namespace Application.Features.Departments.Queries.GetDepartments
             var redisKey = CacheKeys.SearchDepartments(request.Parameters);
             var cached   = await _cache.GetAsync<IEnumerable<DepartmentResponse>>(redisKey);
 
-            if (cached is not null)
-                return Result<IEnumerable<DepartmentResponse>>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<IEnumerable<DepartmentResponse>>.Success(cached.Item2);
 
             var departments = await _departmentRepository.SearchAsync(request.Parameters);
             var response    = _mapper.Map<IEnumerable<DepartmentResponse>>(departments);

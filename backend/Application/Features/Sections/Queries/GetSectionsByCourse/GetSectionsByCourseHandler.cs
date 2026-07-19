@@ -31,8 +31,8 @@ namespace Application.Features.Sections.Queries.GetSectionsByCourse
             var redisKey = $"{CacheKeys.SectionsByCoursePrefix(request.CourseId)}:all";
             var cached   = await _cache.GetAsync<IEnumerable<SectionResponse>>(redisKey);
 
-            if (cached is not null)
-                return Result<IEnumerable<SectionResponse>>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<IEnumerable<SectionResponse>>.Success(cached.Item2);
 
             var course = await _courseRepository.GetByIdAsync(request.CourseId);
             if (course == null)

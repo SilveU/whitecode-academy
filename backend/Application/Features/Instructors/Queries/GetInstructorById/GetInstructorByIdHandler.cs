@@ -29,8 +29,8 @@ namespace Application.Features.Instructors.Queries.GetInstructorById
             var redisKey = CacheKeys.Instructor(request.Id);
             var cached   = await _cache.GetAsync<InstructorResponse>(redisKey);
 
-            if (cached is not null)
-                return Result<InstructorResponse>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<InstructorResponse>.Success(cached.Item2);
 
             var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (instructor == null)
