@@ -84,7 +84,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 }
             }
 
-            var oldValues = AuditSerializer.Serialize(_mapper.Map<SectionResponse>(section));
+            var oldValues = Serializer.Serialize(_mapper.Map<SectionResponse>(section));
 
             if (!string.IsNullOrEmpty(request.Name))        section.Name        = request.Name;
             if (!string.IsNullOrEmpty(request.Description)) section.Description = request.Description;
@@ -141,7 +141,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 EntityName = nameof(Section),
                 EntityId   = section.Id,
                 OldValues  = oldValues,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

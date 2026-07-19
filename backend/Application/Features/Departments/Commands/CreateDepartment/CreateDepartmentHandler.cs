@@ -75,7 +75,7 @@ namespace Application.Features.Departments.Commands.CreateDepartment
                 EntityName = nameof(Department),
                 EntityId   = department.Id,
                 OldValues  = null,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

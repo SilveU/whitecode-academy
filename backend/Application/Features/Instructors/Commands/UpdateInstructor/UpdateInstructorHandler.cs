@@ -55,7 +55,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
                 return Result<InstructorResponse>.NotFound($"Instructor with ID {request.Id} not found.");
             }
 
-            var oldValues = AuditSerializer.Serialize(_mapper.Map<InstructorResponse>(instructor));
+            var oldValues = Serializer.Serialize(_mapper.Map<InstructorResponse>(instructor));
 
             if (request.DepartmentId.HasValue)
             {
@@ -88,7 +88,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
                 EntityName = nameof(Instructor),
                 EntityId   = instructor.Id,
                 OldValues  = oldValues,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

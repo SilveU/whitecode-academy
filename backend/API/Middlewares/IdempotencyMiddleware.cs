@@ -40,8 +40,8 @@ namespace API.Middlewares
                     return;
                 }
                 var redisLockKey = CacheKeys.IdempotencyLockKey(idempotencyKeyHeader!);
-                var acquired = await _cache.SetIfNotExistsAsync(redisLockKey,
-                $"processing", TimeSpan.FromSeconds(60));
+
+                var acquired = await _cache.SetIfNotExistsAsync(redisLockKey, $"processing", TimeSpan.FromSeconds(60));
 
                 if (!acquired)
                 {
@@ -70,6 +70,8 @@ namespace API.Middlewares
                 using var memoryStream = new MemoryStream();
                 context.Response.Body = memoryStream;
 
+                // استبدلنا ال body بالميموري ستريم عشان الكنترولر هيكتب في الريسبونس مره واحده ونا محتاج اقرا اللي اتكتب قبل ما يروح للكلاينت عشان اقدر اخزنه في ريديس
+
                 try
                 {
                     await _next(context);
@@ -77,6 +79,8 @@ namespace API.Middlewares
                     memoryStream.Position = 0;
                     using var reader = new StreamReader(memoryStream, Encoding.UTF8, 
                     detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+
+                    // leaveOpen: true معناها: لما الستريم ريدر يتعمله ديسبوز متقفلش الميموري ستريم 
 
                     string text = await reader.ReadToEndAsync();
 
@@ -97,17 +101,18 @@ namespace API.Middlewares
                 finally
                 {
                     await _cache.RemoveAsync(redisLockKey);
-                    
                 }
 
                 memoryStream.Position = 0;
 
                 await memoryStream.CopyToAsync(originalBody);
+
+                // نسخنا محتوي الميموري ستريم في الاوريجينال body
             }
             finally
             {
                 context.Response.Body = originalBody;
             }
-        }
+        }   
     }
 }

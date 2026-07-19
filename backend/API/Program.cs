@@ -5,6 +5,8 @@ using Infrastructure.Data.Seeding;
 using API.Extentions;
 using API.Middlewares;
 using Serilog;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using API.Extentions.HealthChecks;
 
 namespace API
 {
@@ -99,6 +101,18 @@ namespace API
             app.UseSerilogRequestLogging();
 
             app.MapControllers();
+
+            app.MapHealthChecks("/health/live", new HealthCheckOptions
+            {
+                Predicate = _ => false,
+                ResponseWriter = HealthCheckResponseWriter.WriteResponseAsync
+            });
+
+            app.MapHealthChecks("/health/ready", new HealthCheckOptions
+            {
+                Predicate = registration => registration.Tags.Contains("ready"),
+                ResponseWriter = HealthCheckResponseWriter.WriteResponseAsync
+            });
 
             app.Run();
         }

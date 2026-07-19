@@ -111,7 +111,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
                 EntityName = nameof(Course),
                 EntityId = course.Id,
                 OldValues = null,
-                NewValues = AuditSerializer.Serialize(response),
+                NewValues = Serializer.Serialize(response),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
             });
 
