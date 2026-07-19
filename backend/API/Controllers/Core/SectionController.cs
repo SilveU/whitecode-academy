@@ -1,3 +1,4 @@
+using API.Attributes;
 using API.Controllers.Common;
 using Application.DTOs.Core.Requests;
 using Application.Features.Sections.Commands.CreateSection;
@@ -42,6 +43,7 @@ namespace API.Controllers.Core
         [HttpPost]
         [Authorize(Roles = "Admin,Instructor")]
         [EnableRateLimiting("HeavyPolicy")]
+        [Idempotent]
         public async Task<IActionResult> CreateSection([FromForm] CreateSectionRequest request)
         {
             var command = _mapper.Map<CreateSectionCommand>(request);

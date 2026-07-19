@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using API.Attributes;
 using Application.Common;
 using Application.Interfaces.Services;
 
@@ -15,16 +16,6 @@ namespace API.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<TokenRevocationMiddleware> _logger;
 
-        // Endpoints that must be reachable without an active session key
-        private static readonly HashSet<string> _anonymousPaths = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "/api/authentication/login",
-            "/api/authentication/register",
-            "/api/authentication/refresh",
-            "/api/authentication/confirm-email",
-            "/api/authentication/resend-confirmation"
-        };
-
         public TokenRevocationMiddleware(RequestDelegate next, ILogger<TokenRevocationMiddleware> logger)
         {
             _next = next;
@@ -33,9 +24,9 @@ namespace API.Middlewares
 
         public async Task Invoke(HttpContext context, ICacheService cache)
         {
-            // Skip check for anonymous / auth endpoints
-            var path = context.Request.Path.Value ?? string.Empty;
-            if (_anonymousPaths.Contains(path))
+            var endpoint = context.GetEndpoint();
+
+            if (endpoint?.Metadata.GetMetadata<SkipTokenRevocationAttribute>() is null)
             {
                 await _next(context);
                 return;

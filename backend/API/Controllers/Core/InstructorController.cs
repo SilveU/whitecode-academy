@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using API.Controllers.Common;
+using API.Attributes;
 
 namespace API.Controllers.Core
 {
@@ -56,6 +57,7 @@ namespace API.Controllers.Core
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [EnableRateLimiting("HeavyPolicy")]
+        [Idempotent]
         public async Task<IActionResult> AssignInstructor([FromBody] AssignInstructorRequest request)
         {
             var command = _mapper.Map<AssignInstructorCommand>(request);

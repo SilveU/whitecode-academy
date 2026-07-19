@@ -4,6 +4,7 @@ using Application.Interfaces.Authentecation;
 using Application.Helper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using API.Attributes;
 
 namespace API.Controllers.Authentication
 {
@@ -22,6 +23,7 @@ namespace API.Controllers.Authentication
         }
 
         [HttpPost("login")]
+        [SkipTokenRevocation]
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
         {
             var ipAddress = await IpAddressHelper.GetRealPublicIpAsync();
@@ -34,6 +36,7 @@ namespace API.Controllers.Authentication
         }
 
         [HttpPost("register")]
+        [SkipTokenRevocation]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
         {
             var registerResult = await auth.RegisterAsync(request);
@@ -45,6 +48,7 @@ namespace API.Controllers.Authentication
         }
 
         [HttpGet("confirm-email")]
+        [SkipTokenRevocation]
         public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
         {
             var result = await _emailVerificationService.ConfirmEmailAsync(userId, token);
@@ -56,6 +60,7 @@ namespace API.Controllers.Authentication
         }
 
         [HttpPost("resend-email-confirmation")]
+        [SkipTokenRevocation]
         public async Task<IActionResult> ResendEmailConfirmation([FromQuery] ResendEmailConfirmationRequest request)
         {
             var result = await _emailVerificationService.ResendEmailConfirmationAsync(request.Email);
@@ -67,6 +72,7 @@ namespace API.Controllers.Authentication
         }
 
         [HttpPost("refresh")]
+        [SkipTokenRevocation]
         public async Task<IActionResult> RefreshToken()
         {
             var refreshToken = Request.Cookies["RefreshToken"];

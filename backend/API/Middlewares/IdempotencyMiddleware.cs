@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using API.Attributes;
 using Application.Common;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -11,17 +12,24 @@ namespace API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<IdempotencyMiddleware> _logger;
-        private readonly IIdempotencyRepository _idempo;
 
-        public IdempotencyMiddleware(RequestDelegate next, ILogger<IdempotencyMiddleware> logger, IIdempotencyRepository idempo)
+        public IdempotencyMiddleware(RequestDelegate next, ILogger<IdempotencyMiddleware> logger)
         {
             _next = next;
             _logger = logger;
-            _idempo = idempo;
         }
 
-        public async Task Invoke(HttpContext context, ICacheService cache)
+        public async Task Invoke(HttpContext context, ICacheService cache, IIdempotencyRepository _idempo)
         {
+            var endpoint = context.GetEndpoint();
+
+            if (endpoint?.Metadata.GetMetadata<IdempotentAttribute>() is null)
+            {
+                await _next(context);
+                return;
+            }
+
+
             var originalBody = context.Response.Body;
 
             try
@@ -30,7 +38,8 @@ namespace API.Middlewares
 
                 if (string.IsNullOrEmpty(idempotencyKey))
                 {
-                    await _next(context);
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsync("Idempotency-Key header is required.");
                     return;
                 }
 
@@ -121,7 +130,7 @@ namespace API.Middlewares
                 {
                     _logger.LogWarning("Redis is unavailable.");
 
-                    var served = await TryServeFromDatabaseAsync(context);
+                    var served = await TryServeFromDatabaseAsync(context, _idempo);
 
                     if (served)
                         return;
@@ -146,7 +155,7 @@ namespace API.Middlewares
                         or StatusCodes.Status400BadRequest
                         or StatusCodes.Status422UnprocessableEntity)
                     {
-                        await SaveToDatabaseAsync(context, text);
+                        await SaveToDatabaseAsync(context, text, _idempo);
                     }
 
                     memoryStream.Position = 0;
@@ -159,7 +168,7 @@ namespace API.Middlewares
             }
         }  
 
-        private async Task<bool> TryServeFromDatabaseAsync(HttpContext context)
+        private async Task<bool> TryServeFromDatabaseAsync(HttpContext context, IIdempotencyRepository _idempo)
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -181,7 +190,7 @@ namespace API.Middlewares
             return true;
         }
         
-        private async Task SaveToDatabaseAsync(HttpContext context, string responseBody)
+        private async Task SaveToDatabaseAsync(HttpContext context, string responseBody, IIdempotencyRepository _idempo)
         {
             var now = DateTimeOffset.UtcNow;
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
