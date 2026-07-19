@@ -24,7 +24,7 @@ namespace Infrastructure.Data.Configurations
 
             builder.Property(c => c.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("SYSDATETIMEOFFSET()");
 
             builder.Property(c => c.UpdatedAt)
                 .IsRequired(false);

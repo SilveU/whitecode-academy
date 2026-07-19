@@ -29,8 +29,8 @@ namespace Application.Features.Courses.Queries.GetCourseById
 
             var cached = await _cache.GetAsync<CourseResponse>(redisKey);
 
-            if (cached is not null)
-                return Result<CourseResponse>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<CourseResponse>.Success(cached.Item2);
 
 
             var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id);

@@ -29,8 +29,8 @@ namespace Application.Features.Instructors.Queries.GetInstructors
             var redisKey = CacheKeys.SearchInstructors(request.Parameters);
             var cached   = await _cache.GetAsync<IEnumerable<InstructorResponse>>(redisKey);
 
-            if (cached is not null)
-                return Result<IEnumerable<InstructorResponse>>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<IEnumerable<InstructorResponse>>.Success(cached.Item2);
 
             var instructors = await _instructorRepository.SearchAsync(request.Parameters);
             var response    = _mapper.Map<IEnumerable<InstructorResponse>>(instructors);

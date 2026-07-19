@@ -31,8 +31,8 @@ namespace Application.Features.Enrollments.Queries.GetEnrollmentsByStudent
             var redisKey = $"{CacheKeys.EnrollmentsByStudentPrefix(request.StudentId)}:all";
             var cached   = await _cache.GetAsync<IEnumerable<EnrollmentResponse>>(redisKey);
 
-            if (cached is not null)
-                return Result<IEnumerable<EnrollmentResponse>>.Success(cached);
+            if (cached.Item2 is not null)
+                return Result<IEnumerable<EnrollmentResponse>>.Success(cached.Item2);
 
             var student = await _studentRepository.GetByIdAsync(request.StudentId);
             if (student == null)

@@ -61,21 +61,34 @@ namespace Infrastructure.Services
             }
         }
 
-        public async Task<T?> GetAsync<T>(string key)
+        public async Task<(bool Success, T?)> GetAsync<T>(string key)
         {
             try
             {
                 var value = await _database.StringGetAsync(key);
 
                 if (value.IsNullOrEmpty)
-                    return default;
+                    return (false, default(T));
 
-                return Serializer.Deserialize<T>(value!);
+                return (true, Serializer.Deserialize<T>(value!));
             }
             catch (RedisException ex)
             {
                 _logger.LogWarning(ex, "Failed to get cache for key {CacheKey}.", key);
-                return default;
+                return (false, default(T));
+            }
+        }
+
+        public async Task<(bool Success, bool Exists)> ExistsAsync(string key)
+        {
+            try
+            {
+                return (true, await _database.KeyExistsAsync(key));
+            }
+            catch (RedisException ex)
+            {
+                _logger.LogWarning(ex, "Failed to get cache for key {CacheKey}.", key);
+                return (false, false);
             }
         }
 

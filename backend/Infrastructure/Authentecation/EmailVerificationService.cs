@@ -219,7 +219,7 @@ namespace Infrastructure.Authentecation
             var cooldownKey   = CacheKeys.EmailVerificationCooldown(user.Id);
             var cooldownActive = await _cache.GetAsync<bool?>(cooldownKey);
 
-            if (cooldownActive is true)
+            if (cooldownActive.Item2 is true)
             {
                 var cooldownMinutes = _config.GetValue<double>("Redis:EmailVerificationResendCooldownMinutes");
                 return new AuthResponse
