@@ -22,7 +22,7 @@ namespace API.Middlewares
             "/api/authentication/register",
             "/api/authentication/refresh",
             "/api/authentication/confirm-email",
-            "/api/authentication/resend-confirmation",
+            "/api/authentication/resend-confirmation"
         };
 
         public TokenRevocationMiddleware(RequestDelegate next, ILogger<TokenRevocationMiddleware> logger)

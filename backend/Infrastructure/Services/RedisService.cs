@@ -21,7 +21,7 @@ namespace Infrastructure.Services
         {
             try
             {
-                var json = CacheSerializer.Serialize(value);
+                var json = Serializer.Serialize(value);
                 var expiration = expiry ?? TimeSpan.FromHours(1);
 
                 return await _database.StringSetAsync(key, json, expiration);
@@ -37,7 +37,7 @@ namespace Infrastructure.Services
         {
             try
             {
-                var json = CacheSerializer.Serialize(value);
+                var json = Serializer.Serialize(value);
                 var expiration = expiry ?? TimeSpan.FromHours(1);
 
                 return await _database.StringSetAsync(key, json, expiration, When.NotExists);
@@ -70,7 +70,7 @@ namespace Infrastructure.Services
                 if (value.IsNullOrEmpty)
                     return default;
 
-                return CacheSerializer.Deserialize<T>(value!);
+                return Serializer.Deserialize<T>(value!);
             }
             catch (RedisException ex)
             {

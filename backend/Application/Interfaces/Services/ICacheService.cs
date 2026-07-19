@@ -8,9 +8,4 @@ namespace Application.Interfaces.Services
         Task<T?> GetAsync<T>(string key);
         Task RemoveByPrefixAsync(string prefix);
     }
-
-    public interface IIdempotencyService
-    {
-        Task<bool> TryAcquireAsync(string key, string entityId, TimeSpan expiration);
-    }
 }

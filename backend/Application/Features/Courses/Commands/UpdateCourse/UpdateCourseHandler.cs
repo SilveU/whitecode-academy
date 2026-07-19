@@ -86,7 +86,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                 }
             }
 
-            var oldValues = AuditSerializer.Serialize(_mapper.Map<CourseResponse>(course));
+            var oldValues = Serializer.Serialize(_mapper.Map<CourseResponse>(course));
 
             request.InstructorId ??= course.InstructorId;
             request.DepartmentId ??= course.DepartmentId;
@@ -143,7 +143,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                 EntityName = nameof(Course),
                 EntityId = course.Id,
                 OldValues = oldValues,
-                NewValues = AuditSerializer.Serialize(_mapper.Map<CourseResponse>(course)),
+                NewValues = Serializer.Serialize(_mapper.Map<CourseResponse>(course)),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

@@ -58,7 +58,7 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
                 return Result<DepartmentResponse>.NotFound($"Department with ID {request.Id} not found.");
             }
 
-            var oldValues = AuditSerializer.Serialize(_mapper.Map<DepartmentResponse>(department));
+            var oldValues = Serializer.Serialize(_mapper.Map<DepartmentResponse>(department));
 
             if (!string.IsNullOrEmpty(request.Name))        department.Name        = request.Name;
             if (!string.IsNullOrEmpty(request.Description)) department.Description = request.Description;
@@ -94,7 +94,7 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
                 EntityName = nameof(Department),
                 EntityId   = department.Id,
                 OldValues  = oldValues,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

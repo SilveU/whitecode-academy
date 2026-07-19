@@ -8,12 +8,14 @@ using Domain.Entites.Users;
 using FFMpegCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using HealthChecks.Network.Core;
 using Infrastructure.Authentecation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using StackExchange.Redis;
 
 namespace API.Extentions
@@ -57,7 +59,6 @@ namespace API.Extentions
             service.AddScoped<IEmailSender, EmailSender>();
             service.AddScoped<IFileStorageService, LocalFileStorageService>();
             service.AddScoped<IFileSecurityService, ClamAvFileScanner>();
-            service.AddScoped<IIdempotencyService, IdempotencyService>();
             service.AddScoped<ICacheService, RedisService>();
 
             // 9. Register MediatR and scan the assembly where the Program class lives
@@ -79,6 +80,11 @@ namespace API.Extentions
                 options.BinaryFolder = Path.Combine(environment.ContentRootPath, configuration["FFmpeg:BinaryFolder"]!);
             });
 
+            // Register health check services
+            service.AddHealthChecks()
+                .AddSqlServer(connectionString!, name: "sql-server", failureStatus: HealthStatus.Unhealthy, timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "database" })
+                .AddRedis(sp => sp.GetRequiredService<IConnectionMultiplexer>(), name: "redis-cache",
+                failureStatus: HealthStatus.Degraded, timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "cache" });
         }
     }
 }

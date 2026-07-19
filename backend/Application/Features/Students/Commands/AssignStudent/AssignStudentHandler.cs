@@ -82,7 +82,7 @@ namespace Application.Features.Students.Commands.AssignStudent
                 EntityName = nameof(Student),
                 EntityId   = student.Id,
                 OldValues  = null,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

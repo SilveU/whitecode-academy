@@ -35,9 +35,9 @@ namespace Infrastructure.Services
                 IsBodyHtml = true
             };
 
-            var smtpClient = new SmtpClient("smtp.gmail.com")
+            var smtpClient = new SmtpClient(_configuration.GetValue<string>("EmailSettings:Host"))
             {
-                Port = 587,
+                Port = _configuration.GetValue<int>("EmailSettings:Port"),
                 Credentials = new NetworkCredential(fromEmail, fromPass),
                 EnableSsl = true
             };

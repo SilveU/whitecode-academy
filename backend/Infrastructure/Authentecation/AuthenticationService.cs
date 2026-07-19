@@ -87,10 +87,10 @@ namespace Infrastructure.Authentecation
                 };
             }
 
-            var jwtExpireMinutes   = _configuration.GetValue<double>("Jwt:ExpiryMinutes");
+            var jwtExpireMinutes   = _configuration.GetValue<double>("Jwt:ExpireMinutes");
             var cacheExpireMinutes = _configuration.GetValue<double>("Redis:AuthTokenActiveCacheMinutes");
 
-            var dto     = mapper.Map<AuthResponse>(user);
+            var dto = mapper.Map<AuthResponse>(user);
             var refresh = await _refreshTokenSerivce.GenerateAsync(user.Id, ipAddress);
 
             await _context.SaveChangesAsync();
@@ -98,16 +98,10 @@ namespace Infrastructure.Authentecation
             var accessToken = await GenerateJwtToken(user);
 
             // Mark this user as having an active JWT (TTL matches JWT expiry)
-            await _cache.SetAsync<bool>(
-                CacheKeys.AuthTokenActive(user.Id),
-                true,
-                TimeSpan.FromMinutes(jwtExpireMinutes));
+            await _cache.SetAsync<bool>(CacheKeys.AuthTokenActive(user.Id), true, TimeSpan.FromMinutes(jwtExpireMinutes));
 
             // Track the raw refresh token hash so we can detect active refresh sessions
-            await _cache.SetAsync<string>(
-                CacheKeys.RefreshTokenActive(user.Id),
-                _refreshTokenSerivce.HashToken(refresh.RawToken),
-                TimeSpan.FromMinutes(cacheExpireMinutes));
+            await _cache.SetAsync<string>(CacheKeys.RefreshTokenActive(user.Id), _refreshTokenSerivce.HashToken(refresh.RawToken), TimeSpan.FromMinutes(cacheExpireMinutes));
 
             dto.IsAuthenticated = true;
             dto.Message         = "Login successful.";

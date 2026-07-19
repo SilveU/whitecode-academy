@@ -91,7 +91,7 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
                 EntityName = nameof(Enrollment),
                 EntityId   = enrollment.Id,
                 OldValues  = null,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

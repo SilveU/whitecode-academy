@@ -129,7 +129,7 @@ namespace Application.Features.Sections.Commands.CreateSection
                 EntityName = nameof(Section),
                 EntityId   = section.Id,
                 OldValues  = null,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 

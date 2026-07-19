@@ -80,7 +80,7 @@ namespace Application.Features.Courses.Commands.DeleteCourse
                 Action = "Delete",
                 EntityName = nameof(Course),
                 EntityId = course.Id,
-                OldValues = AuditSerializer.Serialize(_mapper.Map<CourseResponse>(course)),
+                OldValues = Serializer.Serialize(_mapper.Map<CourseResponse>(course)),
                 NewValues = null,
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
             });

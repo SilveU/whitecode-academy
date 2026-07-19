@@ -3,7 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace Application.Helper
 {
-    public static class CacheSerializer
+    /// <summary>
+    /// Serializes entities to JSON for audit log values.
+    /// Uses ReferenceHandler.IgnoreCycles to prevent infinite loops
+    /// caused by circular navigation properties (e.g. Course → Instructor → Courses...).
+    /// </summary>
+    public static class Serializer
     {
         private static readonly JsonSerializerOptions Options = new()
         {

@@ -98,7 +98,7 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
                 EntityName = nameof(Instructor),
                 EntityId   = instructor.Id,
                 OldValues  = null,
-                NewValues  = AuditSerializer.Serialize(response),
+                NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
             });
 
