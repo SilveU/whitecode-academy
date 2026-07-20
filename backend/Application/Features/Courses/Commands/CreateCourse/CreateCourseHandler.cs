@@ -7,7 +7,6 @@ using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Core;
 using Domain.Entites.Users;
-using Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

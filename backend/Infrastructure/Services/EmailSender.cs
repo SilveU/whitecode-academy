@@ -1,18 +1,22 @@
-using System.Net;
-using System.Net.Mail;
 using Application.Interfaces.Services;
 using Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
+using MimeKit;
+using MailKit.Security;
+using Microsoft.Extensions.Logging;
+using MailKit.Net.Smtp;
 
 namespace Infrastructure.Services
 {
     public class EmailSender : IEmailSender
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailSender> _logger;
 
-        public EmailSender(IConfiguration configuration)
+        public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)
@@ -26,23 +30,38 @@ namespace Infrastructure.Services
                 throw new BusinessRuleException("Email settings are not configured correctly.");
             }
 
-            MailMessage message = new MailMessage
-            {
-                From = new MailAddress(fromEmail, fromName),
-                To = { new MailAddress(to) },
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
+            MimeMessage message = new MimeMessage();
 
-            var smtpClient = new SmtpClient(_configuration.GetValue<string>("EmailSettings:Host"))
-            {
-                Port = _configuration.GetValue<int>("EmailSettings:Port"),
-                Credentials = new NetworkCredential(fromEmail, fromPass),
-                EnableSsl = true
-            };
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
+            message.To.Add(MailboxAddress.Parse(to));
 
-            await smtpClient.SendMailAsync(message);
+            message.Subject = subject;
+
+            BodyBuilder bodyBuilder = new BodyBuilder();
+            bodyBuilder.HtmlBody = body;
+
+            message.Body = bodyBuilder.ToMessageBody();
+            
+            using SmtpClient smtpClient = new SmtpClient();
+            try
+            {
+                await smtpClient.ConnectAsync(_configuration.GetValue<string>("EmailSettings:Host")!,
+                _configuration.GetValue<int>("EmailSettings:Port"), SecureSocketOptions.StartTls);
+
+                await smtpClient.AuthenticateAsync(fromEmail, fromPass);
+                await smtpClient.SendAsync(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email.");
+                throw;
+            }
+            finally
+            {
+                // Cleanly log out and disconnect from the server
+                if (smtpClient.IsConnected)
+                    await smtpClient.DisconnectAsync(true);
+            }
         }
     }
 }

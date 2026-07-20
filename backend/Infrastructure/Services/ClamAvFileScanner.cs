@@ -1,7 +1,6 @@
 using Application.Interfaces.Services;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using nClam;
 
 namespace Infrastructure.Services
@@ -9,17 +8,11 @@ namespace Infrastructure.Services
     public class ClamAvFileScanner : IFileSecurityService
     {
         private const long OneMB = 1024 * 1024;
-        private readonly ClamClient _client;
-        private readonly IConfiguration _configuration;
+        private readonly IClamClient _client;
 
-        public ClamAvFileScanner(IConfiguration configuration)
+        public ClamAvFileScanner(IClamClient client)
         {
-            _configuration = configuration;
-
-            var host = _configuration.GetValue<string>("ClamAV:Host")!;
-            var port = _configuration.GetValue<int>("ClamAV:Port");
-
-            _client = new ClamClient(host, port);
+            _client = client;
         }
 
         public async Task ScanAsync(IFormFile file)
