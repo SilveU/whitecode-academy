@@ -1,3 +1,4 @@
+using API.Extentions.HealthChecks;
 using API.Mapping;
 using Application.Features.Courses.Commands.CreateCourse;
 using Application.Interfaces.Authentecation;
@@ -15,6 +16,7 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using nClam;
 using StackExchange.Redis;
 
 namespace API.Extentions
@@ -38,8 +40,18 @@ namespace API.Extentions
             options.AsyncTimeout = 300;
             options.SyncTimeout = 300;
 
+            // TCP Connections
             service.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(options!));
+
+            service.AddSingleton<IClamClient>(sp =>
+            {
+                var clamHost = configuration.GetValue<string>("ClamAV:Host")!;
+                var clamPort = configuration.GetValue<int>("ClamAV:Port");
+
+                // Instantiate and return your concrete client
+                return new ClamClient(clamHost, clamPort);
+            });
 
             // 3. Register Identity services
             service
@@ -87,9 +99,13 @@ namespace API.Extentions
 
             // Register health check services
             service.AddHealthChecks()
-                .AddSqlServer(connectionString!, name: "sql-server", failureStatus: HealthStatus.Unhealthy, timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "database" })
+                .AddSqlServer(connectionString!, name: "sql-server", failureStatus: HealthStatus.Unhealthy,
+                timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "database" })
                 .AddRedis(sp => sp.GetRequiredService<IConnectionMultiplexer>(), name: "redis-cache",
-                failureStatus: HealthStatus.Degraded, timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "cache" });
+                failureStatus: HealthStatus.Degraded, timeout: TimeSpan.FromSeconds(5), tags: new[] { "ready", "cache" })
+                .AddCheck<LocalStorageHealthCheck>("local_storage_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "local-storage" })
+                .AddCheck<ClamAVHealthCheck>("clamAV_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "clamAV" })
+                .AddCheck<SmtpHealthCheck>("smtp_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "smtp" });
         }
     }
 }
