@@ -34,8 +34,7 @@ namespace Application.Features.Courses.Queries.GetCourses
             var courses = await _courseRepository.SearchAsync(request.Parameters);
             var response = _mapper.Map<IEnumerable<CourseResponse>>(courses);
 
-            await _cache.SetAsync(redisKey, response,
-            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CoursesExpirationMinutes")));
+            await _cache.SetAsync(redisKey, response, TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CoursesExpirationMinutes")));
 
             return Result<IEnumerable<CourseResponse>>.Success(response);
         }

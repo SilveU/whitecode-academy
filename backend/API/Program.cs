@@ -102,6 +102,8 @@ namespace API
 
             app.MapControllers();
 
+            app.MapPrometheusScrapingEndpoint();
+
             app.MapHealthChecks("/health/live", new HealthCheckOptions
             {
                 Predicate = _ => false,
