@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using nClam;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using StackExchange.Redis;
 
 namespace API.Extentions
@@ -106,6 +108,23 @@ namespace API.Extentions
                 .AddCheck<LocalStorageHealthCheck>("local_storage_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "local-storage" })
                 .AddCheck<ClamAVHealthCheck>("clamAV_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "clamAV" })
                 .AddCheck<SmtpHealthCheck>("smtp_check", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready", "smtp" });
+
+
+            // Register Matrics
+            var serviceName = environment.ApplicationName;
+            service.AddOpenTelemetry()
+                .ConfigureResource(resource => resource.AddService(serviceName))
+                .WithMetrics(metrics =>
+                {
+                    metrics.AddRuntimeInstrumentation(); // بياخد المعلومات من .NET Runtime
+                    metrics.AddProcessInstrumentation(); // بياخد معلومات من ال Process نفسها
+                    metrics.AddHttpClientInstrumentation(); // بياخد المعلومات من اي Request خارجي
+                    metrics.AddAspNetCoreInstrumentation(); // بياخد المعلومات عن طريق Hook بيعملوا جوا ال Pipeline
+
+                    metrics.AddMeter("WhiteCodeAcademy"); // تجهيز لل Custom matrics
+
+                    metrics.AddPrometheusExporter(); // رحله الخروج من ال Matrics اللي جوا .net الي  /matrics (Endpoint)
+                });
         }
     }
 }
