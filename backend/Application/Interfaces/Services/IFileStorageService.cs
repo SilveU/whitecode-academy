@@ -11,6 +11,7 @@ namespace Application.Interfaces.Services
     public interface IFileSecurityService
     {
         Task ValidatePdfAsync(IFormFile file);
+        Task ValidateImageAsync(IFormFile file);
         Task ValidateVideoAsync(IFormFile file);
         Task ScanAsync(IFormFile file);
     }

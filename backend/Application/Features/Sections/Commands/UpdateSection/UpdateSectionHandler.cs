@@ -27,28 +27,20 @@ namespace Application.Features.Sections.Commands.UpdateSection
         private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
-        public UpdateSectionHandler(
-            ISectionRepository sectionRepository,
-            IInstructorRepository instructorRepository,
-            IFileStorageService fileStorageService,
-            IFileSecurityService fileSecurityService,
-            IAuditLogRepository auditLogRepository,
-            IWebHostEnvironment environment,
-            IMapper mapper,
-            ILogger<UpdateSectionHandler> logger,
-            ICacheService cache,
-            IConfiguration configuration)
+        public UpdateSectionHandler(ISectionRepository sectionRepository, IInstructorRepository instructorRepository, IFileStorageService fileStorageService,
+            IFileSecurityService fileSecurityService, IAuditLogRepository auditLogRepository, IWebHostEnvironment environment, IMapper mapper,
+            ILogger<UpdateSectionHandler> logger, ICacheService cache, IConfiguration configuration)
         {
-            _sectionRepository    = sectionRepository;
+            _sectionRepository = sectionRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService   = fileStorageService;
-            _fileSecurityService  = fileSecurityService;
-            _auditLogRepository   = auditLogRepository;
-            _environment          = environment;
-            _mapper               = mapper;
-            _logger               = logger;
-            _cache                = cache;
-            _configuration        = configuration;
+            _fileStorageService = fileStorageService;
+            _fileSecurityService = fileSecurityService;
+            _auditLogRepository = auditLogRepository;
+            _environment = environment;
+            _mapper = mapper;
+            _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<SectionResponse>> Handle(UpdateSectionCommand request, CancellationToken cancellationToken)
@@ -77,17 +69,17 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
                 if (section.Course.InstructorId != instructor.Id)
                 {
-                    _logger.LogWarning(
-                        "User {UserId} attempted to update section {SectionId} without ownership.",
-                        request.CurrentUserId, request.Id);
+                    _logger.LogWarning("User {UserId} attempted to update section {SectionId} without ownership.", request.CurrentUserId, request.Id);
                     return Result<SectionResponse>.Forbidden("You can only update sections of your own courses.");
                 }
             }
 
             var oldValues = Serializer.Serialize(_mapper.Map<SectionResponse>(section));
 
-            if (!string.IsNullOrEmpty(request.Name))        section.Name        = request.Name;
-            if (!string.IsNullOrEmpty(request.Description)) section.Description = request.Description;
+            if (!string.IsNullOrEmpty(request.Name))
+                section.Name = request.Name;
+            if (!string.IsNullOrEmpty(request.Description)) 
+                section.Description = request.Description;
 
             if (request.VideoFile != null)
             {
@@ -108,7 +100,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                     section.Course.TotalDurationInSeconds - oldDuration + (long)mediaInfo.Duration.TotalSeconds;
 
                 section.StartAt = TimeOnly.FromDateTime(DateTime.UtcNow);
-                section.EndAt   = section.StartAt.Add(mediaInfo.Duration);
+                section.EndAt = section.StartAt.Add(mediaInfo.Duration);
             }
 
             if (request.PdfFile != null)
@@ -130,24 +122,23 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
             await _cache.RemoveAsync(CacheKeys.Section(section.Id));
             await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId));
+
             // Update single-section cache
             await _cache.SetAsync<SectionResponse>(CacheKeys.Section(section.Id), response,
                 TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionExpirationMinutes")));
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = request.CurrentUserId,
-                Action     = "Update",
+                UserId = request.CurrentUserId,
+                Action = "Update",
                 EntityName = nameof(Section),
-                EntityId   = section.Id,
-                OldValues  = oldValues,
-                NewValues  = Serializer.Serialize(response),
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
+                EntityId = section.Id,
+                OldValues = oldValues,
+                NewValues = Serializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
             });
 
-            _logger.LogInformation(
-                "Section {SectionId} updated successfully by user {UserId}.",
-                section.Id, request.CurrentUserId);
+            _logger.LogInformation("Section {SectionId} updated successfully by user {UserId}.", section.Id, request.CurrentUserId);
 
             return Result<SectionResponse>.Success(response);
         }

@@ -2,9 +2,10 @@ using API.Extentions.HealthChecks;
 using API.Mapping;
 using Application.Features.Courses.Commands.CreateCourse;
 using Application.Interfaces.Authentecation;
+using Application.Interfaces.Profile;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
-using Application.Validations;
+using Application.Validations.Authentecation;
 using Domain.Entites.Users;
 using FFMpegCore;
 using FluentValidation;
@@ -12,7 +13,10 @@ using FluentValidation.AspNetCore;
 using Infrastructure.Authentecation;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
-using Infrastructure.Services;
+using Infrastructure.Services.Email;
+using Infrastructure.Services.Profile;
+using Infrastructure.Services.Server;
+using Infrastructure.Services.Upload;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -66,6 +70,10 @@ namespace API.Extentions
             service.AddScoped<IEmailVerificationService, EmailVerificationService>();
             service.AddScoped<IRefreshTokenService, RefreshTokenService>();
             service.AddScoped<IResetPasswordService, ResetPasswordService>();
+
+
+            // 6. Register Profile Service
+            service.AddScoped<IProfileService, ProfileService>();
 
             // 6. Register AutoMapper
             service.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());

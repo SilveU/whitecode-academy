@@ -3,7 +3,7 @@ using Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using nClam;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Upload
 {
     public class ClamAvFileScanner : IFileSecurityService
     {
@@ -38,7 +38,7 @@ namespace Infrastructure.Services
             if (file == null || file.Length == 0)
                 throw new BusinessRuleException("File is required.");
 
-            var imagesAllowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+            var imagesAllowedExtensions = new[] { ".pdf" };
 
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
@@ -69,6 +69,27 @@ namespace Infrastructure.Services
                 throw new BusinessRuleException("Extention not Allowed");
 
             maxSizeInBytes = 1000 * OneMB;
+
+            if (file.Length > maxSizeInBytes)
+                throw new BusinessRuleException("File size exceeds the allowed limit.");
+        }
+
+        public async Task ValidateImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new BusinessRuleException("File is required.");
+
+            var imagesAllowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            long maxSizeInBytes;
+
+            if (!imagesAllowedExtensions.Contains(extension))
+                throw new BusinessRuleException("Extention not Allowed");
+
+
+            maxSizeInBytes = 5 * OneMB;
 
             if (file.Length > maxSizeInBytes)
                 throw new BusinessRuleException("File size exceeds the allowed limit.");
