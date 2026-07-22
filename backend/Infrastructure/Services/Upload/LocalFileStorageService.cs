@@ -3,7 +3,7 @@ using Domain.Exceptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Upload
 {
     public class LocalFileStorageService : IFileStorageService
     {

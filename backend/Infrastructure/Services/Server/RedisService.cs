@@ -3,7 +3,7 @@ using Application.Interfaces.Services;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Server
 {
     public class RedisService : ICacheService
     {

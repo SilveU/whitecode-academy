@@ -1,6 +1,7 @@
 using Application.DTOs.Authentication;
 using Application.DTOs.Core;
 using Application.DTOs.Core.Requests;
+using Application.DTOs.Profile;
 using Application.Features.Courses.Commands.CreateCourse;
 using Application.Features.Courses.Commands.UpdateCourse;
 using Application.Features.Departments.Commands.CreateDepartment;
@@ -111,6 +112,9 @@ namespace API.Mapping
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
                 .ForMember(dest => dest.LastName,  opt => opt.MapFrom(src => src.User.LastName))
                 .ForMember(dest => dest.Email,     opt => opt.MapFrom(src => src.User.Email));
+
+            // ── Profile ──────────────────────────────────────────────────
+            CreateMap<ApplicationUser, ProfileResponse>();
         }
     }
 }

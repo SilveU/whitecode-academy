@@ -36,5 +36,10 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(a => a.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
     }
 }

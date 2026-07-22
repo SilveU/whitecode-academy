@@ -42,6 +42,9 @@ namespace Application.Common
         public static string EnrollmentsByCoursePrefix(Guid courseId) => $"enrollments:course:{courseId}";
         public static string EnrollmentsByStudentPrefix(Guid studentId) => $"enrollments:student:{studentId}";
 
+        // ── Profile ──────────────────────────────────────────────────────
+        public static string Profile(string userId) => $"profile:{userId}";
+
         // ── Authentication / Email Verification ──────────────────────────────
         /// <summary>Guards against resend spam — key exists while cooldown is active.</summary>
         public static string EmailVerificationCooldown(string userId) => $"email:verification:cooldown:{userId}";

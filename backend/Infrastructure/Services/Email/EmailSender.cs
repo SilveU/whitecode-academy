@@ -6,7 +6,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MailKit.Net.Smtp;
 
-namespace Infrastructure.Services
+namespace Infrastructure.Services.Email
 {
     public class EmailSender : IEmailSender
     {
