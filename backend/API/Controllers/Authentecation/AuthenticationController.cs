@@ -15,11 +15,13 @@ namespace API.Controllers.Authentication
     {
         private readonly IAuthenticationService auth;
         private readonly IEmailVerificationService _emailVerificationService;
+        private readonly IResetPasswordService _resetPasswordService;
 
-        public AuthenticationController(IAuthenticationService auth, IEmailVerificationService emailVerificationService)
+        public AuthenticationController(IAuthenticationService auth, IEmailVerificationService emailVerificationService, IResetPasswordService resetPasswordService)
         {
             this.auth = auth;
             _emailVerificationService = emailVerificationService;
+            _resetPasswordService = resetPasswordService;
         }
 
         [HttpPost("login")]
@@ -53,9 +55,6 @@ namespace API.Controllers.Authentication
         {
             var result = await _emailVerificationService.ConfirmEmailAsync(userId, token);
 
-            if (!result.IsAuthenticated)
-                return BadRequest(result);
-
             return Ok(result);
         }
 
@@ -64,6 +63,39 @@ namespace API.Controllers.Authentication
         public async Task<IActionResult> ResendEmailConfirmation([FromQuery] ResendEmailConfirmationRequest request)
         {
             var result = await _emailVerificationService.ResendEmailConfirmationAsync(request.Email);
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("reset-password")]
+        [SkipTokenRevocation]
+        public async Task<IActionResult> ResetPassword([FromBody] EmailResetPasswordRequest request)
+        {
+            var result = await _resetPasswordService.ResetPassword(request.Email);
+
+            return Ok(result);
+        }
+
+        [HttpGet("confirm-reset-password")]
+        [SkipTokenRevocation]
+        public async Task<IActionResult> ConfirmResetPassword([FromQuery] string userId, [FromQuery] string token, [FromBody] NewPasswordRequest request)
+        {
+            var result = await _resetPasswordService.ConfirmResetPasswordAsync(userId, token, request);
+
+            if (!result.IsAuthenticated)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpPost("resend-reset-password")]
+        [SkipTokenRevocation]
+        public async Task<IActionResult> ResendResetPassword([FromQuery] EmailResetPasswordRequest request)
+        {
+            var result = await _resetPasswordService.ResendResetPasswordAsync(request.Email);
 
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(result);

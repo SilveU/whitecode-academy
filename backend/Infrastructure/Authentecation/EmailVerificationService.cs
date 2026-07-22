@@ -50,64 +50,18 @@ namespace Infrastructure.Authentecation
 
             var token   = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encoded = WebUtility.UrlEncode(token);
-            var frontendBaseUrl   = _config.GetValue<string>("EmailSettings:FrontendBaseUrl");
-            var confirmationLink  = $"{frontendBaseUrl}/api/authentication/confirm-email?userId={user.Id}&token={encoded}";
-            var cooldownMinutes   = _config.GetValue<double>("Redis:EmailVerificationResendCooldownMinutes");
+            var frontendBaseUrl = _config.GetValue<string>("EmailSettings:FrontendBaseUrl");
+            var confirmationLink = $"{frontendBaseUrl}/api/authentication/confirm-email?userId={user.Id}&token={encoded}";
+            var cooldownMinutes = _config.GetValue<double>("Redis:EmailVerificationResendCooldownMinutes");
 
             var subject = "Confirm Your Email Address";
 
-            var body = $@"
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset='UTF-8'>
-                    </head>
-                    <body style='font-family: Arial, sans-serif; background-color:#f6f8fb; padding: 20px;'>
-                        <div style='max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:10px; border:1px solid #e5e7eb;'>
-        
-                            <h2 style='color:#111827; margin-bottom:10px;'>Confirm Your Email Address</h2>
+            var path = Path.Combine(AppContext.BaseDirectory, "Templates", "ConfirmEmail.html");
+            var body = await File.ReadAllTextAsync(path);
 
-                            <p style='color:#374151; font-size:15px;'>
-                                Hello {user.UserName},
-                            </p>
-
-                            <p style='color:#374151; font-size:15px; line-height:1.6;'>
-                                Thank you for registering with <strong>White Code Academy</strong>.
-                                Please confirm your email address to activate your account and continue using our services.
-                            </p>
-
-                            <p style='margin:30px 0;'>
-                                <a href='{confirmationLink}'
-                                   style='background-color:#2563eb; color:#ffffff; padding:12px 20px; text-decoration:none; border-radius:8px; display:inline-block;'>
-                                    Confirm Email
-                                </a>
-                            </p>
-
-                            <p style='color:#374151; font-size:14px; line-height:1.6;'>
-                                If the button does not work, copy and paste this link into your browser:
-                            </p>
-
-                            <p style='word-break:break-all; color:#2563eb; font-size:13px;'>
-                                {confirmationLink}
-                            </p>
-
-                            <p style='color:#374151; font-size:15px; line-height:1.6;'>
-                                If you did not create this account, you can safely ignore this email.
-                            </p>
-
-                            <p style='color:#6b7280; font-size:13px; margin-top:25px;'>
-                                For your security, never share confirmation links or verification codes with anyone.
-                            </p>
-
-                            <hr style='border:none; border-top:1px solid #e5e7eb; margin:25px 0;' />
-
-                            <p style='color:#6b7280; font-size:13px;'>
-                                Best regards,<br/>
-                                <strong>White Code Academy Team</strong>
-                            </p>
-                        </div>
-                    </body>
-                    </html>";
+            body = body
+                .Replace("{{UserName}}", user.UserName)
+                .Replace("{{ConfirmationUrl}}", confirmationLink);
 
             await _emailSender.SendEmailAsync(user.Email, subject, body);
 

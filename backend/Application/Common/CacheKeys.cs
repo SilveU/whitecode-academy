@@ -45,6 +45,7 @@ namespace Application.Common
         // ── Authentication / Email Verification ──────────────────────────────
         /// <summary>Guards against resend spam — key exists while cooldown is active.</summary>
         public static string EmailVerificationCooldown(string userId) => $"email:verification:cooldown:{userId}";
+        public static string ResetPasswordCooldown(string userId) => $"email:reset:cooldown:{userId}";
 
         /// <summary>Guards against login-token spam — key exists while the active JWT has not expired yet.</summary>
         public static string AuthTokenActive(string userId) => $"auth:token:active:{userId}";
