@@ -8,4 +8,11 @@ namespace Application.Interfaces.Authentecation
         Task<AuthResponse> ConfirmEmailAsync(string userId, string token);
         Task<AuthResponse> ResendEmailConfirmationAsync(string email);
     }
+
+    public interface IResetPasswordService
+    {
+        Task<AuthResponse> ResetPassword(string email);
+        Task<AuthResponse> ConfirmResetPasswordAsync(string userId, string token, NewPasswordRequest newPassword);
+        Task<AuthResponse> ResendResetPasswordAsync(string email);
+    }
 } 

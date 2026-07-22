@@ -20,6 +20,15 @@ namespace Application.DTOs.Authentication
     {
         public string Email { get; set; } = string.Empty;
     }
+    public record EmailResetPasswordRequest
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+    public record NewPasswordRequest
+    {
+        public string NewPassword { get; set; } = null!;
+        public string ConfirmPassword { get; set; } = null!;
+    }
 
     public record AuthResponse
     {

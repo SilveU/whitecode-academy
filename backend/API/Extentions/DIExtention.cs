@@ -65,6 +65,7 @@ namespace API.Extentions
             service.AddScoped<IAuthenticationService, AuthenticationService>();
             service.AddScoped<IEmailVerificationService, EmailVerificationService>();
             service.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            service.AddScoped<IResetPasswordService, ResetPasswordService>();
 
             // 6. Register AutoMapper
             service.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());

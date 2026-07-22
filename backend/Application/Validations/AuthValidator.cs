@@ -48,4 +48,36 @@ namespace Application.Validations
                 .Equal(x => x.Password).WithMessage("Passwords do not match.");
         }
     }
+    public class EmailResetPasswordValidator : AbstractValidator<EmailResetPasswordRequest>
+    {
+        public EmailResetPasswordValidator()
+        {
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("Invalid email format.");
+        }
+    }
+    public class ResendEmailConfirmationValidator : AbstractValidator<ResendEmailConfirmationRequest>
+    {
+        public ResendEmailConfirmationValidator()
+        {
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("Invalid email format.");
+        }
+    }
+
+    public class NewPasswordValidator : AbstractValidator<NewPasswordRequest>
+    {
+        public NewPasswordValidator()
+        {
+            RuleFor(x => x.NewPassword)
+                .NotEmpty().WithMessage("Password is required.")
+                .Matches("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$")
+                .WithMessage("Password must contain letter, number, and special character.");
+
+            RuleFor(x => x.ConfirmPassword)
+                .Equal(x => x.NewPassword).WithMessage("Passwords do not match.");
+        }
+    }
 }

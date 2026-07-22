@@ -10,7 +10,6 @@ using Domain.Entites.Enums;
 using Domain.Entites.Users;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -113,8 +112,8 @@ namespace Infrastructure.Authentecation
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            try
-            {
+            // try
+            // {
                 var userExists = await _userManager.FindByEmailAsync(request.Email) ??
                                  await _userManager.FindByNameAsync(request.UserName);
 
@@ -168,15 +167,15 @@ namespace Infrastructure.Authentecation
                     UserName        = user.UserName,
                     PhoneNumber     = user.PhoneNumber
                 };
-            }
-            catch (Exception)
-            {
-                return new AuthResponse
-                {
-                    IsAuthenticated = false,
-                    Message         = "An error occurred during registration."
-                };
-            }
+            // }
+            // catch (Exception)
+            // {
+            //     return new AuthResponse
+            //     {
+            //         IsAuthenticated = false,
+            //         Message         = "An error occurred during registration."
+            //     };
+            // }
         }
 
         public async Task<string> GenerateJwtToken(ApplicationUser user)
