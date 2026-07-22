@@ -3,94 +3,160 @@ using Domain.Exceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Middlewares
+namespace API.Middlewares;
+
+public class GlobalHandleExceptionMiddleware
 {
-    public class GlobalHandleExceptionMiddleware
+    private readonly RequestDelegate _next;
+    private readonly ILogger<GlobalHandleExceptionMiddleware> _logger;
+
+    public GlobalHandleExceptionMiddleware(RequestDelegate next, ILogger<GlobalHandleExceptionMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<GlobalHandleExceptionMiddleware> _logger;
+        _next = next;
+        _logger = logger;
+    }
 
-        public GlobalHandleExceptionMiddleware(RequestDelegate next, ILogger<GlobalHandleExceptionMiddleware> logger)
+    public async Task Invoke(HttpContext context)
+    {
+        try
         {
-            _next = next;
-            _logger = logger;
+            await _next(context);
         }
-
-        public async Task Invoke(HttpContext context)
+        catch (Exception ex)
         {
-            try
+            LogException(ex);
+
+            if (context.Response.HasStarted)
             {
-                await _next(context);
+                _logger.LogWarning(
+                    "The response has already started, the exception middleware will not modify the response.");
+                throw;
             }
-            catch (Exception ex)
+
+            var (statusCode, message) = ex switch
             {
-                HandleException(ex);
+                NotFoundException =>
+                    (StatusCodes.Status404NotFound, ex.Message),
 
-                if(context.Response.HasStarted)
-                {
-                    _logger.LogError(ex, "Response already started.");
-                    throw;
-                }
+                UnauthorizedAccessException =>
+                    (StatusCodes.Status403Forbidden, ex.Message),
 
-                var (statusCode, message) = ex switch
-                {
-                    NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
-                    UnauthorizedAccessException => (StatusCodes.Status403Forbidden, ex.Message),
-                    ArgumentException => (StatusCodes.Status400BadRequest, "Invalid input provided."),
-                    BusinessRuleException => (StatusCodes.Status409Conflict, ex.Message),
-                    InvalidOperationException => (StatusCodes.Status409Conflict, "Operation cannot be completed due to current state."),
-                    DbUpdateConcurrencyException => (StatusCodes.Status409Conflict, "The item was modified by someone else. Please reload and try again."),
-                    DbUpdateException => (StatusCodes.Status500InternalServerError, "A database update error occurred."),
-                    SqlException => (StatusCodes.Status500InternalServerError, "A database error occurred."),
-                    NullReferenceException => (StatusCodes.Status500InternalServerError, "An unexpected error occurred."),
-                    _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
-                };
+                ArgumentException =>
+                    (StatusCodes.Status400BadRequest, "Invalid input provided."),
 
-                context.Response.Clear();
-                context.Response.ContentType = "application/json";
-                context.Response.StatusCode = statusCode;
+                BusinessRuleException =>
+                    (StatusCodes.Status409Conflict, ex.Message),
 
-                await context.Response.WriteAsync(JsonSerializer.Serialize(new
-                {
-                    StatusCode = statusCode,
-                    Message = message
-                }));
-            }
+                InvalidOperationException =>
+                    (StatusCodes.Status409Conflict, "Operation cannot be completed due to the current state."),
+
+                DbUpdateConcurrencyException =>
+                    (StatusCodes.Status409Conflict,
+                        "The resource has been modified by another user. Please reload and try again."),
+
+                DbUpdateException =>
+                    (StatusCodes.Status500InternalServerError,
+                        "A database update error occurred."),
+
+                SqlException =>
+                    (StatusCodes.Status500InternalServerError,
+                        "A database error occurred."),
+
+                _ =>
+                    (StatusCodes.Status500InternalServerError,
+                        "An unexpected error occurred.")
+            };
+
+            context.Response.Clear();
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "application/json";
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            {
+                StatusCode = statusCode,
+                Message = message
+            }));
         }
-        private void HandleException(Exception ex)
+    }
+
+    private void LogException(Exception ex)
+    {
+        switch (ex)
         {
-            if (ex is NotFoundException notFoundEx)
-                _logger.LogWarning(new EventId(1000), notFoundEx, notFoundEx.Message);
+            case NotFoundException notFoundEx:
+                _logger.LogWarning(
+                    new EventId(1000),
+                    notFoundEx,
+                    "{Message}",
+                    notFoundEx.Message);
+                break;
 
-            else if (ex is UnauthorizedAccessException unauthorizedEx)
-                _logger.LogWarning(new EventId(1001), unauthorizedEx, unauthorizedEx.Message);
+            case UnauthorizedAccessException unauthorizedEx:
+                _logger.LogWarning(
+                    new EventId(1001),
+                    unauthorizedEx,
+                    "{Message}",
+                    unauthorizedEx.Message);
+                break;
 
-            else if (ex is ArgumentException argEx)
-                _logger.LogError(new EventId(1002), argEx, argEx.Message);
+            case ArgumentException argumentEx:
+                _logger.LogWarning(
+                    new EventId(1002),
+                    argumentEx,
+                    "{Message}",
+                    argumentEx.Message);
+                break;
 
-            else if (ex is InvalidOperationException ioEx)
-            {
-                _logger.LogError(new EventId(1003), ioEx, "An Invalid Operation Exception occurred."
-                   + " This is usually caused by a database call that expects "
-                   + "one result, but receives none or more than one.");
-            }
+            case BusinessRuleException businessEx:
+                _logger.LogWarning(
+                    new EventId(1003),
+                    businessEx,
+                    "{Message}",
+                    businessEx.Message);
+                break;
 
-            else if (ex is BusinessRuleException businessEx)
-                _logger.LogWarning(new EventId(1008), businessEx, businessEx.Message);
+            case InvalidOperationException invalidOpEx:
+                _logger.LogError(
+                    new EventId(1004),
+                    invalidOpEx,
+                    "Invalid operation.");
+                break;
 
-            else if (ex is SqlException sqlEx)
-                _logger.LogError(new EventId(1004), sqlEx, $"A SQL database exception occurred. Error Number {sqlEx.Number}");
+            case DbUpdateConcurrencyException concurrencyEx:
+                _logger.LogError(
+                    new EventId(1005),
+                    concurrencyEx,
+                    "A database concurrency conflict occurred.");
+                break;
 
-            else if (ex is NullReferenceException nullEx)
-                _logger.LogError(new EventId(1005), nullEx, $"A Null Reference Exception occurred. Source: {nullEx.Source}.");
+            case SqlException sqlEx:
+                _logger.LogError(
+                    new EventId(1006),
+                    sqlEx,
+                    "SQL exception occurred. ErrorNumber: {ErrorNumber}",
+                    sqlEx.Number);
+                break;
 
-            else if (ex is DbUpdateConcurrencyException dbEx)
-            {
-                _logger.LogError(new EventId(1006), dbEx, "A database error occurred while trying to update your item." +
-                    " This is usually due to someone else modifying the item since you loaded it.");
-            }
-            else
-                _logger.LogError(new EventId(1007), ex, "An unhandled exception has occurred.");
+            case DbUpdateException dbUpdateEx:
+                _logger.LogError(
+                    new EventId(1007),
+                    dbUpdateEx,
+                    "Database update exception.");
+                break;
+
+            case NullReferenceException nullReferenceEx:
+                _logger.LogCritical(
+                    new EventId(1008),
+                    nullReferenceEx,
+                    "Null reference exception.");
+                break;
+
+            default:
+                _logger.LogError(
+                    new EventId(1009),
+                    ex,
+                    "Unhandled exception.");
+                break;
         }
     }
 }

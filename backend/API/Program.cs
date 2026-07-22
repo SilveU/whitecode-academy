@@ -27,6 +27,7 @@ namespace API
             {
                 lc.ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Information);
             });
 
@@ -87,6 +88,8 @@ namespace API
             app.UseStaticFiles();
 
             app.UseAuthentication();
+
+            app.UseMiddleware<CorrelationIdMiddleware>();
 
             // Must run after UseAuthentication so context.User is populated
             app.UseMiddleware<TokenRevocationMiddleware>();
