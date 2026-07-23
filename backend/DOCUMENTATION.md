@@ -25,6 +25,7 @@
    - [Instructors](#instructors)
    - [Sections](#sections)
    - [Students](#students)
+   - [Profile](#profile)
 10. [Common Patterns](#common-patterns)
 11. [Roles & Authorization](#roles--authorization)
 12. [Error Handling](#error-handling)
@@ -110,7 +111,10 @@ This means logout takes effect **instantly** — no need to wait for JWT expiry.
 - `POST /api/authentication/register`
 - `POST /api/authentication/refresh`
 - `GET  /api/authentication/confirm-email`
-- `POST /api/authentication/resend-confirmation`
+- `POST /api/authentication/resend-email-confirmation`
+- `POST /api/authentication/reset-password`
+- `GET  /api/authentication/confirm-reset-password`
+- `POST /api/authentication/resend-reset-password`
 
 
 ---
@@ -486,6 +490,97 @@ Revoke **all** active refresh tokens for the current user across all devices.
 **Response `200 OK`:**
 ```json
 { "message": "Logged out from all devices successfully." }
+```
+
+---
+
+#### `POST /api/authentication/reset-password`
+
+Send a password reset email to the user.
+
+**No auth required**  
+**Content-Type:** `application/json`
+
+**Request body:**
+```json
+{
+  "email": "ahmed@example.com"
+}
+```
+
+**Response `200 OK`:**
+```json
+{
+  "isAuthenticated": false,
+  "message": "Email confirmation link has been sent successfully."
+}
+```
+
+If the email does not exist, the same response is returned to prevent user enumeration.
+
+---
+
+#### `GET /api/authentication/confirm-reset-password`
+
+Confirm the password reset using the token from the email and set a new password.
+
+**No auth required**  
+**Query parameters:**
+
+| Param | Type | Required |
+|---|---|---|
+| `userId` | string | ✅ |
+| `token` | string (URL-encoded) | ✅ |
+
+**Request body (JSON):**
+```json
+{
+  "newPassword":     "NewP@ssword1",
+  "confirmPassword": "NewP@ssword1"
+}
+```
+
+**Validation:**
+- `newPassword`: must include letter + digit + special character
+- `confirmPassword`: must match `newPassword`
+
+**Response `200 OK`:**
+```json
+{
+  "isAuthenticated": true,
+  "message": "Reset Password Successfully."
+}
+```
+
+**Response `400 Bad Request`:** Invalid or expired token.
+
+---
+
+#### `POST /api/authentication/resend-reset-password`
+
+Re-send the password reset email if the previous one expired.
+
+**No auth required**  
+**Query parameters:**
+
+| Param | Type | Required |
+|---|---|---|
+| `email` | string | ✅ |
+
+**Response `200 OK`:**
+```json
+{
+  "isAuthenticated": false,
+  "message": "Email confirmation link has been sent successfully."
+}
+```
+
+**Cooldown active response:**
+```json
+{
+  "isAuthenticated": false,
+  "message": "A confirmation email was already sent. Please wait 10 minutes before requesting a new one."
+}
 ```
 
 
@@ -931,6 +1026,70 @@ Delete a student profile and all their enrollments.
 **Rate limit:** `HeavyPolicy`
 
 **Response `204 No Content`**
+
+---
+
+### Profile
+
+**Base route:** `/api/profile`  
+**All endpoints:** Any authenticated user (profile resolved from JWT)
+
+---
+
+#### `GET /api/profile`
+
+Get the current authenticated user's profile.
+
+**Auth:** `Bearer token` (any authenticated role)  
+**No request body** — identity resolved from JWT
+
+**Response `200 OK`:**
+```json
+{
+  "firstName":   "Ahmed",
+  "lastName":    "Ali",
+  "userName":    "ahmed.ali",
+  "email":       "ahmed@example.com",
+  "phoneNumber": null,
+  "imageUrl":    "/profiles/guid/Images/avatar.jpg"
+}
+```
+
+**Response `404 Not Found`:** If user profile doesn't exist.
+
+---
+
+#### `PATCH /api/profile`
+
+Update the current user's profile. All fields are optional — only provided fields are updated.
+
+**Auth:** `Bearer token` (any authenticated role)  
+**Content-Type:** `multipart/form-data`
+
+| Field | Type | Required |
+|---|---|---|
+| `firstName` | string | ❌ |
+| `lastName` | string | ❌ |
+| `userName` | string | ❌ |
+| `imageUrl` | file (image) | ❌ |
+
+**Validation (when provided):**
+- `firstName` / `lastName`: required if `userName` is provided, max 50 chars
+- `userName`: 3–30 chars, alphanumeric + `@ . _ -` only
+- `imageUrl`: must be `.jpg`, `.jpeg`, or `.png`, max 5 MB
+
+**Response `200 OK`:** Updated `ProfileResponse`
+
+```json
+{
+  "firstName":   "Ahmed",
+  "lastName":    "Ali",
+  "userName":    "ahmed.ali2",
+  "email":       "ahmed@example.com",
+  "phoneNumber": null,
+  "imageUrl":    "/profiles/guid/Images/new-avatar.jpg"
+}
+```
 
 ---
 

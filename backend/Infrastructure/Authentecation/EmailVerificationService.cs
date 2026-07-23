@@ -1,3 +1,4 @@
+using Application.Localization;
 using System.Net;
 using Application.Common;
 using Application.DTOs.Authentication;
@@ -76,7 +77,7 @@ namespace Infrastructure.Authentecation
                 UserName       = user.UserName,
                 PhoneNumber    = user.PhoneNumber,
                 IsAuthenticated = false,
-                Message        = "Email confirmation link has been sent successfully."
+                Message        = MessageKeys.Common.Auth_EmailSent
             };
         }
 
@@ -128,7 +129,7 @@ namespace Infrastructure.Authentecation
                 UserName       = user.UserName,
                 PhoneNumber    = user.PhoneNumber,
                 IsAuthenticated = true,
-                Message        = "Email confirmed successfully."
+                Message        = MessageKeys.Common.Auth_EmailConfirmed
             };
         }
 
@@ -183,7 +184,7 @@ namespace Infrastructure.Authentecation
                     UserName       = user.UserName,
                     PhoneNumber    = user.PhoneNumber,
                     IsAuthenticated = false,
-                    Message        = $"A confirmation email was already sent. Please wait {(int)cooldownMinutes} minutes before requesting a new one."
+                    Message        = MessageKeys.Common.Auth_EmailAlreadySent
                 };
             }
 

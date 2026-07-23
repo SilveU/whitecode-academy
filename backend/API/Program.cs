@@ -50,6 +50,8 @@ namespace API
 
             builder.Services.AddRateLimitConfiguration();
 
+            builder.Services.AddLocalizationExtension();
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -72,6 +74,8 @@ namespace API
             }
 
             app.UseSecurityHeaders();
+
+            app.UseRequestLocalization();
 
             app.UseMiddleware<GlobalHandleExceptionMiddleware>();
 

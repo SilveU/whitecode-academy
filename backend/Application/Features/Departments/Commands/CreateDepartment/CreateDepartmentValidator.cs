@@ -1,3 +1,6 @@
+using Application.Localization;
+using Application.Interfaces.Localization;
+using Application.Resources;
 using FluentValidation;
 
 namespace Application.Features.Departments.Commands.CreateDepartment
@@ -7,25 +10,30 @@ namespace Application.Features.Departments.Commands.CreateDepartment
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png" };
         private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-        public CreateDepartmentValidator()
+        public CreateDepartmentValidator(IMessageLocalizer<ValidationMessages> localizer)
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Name is required.")
-                .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.")
-                .Matches(@"^[a-zA-Z0-9\s]+$").WithMessage("Name can only contain letters, numbers, and spaces.");
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
+                .MaximumLength(100)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_DepartmentName_MaxLength])
+                .Matches(@"^[a-zA-Z0-9\s]+$")
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidNameFormat]);
 
             RuleFor(x => x.Description)
-                .NotEmpty().WithMessage("Description is required.")
-                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.");
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
+                .MaximumLength(500)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_DepartmentDescription_MaxLength]);
 
             // ImageFile is optional — validate only when provided
             When(x => x.ImageFile != null, () =>
             {
                 RuleFor(x => x.ImageFile!)
                     .Must(f => AllowedImageExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
-                    .WithMessage($"Image must be one of: {string.Join(", ", AllowedImageExtensions)}.")
+                        .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidImageExtension])
                     .Must(f => f.Length <= MaxImageSizeBytes)
-                    .WithMessage("Image size cannot exceed 5 MB.");
+                        .WithMessage(_ => localizer[MessageKeys.Validation.Field_ImageSizeExceeded]);
             });
         }
     }

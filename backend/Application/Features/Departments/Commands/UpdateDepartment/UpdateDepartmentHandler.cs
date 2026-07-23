@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -55,7 +56,7 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             if (department == null)
             {
                 _logger.LogWarning("Department {DepartmentId} was not found.", request.Id);
-                return Result<DepartmentResponse>.NotFound($"Department with ID {request.Id} not found.");
+                return Result<DepartmentResponse>.NotFound(MessageKeys.Common.Department_NotFound);
             }
 
             var oldValues = Serializer.Serialize(_mapper.Map<DepartmentResponse>(department));
@@ -65,7 +66,7 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
 
             if (request.ImageFile != null)
             {
-                await _fileSecurityService.ValidatePdfAsync(request.ImageFile);
+                await _fileSecurityService.ValidateImageAsync(request.ImageFile);
                 await _fileSecurityService.ScanAsync(request.ImageFile);
 
                 if (!string.IsNullOrEmpty(department.ImageUrl))

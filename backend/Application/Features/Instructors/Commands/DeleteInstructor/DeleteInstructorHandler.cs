@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
@@ -41,7 +42,7 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             if (instructor == null)
             {
                 _logger.LogWarning("Instructor {InstructorId} was not found.", request.Id);
-                return Result<bool>.NotFound($"Instructor with ID {request.Id} not found.");
+                return Result<bool>.NotFound(MessageKeys.Common.Instructor_NotFound);
             }
 
             var hasActiveCourses = instructor.Courses.Any(c => !c.IsDeleted);
@@ -50,9 +51,7 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
                 _logger.LogWarning(
                     "Instructor {InstructorId} cannot be deleted because they have active courses.",
                     request.Id);
-                return Result<bool>.Failure(
-                    "Cannot remove this instructor because they have active courses assigned. " +
-                    "Please reassign or delete those courses first.", 409);
+                return Result<bool>.Failure(MessageKeys.Common.Instructor_HasActiveCourses, 409);
             }
 
             _instructorRepository.Delete(instructor);

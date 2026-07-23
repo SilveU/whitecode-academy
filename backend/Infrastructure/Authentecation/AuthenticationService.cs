@@ -1,3 +1,4 @@
+using Application.Localization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -53,19 +54,7 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message         = "Invalid email, username, phone number, or password.",
-                    Expiration      = DateTime.UtcNow,
-                    AccessToken     = string.Empty
-                };
-            }
-
-            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
-            if (!isPasswordValid)
-            {
-                return new AuthResponse
-                {
-                    IsAuthenticated = false,
-                    Message         = "Invalid email, username, phone number, or password.",
+                    Message         = MessageKeys.Common.Auth_InvalidCredentials,
                     Expiration      = DateTime.UtcNow,
                     AccessToken     = string.Empty
                 };
@@ -76,17 +65,33 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Id              = user.Id,
-                    Email           = user.Email,
-                    UserName        = user.UserName,
-                    PhoneNumber     = user.PhoneNumber,
-                    Message         = "Please confirm your email before logging in.",
-                    Expiration      = DateTime.UtcNow,
-                    AccessToken     = string.Empty
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
+                    Message = MessageKeys.Common.Auth_EmailNotConfirmed,
+                    Expiration = DateTime.UtcNow,
+                    AccessToken = string.Empty
                 };
             }
 
-            var jwtExpireMinutes   = _configuration.GetValue<double>("Jwt:ExpireMinutes");
+            var passCheck = await _userManager.CheckPasswordAsync(user, request.Password);
+            if(!passCheck)
+            {
+                return new AuthResponse
+                {
+                    IsAuthenticated = false,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
+                    Message = MessageKeys.Common.Auth_InvalidCredentials,
+                    Expiration = DateTime.UtcNow,
+                    AccessToken = string.Empty
+                };
+            }
+
+            var jwtExpireMinutes = _configuration.GetValue<double>("Jwt:ExpireMinutes");
             var cacheExpireMinutes = _configuration.GetValue<double>("Redis:AuthTokenActiveCacheMinutes");
 
             var dto = mapper.Map<AuthResponse>(user);
@@ -103,7 +108,7 @@ namespace Infrastructure.Authentecation
             await _cache.SetAsync<string>(CacheKeys.RefreshTokenActive(user.Id), _refreshTokenSerivce.HashToken(refresh.RawToken), TimeSpan.FromMinutes(cacheExpireMinutes));
 
             dto.IsAuthenticated = true;
-            dto.Message         = "Login successful.";
+            dto.Message         = MessageKeys.Common.Auth_LoginSuccess;
             dto.AccessToken     = accessToken;
             dto.Expiration      = DateTime.UtcNow.AddMinutes(jwtExpireMinutes);
             dto.RefreshToken    = refresh.RawToken;
@@ -112,8 +117,8 @@ namespace Infrastructure.Authentecation
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            // try
-            // {
+            try
+            {
                 var userExists = await _userManager.FindByEmailAsync(request.Email) ??
                                  await _userManager.FindByNameAsync(request.UserName);
 
@@ -161,21 +166,21 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message         = "Account created successfully. Please check your email to confirm your account before logging in.",
+                    Message         = MessageKeys.Common.Auth_AccountCreated,
                     Id              = user.Id,
                     Email           = user.Email,
                     UserName        = user.UserName,
                     PhoneNumber     = user.PhoneNumber
                 };
-            // }
-            // catch (Exception)
-            // {
-            //     return new AuthResponse
-            //     {
-            //         IsAuthenticated = false,
-            //         Message         = "An error occurred during registration."
-            //     };
-            // }
+            }
+            catch (Exception)
+            {
+                return new AuthResponse
+                {
+                    IsAuthenticated = false,
+                    Message         = "An error occurred during registration."
+                };
+            }
         }
 
         public async Task<string> GenerateJwtToken(ApplicationUser user)
@@ -222,7 +227,7 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message         = "Invalid refresh token.",
+                        Message         = MessageKeys.Common.Auth_InvalidRefreshToken,
                         Expiration      = DateTime.UtcNow,
                         AccessToken     = string.Empty
                     };
@@ -250,7 +255,7 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = true,
-                    Message         = "Token refreshed successfully.",
+                    Message         = MessageKeys.Common.Auth_TokenRefreshed,
                     Id              = oldToken.ApplicationUserId,
                     Email           = oldToken.ApplicationUser.Email,
                     UserName        = oldToken.ApplicationUser.UserName,

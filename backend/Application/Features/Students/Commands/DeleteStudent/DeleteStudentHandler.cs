@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
@@ -41,7 +42,7 @@ namespace Application.Features.Students.Commands.DeleteStudent
             if (student == null)
             {
                 _logger.LogWarning("Student {StudentId} was not found.", request.Id);
-                return Result<bool>.NotFound("Student not found.");
+                return Result<bool>.NotFound(MessageKeys.Common.Student_NotFound);
             }
 
             var enrollments = await _enrollmentRepository.GetByStudentIdAsync(request.Id);

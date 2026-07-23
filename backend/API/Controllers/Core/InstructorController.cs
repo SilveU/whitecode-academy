@@ -37,7 +37,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // GET /api/instructor/{id}
@@ -49,7 +49,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // POST /api/instructor
@@ -66,7 +66,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return CreatedAtAction(nameof(GetInstructorById), new { id = result.Value!.Id }, result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // PUT /api/instructor/{id}
@@ -82,7 +82,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // DELETE /api/instructor/{id}
@@ -95,7 +95,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return NoContent();
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

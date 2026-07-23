@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -47,14 +48,14 @@ namespace Application.Features.Students.Commands.AssignStudent
             if (user == null)
             {
                 _logger.LogWarning("User {UserId} was not found.", request.UserId);
-                return Result<StudentResponse>.NotFound("User not found.");
+                return Result<StudentResponse>.NotFound(MessageKeys.Common.Student_NotFound);
             }
 
             var existingStudent = await _studentRepository.GetByUserIdAsync(request.UserId);
             if (existingStudent != null)
             {
                 _logger.LogWarning("User {UserId} is already registered as a student.", request.UserId);
-                return Result<StudentResponse>.Failure("This user is already registered as a student.", 409);
+                return Result<StudentResponse>.Failure(MessageKeys.Common.Student_AlreadyExists, 409);
             }
 
             var student = new Student

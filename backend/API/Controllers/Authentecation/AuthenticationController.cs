@@ -1,9 +1,12 @@
 using System.Security.Claims;
+using API.Localization;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
 using Application.Helper;
+using Application.Resources;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Localization;
 using API.Attributes;
 
 namespace API.Controllers.Authentication
@@ -17,12 +20,27 @@ namespace API.Controllers.Authentication
         private readonly IEmailVerificationService _emailVerificationService;
         private readonly IResetPasswordService _resetPasswordService;
 
-        public AuthenticationController(IAuthenticationService auth, IEmailVerificationService emailVerificationService, IResetPasswordService resetPasswordService)
+        public AuthenticationController(
+            IAuthenticationService auth,
+            IEmailVerificationService emailVerificationService,
+            IResetPasswordService resetPasswordService)
         {
             this.auth = auth;
             _emailVerificationService = emailVerificationService;
             _resetPasswordService = resetPasswordService;
         }
+
+        // Resolves a MessageKey to the localized string per-request
+        private string Resolve(string? key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return key ?? string.Empty;
+            var localizer = HttpContext.RequestServices
+                .GetRequiredService<IStringLocalizer<CommonMessages>>();
+            return localizer[key].Value;
+        }
+
+        private AuthResponse Translate(AuthResponse response) =>
+            response with { Message = Resolve(response.Message) };
 
         [HttpPost("login")]
         [SkipTokenRevocation]
@@ -32,9 +50,9 @@ namespace API.Controllers.Authentication
             var loginResult = await auth.LoginAsync(request, ipAddress);
 
             if (!loginResult.IsAuthenticated)
-                return Unauthorized(loginResult);
+                return Unauthorized(Translate(loginResult));
 
-            return Ok(loginResult);
+            return Ok(Translate(loginResult));
         }
 
         [HttpPost("register")]
@@ -44,9 +62,9 @@ namespace API.Controllers.Authentication
             var registerResult = await auth.RegisterAsync(request);
 
             if (registerResult.Id is null)
-                return BadRequest(registerResult);
+                return BadRequest(Translate(registerResult));
 
-            return Ok(registerResult);
+            return Ok(Translate(registerResult));
         }
 
         [HttpGet("confirm-email")]
@@ -55,7 +73,7 @@ namespace API.Controllers.Authentication
         {
             var result = await _emailVerificationService.ConfirmEmailAsync(userId, token);
 
-            return Ok(result);
+            return Ok(Translate(result));
         }
 
         [HttpPost("resend-email-confirmation")]
@@ -65,9 +83,9 @@ namespace API.Controllers.Authentication
             var result = await _emailVerificationService.ResendEmailConfirmationAsync(request.Email);
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest(result);
+                return BadRequest(Translate(result));
 
-            return Ok(result);
+            return Ok(Translate(result));
         }
 
         [HttpPost("reset-password")]
@@ -76,7 +94,7 @@ namespace API.Controllers.Authentication
         {
             var result = await _resetPasswordService.ResetPassword(request.Email);
 
-            return Ok(result);
+            return Ok(Translate(result));
         }
 
         [HttpGet("confirm-reset-password")]
@@ -86,9 +104,9 @@ namespace API.Controllers.Authentication
             var result = await _resetPasswordService.ConfirmResetPasswordAsync(userId, token, request);
 
             if (!result.IsAuthenticated)
-                return BadRequest(result);
+                return BadRequest(Translate(result));
 
-            return Ok(result);
+            return Ok(Translate(result));
         }
 
         [HttpPost("resend-reset-password")]
@@ -98,9 +116,9 @@ namespace API.Controllers.Authentication
             var result = await _resetPasswordService.ResendResetPasswordAsync(request.Email);
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest(result);
+                return BadRequest(Translate(result));
 
-            return Ok(result);
+            return Ok(Translate(result));
         }
 
         [HttpPost("refresh")]
@@ -114,10 +132,11 @@ namespace API.Controllers.Authentication
 
             var ipAddress = await IpAddressHelper.GetRealPublicIpAsync();
             var result = await auth.RefreshAsync(refreshToken, ipAddress);
-            if (!result.IsAuthenticated)
-                return Unauthorized(result);
 
-            return Ok(result);
+            if (!result.IsAuthenticated)
+                return Unauthorized(Translate(result));
+
+            return Ok(Translate(result));
         }
 
         [HttpPost("logout")]
@@ -130,10 +149,11 @@ namespace API.Controllers.Authentication
 
             var ipAddress = await IpAddressHelper.GetRealPublicIpAsync();
             var result = await auth.LogoutAsync(refreshToken, ipAddress);
-            if (!result)
-                return BadRequest(new { Message = "Failed to logout" });
 
-            return Ok(new { Message = "Logged out successfully" });
+            if (!result)
+                return BadRequest(new { Message = Resolve(MessageKeys.Common.Auth_InvalidRefreshToken) });
+
+            return Ok(new { Message = Resolve(MessageKeys.Common.Auth_LoggedOut) });
         }
 
         [HttpPost("logout-all")]
@@ -142,10 +162,11 @@ namespace API.Controllers.Authentication
             var currentUserId = GetUserId();
             var ipAddress = await IpAddressHelper.GetRealPublicIpAsync();
             var result = await auth.LogoutAllAsync(currentUserId, ipAddress);
-            if (!result)
-                return BadRequest(new { Message = "Failed to logout from all sessions" });
 
-            return Ok(new { Message = "Logged out from all sessions successfully" });
+            if (!result)
+                return BadRequest(new { Message = Resolve(MessageKeys.Common.Auth_InvalidRefreshToken) });
+
+            return Ok(new { Message = Resolve(MessageKeys.Common.Auth_LoggedOutAll) });
         }
 
         private string GetUserId()

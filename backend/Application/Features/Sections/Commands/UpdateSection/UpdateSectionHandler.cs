@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -55,7 +56,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
             if (section == null)
             {
                 _logger.LogWarning("Section {SectionId} was not found.", request.Id);
-                return Result<SectionResponse>.NotFound($"Section with ID {request.Id} not found.");
+                return Result<SectionResponse>.NotFound(MessageKeys.Common.Section_NotFound);
             }
 
             if (request.IsInstructor)
@@ -64,13 +65,13 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
-                    return Result<SectionResponse>.NotFound("No instructor profile found for the current user.");
+                    return Result<SectionResponse>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (section.Course.InstructorId != instructor.Id)
                 {
                     _logger.LogWarning("User {UserId} attempted to update section {SectionId} without ownership.", request.CurrentUserId, request.Id);
-                    return Result<SectionResponse>.Forbidden("You can only update sections of your own courses.");
+                    return Result<SectionResponse>.Forbidden(MessageKeys.Common.Section_AccessDenied);
                 }
             }
 

@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -60,7 +61,7 @@ namespace Application.Features.Sections.Commands.CreateSection
             if (course == null)
             {
                 _logger.LogWarning("Course {CourseId} was not found.", request.CourseId);
-                return Result<SectionResponse>.NotFound("Course not found.");
+                return Result<SectionResponse>.NotFound(MessageKeys.Common.Course_NotFound);
             }
 
             if (request.IsInstructor)
@@ -69,7 +70,7 @@ namespace Application.Features.Sections.Commands.CreateSection
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
-                    return Result<SectionResponse>.NotFound("No instructor profile found for the current user.");
+                    return Result<SectionResponse>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (course.InstructorId != instructor.Id)
@@ -77,7 +78,7 @@ namespace Application.Features.Sections.Commands.CreateSection
                     _logger.LogWarning(
                         "User {UserId} attempted to add a section to course {CourseId} without ownership.",
                         request.CurrentUserId, request.CourseId);
-                    return Result<SectionResponse>.Forbidden("You can only add sections to your own courses.");
+                    return Result<SectionResponse>.Forbidden(MessageKeys.Common.Section_AccessDenied);
                 }
             }
 

@@ -34,7 +34,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return CreatedAtAction(nameof(AssignStudent), result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // DELETE /api/student/{id}
@@ -48,7 +48,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return NoContent();
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

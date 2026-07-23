@@ -24,7 +24,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         [HttpPatch]
@@ -35,7 +35,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

@@ -1,3 +1,6 @@
+using Application.Localization;
+using Application.Interfaces.Localization;
+using Application.Resources;
 using FluentValidation;
 
 namespace Application.Features.Sections.Commands.UpdateSection
@@ -8,14 +11,16 @@ namespace Application.Features.Sections.Commands.UpdateSection
         private const long MaxVideoSizeBytes = 1000L * 1024 * 1024; // 1000 MB
         private const long MaxPdfSizeBytes   = 5 * 1024 * 1024;     // 5 MB
 
-        public UpdateSectionValidator()
+        public UpdateSectionValidator(IMessageLocalizer<ValidationMessages> localizer)
         {
             RuleFor(x => x.Name)
-                .MaximumLength(200).WithMessage("Name cannot exceed 200 characters.")
+                .MaximumLength(200)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_SectionName_MaxLength])
                 .When(x => !string.IsNullOrEmpty(x.Name));
 
             RuleFor(x => x.Description)
-                .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.")
+                .MaximumLength(1000)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_SectionDescription_MaxLength])
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
             // PdfFile is optional — validate only when provided
@@ -23,9 +28,9 @@ namespace Application.Features.Sections.Commands.UpdateSection
             {
                 RuleFor(x => x.PdfFile!)
                     .Must(f => AllowedPdfExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant()))
-                    .WithMessage("PDF must be a .pdf file.")
+                        .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidPdfExtension])
                     .Must(f => f.Length <= MaxPdfSizeBytes)
-                    .WithMessage("PDF size cannot exceed 5 MB.");
+                        .WithMessage(_ => localizer[MessageKeys.Validation.Field_PdfSizeExceeded]);
             });
         }
     }
