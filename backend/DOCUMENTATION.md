@@ -1212,6 +1212,7 @@ Validation failures from FluentValidation return `422` with this structure:
     "EnrollmentsExpirationMinutes":             "10",
     "EmailVerificationExpirationMinutes":       "10",
     "EmailVerificationResendCooldownMinutes":   "10",
+    "ResetPasswordResendCooldownMinutes":       "10",
     "AuthTokenActiveCacheMinutes":              "60",
     "IdempotencyExpirationMinutes":             "30"
   },
