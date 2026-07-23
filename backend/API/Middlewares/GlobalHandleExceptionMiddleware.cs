@@ -1,7 +1,10 @@
 using System.Text.Json;
+using API.Localization;
+using API.Resources;
 using Domain.Exceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace API.Middlewares;
 
@@ -33,38 +36,48 @@ public class GlobalHandleExceptionMiddleware
                 throw;
             }
 
+            // Resolve IStringLocalizer<ExceptionMessages> per-request from Scoped DI
+            // (Middleware is Singleton — NEVER inject localizer in constructor)
+            var localizer = context.RequestServices
+                .GetRequiredService<IStringLocalizer<ExceptionMessages>>();
+
             var (statusCode, message) = ex switch
             {
                 NotFoundException =>
-                    (StatusCodes.Status404NotFound, ex.Message),
+                    (StatusCodes.Status404NotFound,
+                        localizer[MessageKeys.Exception.NotFound].Value),
 
                 UnauthorizedAccessException =>
-                    (StatusCodes.Status403Forbidden, ex.Message),
+                    (StatusCodes.Status403Forbidden,
+                        localizer[MessageKeys.Exception.Unauthorized].Value),
 
                 ArgumentException =>
-                    (StatusCodes.Status400BadRequest, "Invalid input provided."),
+                    (StatusCodes.Status400BadRequest,
+                        localizer[MessageKeys.Exception.InvalidInput].Value),
 
                 BusinessRuleException =>
-                    (StatusCodes.Status409Conflict, ex.Message),
+                    (StatusCodes.Status409Conflict,
+                        localizer[MessageKeys.Exception.InvalidOperation].Value),
 
                 InvalidOperationException =>
-                    (StatusCodes.Status409Conflict, "Operation cannot be completed due to the current state."),
+                    (StatusCodes.Status409Conflict,
+                        localizer[MessageKeys.Exception.InvalidOperation].Value),
 
                 DbUpdateConcurrencyException =>
                     (StatusCodes.Status409Conflict,
-                        "The resource has been modified by another user. Please reload and try again."),
+                        localizer[MessageKeys.Exception.Concurrency].Value),
 
                 DbUpdateException =>
                     (StatusCodes.Status500InternalServerError,
-                        "A database update error occurred."),
+                        localizer[MessageKeys.Exception.DatabaseUpdate].Value),
 
                 SqlException =>
                     (StatusCodes.Status500InternalServerError,
-                        "A database error occurred."),
+                        localizer[MessageKeys.Exception.Database].Value),
 
                 _ =>
                     (StatusCodes.Status500InternalServerError,
-                        "An unexpected error occurred.")
+                        localizer[MessageKeys.Exception.Unexpected].Value)
             };
 
             context.Response.Clear();

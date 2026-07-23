@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
@@ -34,7 +35,7 @@ namespace Application.Features.Departments.Queries.GetDepartmentById
 
             var department = await _departmentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (department == null)
-                return Result<DepartmentResponse>.NotFound($"Department with ID {request.Id} not found.");
+                return Result<DepartmentResponse>.NotFound(MessageKeys.Common.Department_NotFound);
 
             var response = _mapper.Map<DepartmentResponse>(department);
 

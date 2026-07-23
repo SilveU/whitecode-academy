@@ -37,7 +37,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // GET /api/department/{id}
@@ -49,7 +49,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // POST /api/department
@@ -66,7 +66,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return CreatedAtAction(nameof(GetDepartmentById), new { id = result.Value!.Id }, result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // PUT /api/department/{id}
@@ -83,7 +83,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // DELETE /api/department/{id}
@@ -96,7 +96,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return NoContent();
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

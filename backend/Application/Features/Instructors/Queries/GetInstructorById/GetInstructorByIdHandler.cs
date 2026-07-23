@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
@@ -34,7 +35,7 @@ namespace Application.Features.Instructors.Queries.GetInstructorById
 
             var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (instructor == null)
-                return Result<InstructorResponse>.NotFound($"Instructor with ID {request.Id} not found.");
+                return Result<InstructorResponse>.NotFound(MessageKeys.Common.Instructor_NotFound);
 
             var response = _mapper.Map<InstructorResponse>(instructor);
 

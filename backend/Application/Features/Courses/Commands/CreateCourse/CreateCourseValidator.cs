@@ -1,20 +1,29 @@
+using Application.Localization;
+using Application.Interfaces.Localization;
+using Application.Resources;
 using FluentValidation;
 
 namespace Application.Features.Courses.Commands.CreateCourse
 {
     public class CreateCourseValidator : AbstractValidator<CreateCourseCommand>
     {
-        public CreateCourseValidator()
+        public CreateCourseValidator(IMessageLocalizer<ValidationMessages> localizer)
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
                 .MaximumLength(200)
-                .Matches(@"^[a-zA-Z0-9\s]+$").WithMessage("Name can only contain letters, numbers, and spaces.");
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MaxLength])
+                .Matches(@"^[a-zA-Z0-9\s]+$")
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidNameFormat]);
 
             RuleFor(x => x.Description)
                 .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
                 .MaximumLength(1000)
-                .Matches(@"^[a-zA-Z0-9\s]+$").WithMessage("Description can only contain letters, numbers, and spaces.");
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MaxLength])
+                .Matches(@"^[a-zA-Z0-9\s]+$")
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidDescriptionFormat]);
         }
     }
 }

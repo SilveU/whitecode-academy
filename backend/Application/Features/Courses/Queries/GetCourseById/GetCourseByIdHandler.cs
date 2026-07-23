@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
@@ -35,7 +36,7 @@ namespace Application.Features.Courses.Queries.GetCourseById
 
             var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
             if (course == null)
-                return Result<CourseResponse>.NotFound($"Course with ID {request.Id} not found.");
+                return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_NotFound);
 
             var response = _mapper.Map<CourseResponse>(course);
 

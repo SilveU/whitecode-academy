@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
@@ -40,7 +41,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
             if (section == null)
             {
                 _logger.LogWarning("Section {SectionId} was not found.", request.Id);
-                return Result<bool>.NotFound($"Section with ID {request.Id} not found.");
+                return Result<bool>.NotFound(MessageKeys.Common.Section_NotFound);
             }
 
             if (request.IsInstructor)
@@ -49,7 +50,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
-                    return Result<bool>.NotFound("No instructor profile found for the current user.");
+                    return Result<bool>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (section.Course.InstructorId != instructor.Id)
@@ -57,7 +58,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
                     _logger.LogWarning(
                         "User {UserId} attempted to delete section {SectionId} without ownership.",
                         request.CurrentUserId, request.Id);
-                    return Result<bool>.Forbidden("You can only delete sections of your own courses.");
+                    return Result<bool>.Forbidden(MessageKeys.Common.Section_AccessDenied);
                 }
             }
 

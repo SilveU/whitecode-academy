@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
@@ -36,7 +37,7 @@ namespace Application.Features.Enrollments.Commands.DeleteEnrollment
                 _logger.LogWarning(
                     "Enrollment for student {StudentId} in course {CourseId} was not found.",
                     request.StudentId, request.CourseId);
-                return Result<bool>.NotFound("Enrollment not found for the given student and course.");
+                return Result<bool>.NotFound(MessageKeys.Common.Enrollment_NotFound);
             }
 
             _enrollmentRepository.Delete(enrollment);

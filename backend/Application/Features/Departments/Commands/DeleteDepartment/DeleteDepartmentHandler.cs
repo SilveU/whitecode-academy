@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.Helper;
 using Application.Interfaces.Repositories;
@@ -34,7 +35,7 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
             if (department == null)
             {
                 _logger.LogWarning("Department {DepartmentId} was not found.", request.Id);
-                return Result<bool>.NotFound($"Department with ID {request.Id} not found.");
+                return Result<bool>.NotFound(MessageKeys.Common.Department_NotFound);
             }
 
             var hasActiveDependencies = await _departmentRepository.HasActiveCoursesOrInstructorsAsync(request.Id);
@@ -43,8 +44,7 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
                 _logger.LogWarning(
                     "Department {DepartmentId} cannot be deleted because it has active courses or instructors.",
                     request.Id);
-                return Result<bool>.Failure(
-                    "Cannot delete this department because it has active courses or instructors assigned to it.", 409);
+                return Result<bool>.Failure(MessageKeys.Common.Department_HasActiveDependencies, 409);
             }
 
             _departmentRepository.Delete(department);

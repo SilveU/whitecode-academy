@@ -35,7 +35,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // POST /api/section
@@ -57,7 +57,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return CreatedAtAction(nameof(GetSectionsByCourse), new { courseId = result.Value!.CourseId }, result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // PUT /api/section/{id}
@@ -79,7 +79,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // DELETE /api/section/{id}
@@ -94,7 +94,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return NoContent();
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

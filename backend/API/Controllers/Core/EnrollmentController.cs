@@ -32,7 +32,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // GET /api/enrollment/by-student/{studentId}
@@ -44,7 +44,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return Ok(result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // POST /api/enrollment
@@ -65,7 +65,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return CreatedAtAction(nameof(Enroll), result.Value);
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
 
         // DELETE /api/enrollment?studentId=&courseId=
@@ -79,7 +79,7 @@ namespace API.Controllers.Core
             if (result.IsSuccess)
                 return NoContent();
 
-            return StatusCode(result.StatusCode, result);
+            return Failure(result);
         }
     }
 }

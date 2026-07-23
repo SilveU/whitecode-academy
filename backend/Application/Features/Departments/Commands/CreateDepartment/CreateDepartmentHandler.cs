@@ -51,7 +51,7 @@ namespace Application.Features.Departments.Commands.CreateDepartment
 
             if (request.ImageFile != null)
             {
-                await _fileSecurityService.ValidatePdfAsync(request.ImageFile);
+                await _fileSecurityService.ValidateImageAsync(request.ImageFile);
                 await _fileSecurityService.ScanAsync(request.ImageFile);
                 var imageFolder = Path.Combine("Departments", department.Id.ToString(), "Images");
                 department.ImageUrl = await _fileStorageService.UploadAsync(request.ImageFile, imageFolder);

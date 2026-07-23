@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string"/>
+              <xsd:attribute name="name" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+              <xsd:attribute name="type" type="xsd:string"/>
+              <xsd:attribute name="mimetype" type="xsd:string"/>
+              <xsd:attribute ref="xml:space"/>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string"/>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Course_NotFound" xml:space="preserve">
+    <value>الدورة بالمعرّف {0} غير موجودة.</value>
+  </data>
+  <data name="Course_InstructorNotFound" xml:space="preserve">
+    <value>لا يوجد ملف تعريف مدرّب للمستخدم الحالي.</value>
+  </data>
+  <data name="Course_InstructorIdRequired" xml:space="preserve">
+    <value>معرّف المدرّب مطلوب عند إنشاء دورة كمسؤول.</value>
+  </data>
+  <data name="Course_InstructorWithIdNotFound" xml:space="preserve">
+    <value>المدرّب بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Course_InstructorDepartmentMismatch" xml:space="preserve">
+    <value>المدرّب لا ينتمي للقسم المحدد.</value>
+  </data>
+  <data name="Course_HasActiveEnrollments" xml:space="preserve">
+    <value>لا يمكن حذف هذه الدورة لأنها تحتوي على تسجيلات نشطة.</value>
+  </data>
+  <data name="Course_AccessDenied" xml:space="preserve">
+    <value>ليس لديك صلاحية لتعديل هذه الدورة.</value>
+  </data>
+  <data name="Department_NotFound" xml:space="preserve">
+    <value>القسم بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Department_HasActiveDependencies" xml:space="preserve">
+    <value>لا يمكن حذف هذا القسم لأنه يحتوي على دورات أو مدرّبين نشطين.</value>
+  </data>
+  <data name="Instructor_NotFound" xml:space="preserve">
+    <value>المدرّب بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Instructor_AlreadyExists" xml:space="preserve">
+    <value>هذا المستخدم معيَّن بالفعل كمدرّب.</value>
+  </data>
+  <data name="Instructor_HasActiveCourses" xml:space="preserve">
+    <value>لا يمكن إزالة هذا المدرّب لأنه لديه دورات نشطة.</value>
+  </data>
+  <data name="Instructor_UserNotFound" xml:space="preserve">
+    <value>المستخدم بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Section_NotFound" xml:space="preserve">
+    <value>القسم الفرعي بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Section_AccessDenied" xml:space="preserve">
+    <value>ليس لديك صلاحية لتعديل هذا القسم الفرعي.</value>
+  </data>
+  <data name="Student_NotFound" xml:space="preserve">
+    <value>الطالب بالمعرّف {0} غير موجود.</value>
+  </data>
+  <data name="Student_AlreadyExists" xml:space="preserve">
+    <value>هذا المستخدم مسجَّل بالفعل كطالب.</value>
+  </data>
+  <data name="Enrollment_AlreadyExists" xml:space="preserve">
+    <value>الطالب مسجَّل بالفعل في هذه الدورة.</value>
+  </data>
+  <data name="Enrollment_NotFound" xml:space="preserve">
+    <value>التسجيل غير موجود.</value>
+  </data>
+  <data name="Auth_InvalidCredentials" xml:space="preserve">
+    <value>البريد الإلكتروني أو اسم المستخدم أو رقم الهاتف أو كلمة المرور غير صحيحة.</value>
+  </data>
+  <data name="Auth_EmailNotConfirmed" xml:space="preserve">
+    <value>يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.</value>
+  </data>
+  <data name="Auth_AccountCreated" xml:space="preserve">
+    <value>تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك قبل تسجيل الدخول.</value>
+  </data>
+  <data name="Auth_EmailConfirmed" xml:space="preserve">
+    <value>تم تأكيد البريد الإلكتروني بنجاح.</value>
+  </data>
+  <data name="Auth_EmailAlreadySent" xml:space="preserve">
+    <value>تم إرسال رسالة تأكيد بالفعل. يرجى الانتظار 10 دقائق قبل طلب رسالة جديدة.</value>
+  </data>
+  <data name="Auth_EmailSent" xml:space="preserve">
+    <value>تم إرسال رابط تأكيد البريد الإلكتروني بنجاح.</value>
+  </data>
+  <data name="Auth_LoginSuccess" xml:space="preserve">
+    <value>تم تسجيل الدخول بنجاح.</value>
+  </data>
+  <data name="Auth_TokenRefreshed" xml:space="preserve">
+    <value>تم تحديث الرمز بنجاح.</value>
+  </data>
+  <data name="Auth_LoggedOut" xml:space="preserve">
+    <value>تم تسجيل الخروج بنجاح.</value>
+  </data>
+  <data name="Auth_LoggedOutAll" xml:space="preserve">
+    <value>تم تسجيل الخروج من جميع الأجهزة بنجاح.</value>
+  </data>
+  <data name="Auth_InvalidRefreshToken" xml:space="preserve">
+    <value>رمز التحديث غير صالح أو منتهي الصلاحية.</value>
+  </data>
+</root>

@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -59,7 +60,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                     "Course {CourseId} not found.",
                     request.Id);
 
-                return Result<CourseResponse>.NotFound("Course not found.");
+                return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_NotFound);
             }
 
             if (request.IsInstructor)
@@ -72,7 +73,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                         "Instructor profile not found for user {UserId}.",
                         request.CurrentUserId);
 
-                    return Result<CourseResponse>.NotFound("No instructor profile found for the current user.");
+                    return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (course.InstructorId != instructor.Id)
@@ -82,7 +83,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                         request.CurrentUserId,
                         course.Id);
 
-                    return Result<CourseResponse>.Forbidden("You are not the owner of this course.");
+                    return Result<CourseResponse>.Forbidden(MessageKeys.Common.Course_AccessDenied);
                 }
             }
 
@@ -102,7 +103,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                     "Instructor {InstructorId} not found.",
                     request.InstructorId);
 
-                return Result<CourseResponse>.NotFound($"Instructor with ID {request.InstructorId} not found.");
+                return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_InstructorWithIdNotFound);
             }
 
             if (targetInstructor.Department == null ||
@@ -113,7 +114,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                     targetInstructor.Id,
                     request.DepartmentId);
 
-                return Result<CourseResponse>.Failure("Instructor does not belong to the specified department.");
+                return Result<CourseResponse>.Failure(MessageKeys.Common.Course_InstructorDepartmentMismatch);
             }
 
             course = _mapper.Map(request, course);

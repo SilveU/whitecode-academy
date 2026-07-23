@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -51,14 +52,14 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
             if (user == null)
             {
                 _logger.LogWarning("User {UserId} was not found.", request.UserId);
-                return Result<InstructorResponse>.NotFound($"User with ID {request.UserId} not found.");
+                return Result<InstructorResponse>.NotFound(MessageKeys.Common.Instructor_UserNotFound);
             }
 
             var existingInstructor = await _instructorRepository.GetByUserIdAsync(request.UserId);
             if (existingInstructor != null)
             {
                 _logger.LogWarning("User {UserId} is already assigned as an instructor.", request.UserId);
-                return Result<InstructorResponse>.Failure("This user is already assigned as an instructor.", 409);
+                return Result<InstructorResponse>.Failure(MessageKeys.Common.Instructor_AlreadyExists, 409);
             }
 
             if (request.DepartmentId.HasValue)
@@ -67,7 +68,7 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
                 if (department == null)
                 {
                     _logger.LogWarning("Department {DepartmentId} was not found.", request.DepartmentId);
-                    return Result<InstructorResponse>.NotFound($"Department with ID {request.DepartmentId} not found.");
+                    return Result<InstructorResponse>.NotFound(MessageKeys.Common.Department_NotFound);
                 }
             }
 

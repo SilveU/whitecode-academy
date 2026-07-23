@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -49,14 +50,14 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
             if (student == null)
             {
                 _logger.LogWarning("Student profile for user {UserId} was not found.", request.CurrentUserId);
-                return Result<EnrollmentResponse>.NotFound("No student profile found for the current user.");
+                return Result<EnrollmentResponse>.NotFound(MessageKeys.Common.Student_NotFound);
             }
 
             var course = await _courseRepository.GetByIdAsync(request.CourseId);
             if (course == null)
             {
                 _logger.LogWarning("Course {CourseId} was not found.", request.CourseId);
-                return Result<EnrollmentResponse>.NotFound($"Course with ID {request.CourseId} not found.");
+                return Result<EnrollmentResponse>.NotFound(MessageKeys.Common.Course_NotFound);
             }
 
             var existing = await _enrollmentRepository.GetByStudentAndCourseAsync(student.Id, request.CourseId);
@@ -65,7 +66,7 @@ namespace Application.Features.Enrollments.Commands.CreateEnrollment
                 _logger.LogWarning(
                     "Student {StudentId} is already enrolled in course {CourseId}.",
                     student.Id, request.CourseId);
-                return Result<EnrollmentResponse>.Failure("Student is already enrolled in this course.", 409);
+                return Result<EnrollmentResponse>.Failure(MessageKeys.Common.Enrollment_AlreadyExists, 409);
             }
 
             var enrollment = new Enrollment

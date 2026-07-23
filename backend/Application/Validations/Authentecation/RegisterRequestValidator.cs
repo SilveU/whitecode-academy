@@ -1,38 +1,52 @@
+using Application.Localization;
 using Application.DTOs.Authentication;
+using Application.Interfaces.Localization;
+using Application.Resources;
 using FluentValidation;
 
 namespace Application.Validations.Authentecation
 {
     public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     {
-        public RegisterRequestValidator()
+        public RegisterRequestValidator(IMessageLocalizer<ValidationMessages> localizer)
         {
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithMessage("First name is required.")
-                .MaximumLength(50);
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
+                .MaximumLength(50)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MaxLength]);
 
             RuleFor(x => x.LastName)
-                .NotEmpty().WithMessage("Last name is required.")
-                .MaximumLength(50);
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
+                .MaximumLength(50)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MaxLength]);
 
             RuleFor(x => x.UserName)
                 .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
                 .MinimumLength(3)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MinLength])
                 .MaximumLength(30)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_MaxLength])
                 .Matches(@"^[a-zA-Z0-9@._-]+$")
-                .WithMessage("Username can only contain letters, numbers, ., _, -, @");
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidUsername]);
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Invalid email format.");
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
+                .EmailAddress()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidEmail]);
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Password is required.")
+                .NotEmpty()
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_Required])
                 .Matches("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$")
-                .WithMessage("Password must contain letter, number, and special character.");
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_InvalidPassword]);
 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.Password).WithMessage("Passwords do not match.");
+                .Equal(x => x.Password)
+                    .WithMessage(_ => localizer[MessageKeys.Validation.Field_PasswordsMustMatch]);
         }
     }
 }

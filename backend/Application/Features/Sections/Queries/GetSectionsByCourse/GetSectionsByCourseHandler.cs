@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Interfaces.Repositories;
@@ -36,7 +37,7 @@ namespace Application.Features.Sections.Queries.GetSectionsByCourse
 
             var course = await _courseRepository.GetByIdAsync(request.CourseId);
             if (course == null)
-                return Result<IEnumerable<SectionResponse>>.NotFound($"Course with ID {request.CourseId} not found.");
+                return Result<IEnumerable<SectionResponse>>.NotFound(MessageKeys.Common.Course_NotFound);
 
             var sections = await _sectionRepository.GetByCourseIdAsync(request.CourseId);
             var response = _mapper.Map<IEnumerable<SectionResponse>>(sections);

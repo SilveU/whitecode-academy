@@ -1,3 +1,4 @@
+using Application.Localization;
 using Application.Common;
 using Application.DTOs.Core;
 using Application.Helper;
@@ -52,7 +53,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             if (instructor == null)
             {
                 _logger.LogWarning("Instructor {InstructorId} was not found.", request.Id);
-                return Result<InstructorResponse>.NotFound($"Instructor with ID {request.Id} not found.");
+                return Result<InstructorResponse>.NotFound(MessageKeys.Common.Instructor_NotFound);
             }
 
             var oldValues = Serializer.Serialize(_mapper.Map<InstructorResponse>(instructor));
@@ -63,7 +64,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
                 if (department == null)
                 {
                     _logger.LogWarning("Department {DepartmentId} was not found.", request.DepartmentId);
-                    return Result<InstructorResponse>.NotFound($"Department with ID {request.DepartmentId} not found.");
+                    return Result<InstructorResponse>.NotFound(MessageKeys.Common.Department_NotFound);
                 }
 
                 instructor.DepartmentId = request.DepartmentId;
