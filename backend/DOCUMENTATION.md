@@ -17,19 +17,20 @@
 6. [Idempotency](#idempotency)
 7. [File Handling](#file-handling)
 8. [Health Checks](#health-checks)
-9. [API Endpoints](#api-endpoints)
-   - [Authentication](#authentication)
-   - [Courses](#courses)
-   - [Departments](#departments)
-   - [Enrollments](#enrollments)
-   - [Instructors](#instructors)
-   - [Sections](#sections)
-   - [Students](#students)
-   - [Profile](#profile)
-10. [Common Patterns](#common-patterns)
-11. [Roles & Authorization](#roles--authorization)
-12. [Error Handling](#error-handling)
-13. [Configuration Reference](#configuration-reference)
+9. [Localization](#localization)
+10. [API Endpoints](#api-endpoints)
+    - [Authentication](#authentication)
+    - [Courses](#courses)
+    - [Departments](#departments)
+    - [Enrollments](#enrollments)
+    - [Instructors](#instructors)
+    - [Sections](#sections)
+    - [Students](#students)
+    - [Profile](#profile)
+11. [Common Patterns](#common-patterns)
+12. [Roles & Authorization](#roles--authorization)
+13. [Error Handling](#error-handling)
+14. [Configuration Reference](#configuration-reference)
 
 ---
 
@@ -300,6 +301,114 @@ On section create/update with a video file:
 
 SQL Server degraded → `Unhealthy`. Redis degraded → `Degraded` (not fully unhealthy).
 
+
+---
+
+## Localization
+
+The API fully supports **Arabic (`ar`) and English (`en`)** with automatic language selection per request. Translation is a cross-cutting concern — no Controller, Handler, or Validator contains language-specific logic.
+
+### How to Select a Language
+
+Send the `Accept-Language` HTTP header with every request:
+
+```
+Accept-Language: ar
+Accept-Language: en
+```
+
+| Header Value | Language | Notes |
+|---|---|---|
+| `ar` | Arabic | Full RTL support for all messages |
+| `ar-SA`, `ar-EG`, etc. | Arabic | Region suffix accepted, resolves to `ar` |
+| `en` | English | Default language |
+| `en-US`, `en-GB`, etc. | English | Region suffix accepted, resolves to `en` |
+| Missing or unsupported | English | Falls back to `en` silently |
+
+> **Only `Accept-Language` header is supported.** Query string (`?culture=ar`) and cookie-based culture selection are disabled.
+
+---
+
+### What Gets Translated
+
+| Category | Scope | Example |
+|---|---|---|
+| **Validation errors** | All `422 Unprocessable Entity` responses | `'Email' ليس عنوان بريد إلكتروني صالحاً.` |
+| **Business rule failures** | All `409 Conflict` responses | `لا يمكن حذف هذه الدورة لأنها تحتوي على تسجيلات نشطة.` |
+| **Not found errors** | All `404 Not Found` responses | `الدورة بالمعرّف {id} غير موجودة.` |
+| **Forbidden / Unauthorized** | `403` and `401` responses | `الوصول مرفوض.` |
+| **Success messages** | Auth and operation responses | `تم تسجيل الدخول بنجاح.` |
+| **Exception messages** | `500`, `409` database errors | `حدث خطأ غير متوقع.` |
+
+### What Does NOT Get Translated
+
+- Log messages (always English for observability)
+- Email content
+- Internal entity names and enums
+- Field names in JSON keys (only the message *values* change)
+
+---
+
+### Response Structure — Unchanged Regardless of Language
+
+The JSON structure of all responses remains identical. Only the text *value* of `message` fields changes:
+
+**English (`Accept-Language: en`):**
+```json
+{ "statusCode": 404, "message": "Course with ID abc not found." }
+```
+
+**Arabic (`Accept-Language: ar`):**
+```json
+{ "statusCode": 404, "message": "الدورة بالمعرّف abc غير موجودة." }
+```
+
+**Validation errors (same structure, translated values):**
+```json
+{
+  "errors": {
+    "email": ["'Email' ليس عنوان بريد إلكتروني صالحاً."]
+  }
+}
+```
+
+---
+
+### Adding a New Language (Extensibility)
+
+To add a new language (e.g., French `fr`):
+
+1. Add `public const string French = "fr";` to `API/Localization/SupportedCultures.cs`
+2. Add `French` to the `All` array in the same file
+3. Create three `.resx` files:
+   - `Application/Resources/ValidationMessages.fr.resx`
+   - `Application/Resources/CommonMessages.fr.resx`
+   - `API/Resources/ExceptionMessages.fr.resx`
+4. No changes to Controllers, Handlers, Validators, or Middleware — the system picks up the new language automatically.
+
+---
+
+### Architecture — How Translation Flows
+
+```
+Request  →  Accept-Language: ar
+            │
+            ▼
+   RequestLocalizationMiddleware
+   (sets Thread.CurrentUICulture = ar)
+            │
+            ├──▶ FluentValidation Pipeline
+            │    (IMessageLocalizer reads ar .resx per rule)
+            │
+            ├──▶ GlobalHandleExceptionMiddleware
+            │    (IStringLocalizer<ExceptionMessages> resolves ar message)
+            │
+            └──▶ BaseController.Failure()
+                 (IStringLocalizer<CommonMessages> resolves ar message)
+                            │
+                            ▼
+            Response: { "message": "الدورة غير موجودة." }
+```
 
 ---
 
