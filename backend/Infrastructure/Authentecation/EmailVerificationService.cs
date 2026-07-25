@@ -7,6 +7,7 @@ using Application.Interfaces.Services;
 using Domain.Entites.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Application.Interfaces.BackgroundJobs;
 
 namespace Infrastructure.Authentecation
 {
@@ -15,15 +16,17 @@ namespace Infrastructure.Authentecation
         private readonly IConfiguration _config;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IApplicationBackgroundJobClient _backgroundJobClient;
         private readonly ICacheService _cache;
 
         public EmailVerificationService(UserManager<ApplicationUser> userManager, IEmailSender emailSender,
-            IConfiguration config, ICacheService cache)
+            IConfiguration config, ICacheService cache, IApplicationBackgroundJobClient backgroundJobClient)
         {
             _userManager = userManager;
             _emailSender = emailSender;
-            _config      = config;
-            _cache       = cache;
+            _config = config;
+            _cache = cache;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<AuthResponse> SendEmailConfirmationAsync(string userId)
@@ -40,16 +43,16 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Id             = user.Id,
-                    Email          = user.Email,
-                    UserName       = user.UserName,
-                    PhoneNumber    = user.PhoneNumber,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = true,
-                    Message        = "Email is already confirmed."
+                    Message = "Email is already confirmed."
                 };
             }
 
-            var token   = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encoded = WebUtility.UrlEncode(token);
             var frontendBaseUrl = _config.GetValue<string>("EmailSettings:FrontendBaseUrl");
             var confirmationLink = $"{frontendBaseUrl}/api/authentication/confirm-email?userId={user.Id}&token={encoded}";
@@ -64,7 +67,7 @@ namespace Infrastructure.Authentecation
                 .Replace("{{UserName}}", user.UserName)
                 .Replace("{{ConfirmationUrl}}", confirmationLink);
 
-            await _emailSender.SendEmailAsync(user.Email, subject, body);
+            _backgroundJobClient.Enqueue<IEmailSender>(x => x.SendEmailAsync(user.Email, subject, body));
 
             // Set cooldown key — prevents resend spam for the configured duration
             var cooldownKey = CacheKeys.EmailVerificationCooldown(user.Id);
@@ -72,12 +75,12 @@ namespace Infrastructure.Authentecation
 
             return new AuthResponse
             {
-                Id             = user.Id,
-                Email          = user.Email,
-                UserName       = user.UserName,
-                PhoneNumber    = user.PhoneNumber,
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
                 IsAuthenticated = false,
-                Message        = MessageKeys.Common.Auth_EmailSent
+                Message = MessageKeys.Common.Auth_EmailSent
             };
         }
 
@@ -95,12 +98,12 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Id             = user.Id,
-                    Email          = user.Email,
-                    UserName       = user.UserName,
-                    PhoneNumber    = user.PhoneNumber,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = true,
-                    Message        = "Email is already confirmed."
+                    Message = "Email is already confirmed."
                 };
             }
 
@@ -110,12 +113,12 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Id             = user.Id,
-                    Email          = user.Email,
-                    UserName       = user.UserName,
-                    PhoneNumber    = user.PhoneNumber,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = false,
-                    Message        = string.Join(", ", result.Errors.Select(e => e.Description))
+                    Message = string.Join(", ", result.Errors.Select(e => e.Description))
                 };
             }
 
@@ -124,12 +127,12 @@ namespace Infrastructure.Authentecation
 
             return new AuthResponse
             {
-                Id             = user.Id,
-                Email          = user.Email,
-                UserName       = user.UserName,
-                PhoneNumber    = user.PhoneNumber,
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
                 IsAuthenticated = true,
-                Message        = MessageKeys.Common.Auth_EmailConfirmed
+                Message = MessageKeys.Common.Auth_EmailConfirmed
             };
         }
 
@@ -139,9 +142,9 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Email          = email,
+                    Email = email,
                     IsAuthenticated = false,
-                    Message        = "Email is required."
+                    Message = "Email is required."
                 };
             }
 
@@ -151,9 +154,9 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Email          = email,
+                    Email = email,
                     IsAuthenticated = false,
-                    Message        = "If this email exists, a confirmation link has been sent."
+                    Message = "If this email exists, a confirmation link has been sent."
                 };
             }
 
@@ -161,17 +164,17 @@ namespace Infrastructure.Authentecation
             {
                 return new AuthResponse
                 {
-                    Id             = user.Id,
-                    Email          = user.Email,
-                    UserName       = user.UserName,
-                    PhoneNumber    = user.PhoneNumber,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = true,
-                    Message        = "Email is already confirmed."
+                    Message = "Email is already confirmed."
                 };
             }
 
             // Block resend if cooldown is still active (token was already sent recently)
-            var cooldownKey   = CacheKeys.EmailVerificationCooldown(user.Id);
+            var cooldownKey = CacheKeys.EmailVerificationCooldown(user.Id);
             var cooldownActive = await _cache.GetAsync<bool?>(cooldownKey);
 
             if (cooldownActive.Item2 is true)
@@ -179,12 +182,12 @@ namespace Infrastructure.Authentecation
                 var cooldownMinutes = _config.GetValue<double>("Redis:EmailVerificationResendCooldownMinutes");
                 return new AuthResponse
                 {
-                    Id             = user.Id,
-                    Email          = user.Email,
-                    UserName       = user.UserName,
-                    PhoneNumber    = user.PhoneNumber,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = false,
-                    Message        = MessageKeys.Common.Auth_EmailAlreadySent
+                    Message = MessageKeys.Common.Auth_EmailAlreadySent
                 };
             }
 

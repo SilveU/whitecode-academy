@@ -37,9 +37,9 @@ namespace Infrastructure.Repositories
         {
             _context.Idempotencies.Remove(idempotency);
         }
-        public async Task DeleteExpiredAsync()
+        public async Task<int> DeleteExpiredAsync()
         {
-            await _context.Idempotencies
+            return await _context.Idempotencies
                 .Where(x => x.ExpiresAt <= DateTimeOffset.UtcNow)
                 .ExecuteDeleteAsync();
         }

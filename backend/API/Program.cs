@@ -7,6 +7,10 @@ using API.Middlewares;
 using Serilog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using API.Extentions.HealthChecks;
+using Hangfire;
+using API.Filters;
+using Application.Interfaces.BackgroundJobs;
+using Infrastructure.BackgroundJobs.Jobs;
 
 namespace API
 {
@@ -104,8 +108,26 @@ namespace API
 
             app.UseAuthorization();
 
-            // 3. Add clean HTTP request logging middleware
+            // Add clean HTTP request logging middleware
             app.UseSerilogRequestLogging();
+
+            // Map the dashboard middleware
+            app.MapHangfireDashboard("/hangfire");
+            // app.MapHangfireDashboard("/hangfire", new DashboardOptions
+            // {
+            //     AsyncAuthorization = new[] { new HangfireAuthorizationFilter() }
+            // });
+            using (var scope = app.Services.CreateScope())
+            {
+                var backgroundJobClient = scope.ServiceProvider
+                    .GetRequiredService<IApplicationBackgroundJobClient>();
+
+                backgroundJobClient.AddOrUpdateRecurring<RefreshTokenCleanupJob>(x => x.ExecuteAsync(), 
+                builder.Configuration.GetValue<string>("Hangfire:CleanUpRefreshToken")!, Cron.Weekly());
+
+                backgroundJobClient.AddOrUpdateRecurring<IdempotencyCleanUpJob>(x => x.ExecuteAsync(), 
+                builder.Configuration.GetValue<string>("Hangfire:CleanUpIdempotency")!, Cron.Weekly());
+            }
 
             app.MapControllers();
 

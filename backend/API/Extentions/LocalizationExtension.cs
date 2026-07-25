@@ -18,9 +18,9 @@ namespace API.Extentions
                     .Select(c => new CultureInfo(c))
                     .ToList();
 
-                options.DefaultRequestCulture  = new RequestCulture(SupportedCultures.Default);
-                options.SupportedCultures      = supported;
-                options.SupportedUICultures    = supported;
+                options.DefaultRequestCulture = new RequestCulture(SupportedCultures.Default);
+                options.SupportedCultures = supported;
+                options.SupportedUICultures = supported;
 
                 // Only Accept-Language header — query string and cookie providers are disabled
                 options.RequestCultureProviders = [new AcceptLanguageHeaderRequestCultureProvider()];

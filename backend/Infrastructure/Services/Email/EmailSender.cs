@@ -5,6 +5,7 @@ using MimeKit;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MailKit.Net.Smtp;
+using Hangfire;
 
 namespace Infrastructure.Services.Email
 {
@@ -19,6 +20,7 @@ namespace Infrastructure.Services.Email
             _logger = logger;
         }
 
+        [AutomaticRetry(Attempts = 3)]
         public async Task SendEmailAsync(string to, string subject, string body)
         {
             var fromPass = _configuration.GetValue<string>("EmailSettings:Password");

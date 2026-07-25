@@ -1,5 +1,5 @@
 using System.Text.Json;
-using API.Localization;
+using Application.Localization;
 using API.Resources;
 using Domain.Exceptions;
 using Microsoft.Data.SqlClient;

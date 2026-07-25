@@ -107,5 +107,11 @@ namespace Infrastructure.Authentecation
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
         }
+
+        public async Task<int> CleanupAsync()
+        {
+            var refreshedExpired = _dbContext.RefreshTokens.Where(x => x.IsExpired && x.ExpiresAt < DateTimeOffset.UtcNow && x.RevokedAt != null);
+            return await refreshedExpired.ExecuteDeleteAsync();
+        }
     }
 }
