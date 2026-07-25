@@ -82,4 +82,7 @@
   <data name="Exception_Unexpected" xml:space="preserve">
     <value>An unexpected error occurred.</value>
   </data>
+  <data name="Exception_SessionExpired" xml:space="preserve">
+    <value>Your session has expired or you have been logged out. Please log in again.</value>
+  </data>
 </root>

@@ -1,8 +1,11 @@
 using System.Security.Claims;
 using System.Text.Json;
 using API.Attributes;
+using API.Resources;
 using Application.Common;
 using Application.Interfaces.Services;
+using Application.Localization;
+using Microsoft.Extensions.Localization;
 
 namespace API.Middlewares
 {
@@ -32,7 +35,6 @@ namespace API.Middlewares
                 return;
             }
 
-            // Only check authenticated requests (JWT already validated by UseAuthentication)
             if (context.User.Identity?.IsAuthenticated == true)
             {
                 var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -45,18 +47,20 @@ namespace API.Middlewares
                     {
                         _logger.LogWarning("Token revocation check failed for user {UserId}. Session not found in Redis.", userId);
 
-                        context.Response.StatusCode  = StatusCodes.Status401Unauthorized;
+                        var localizer = context.RequestServices
+                            .GetRequiredService<IStringLocalizer<ExceptionMessages>>();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.Response.ContentType = "application/json";
 
                         await context.Response.WriteAsync(JsonSerializer.Serialize(new
                         {
                             StatusCode = 401,
-                            Message = "Your session has expired or you have been logged out. Please log in again."
+                            Message = localizer[MessageKeys.Common.Auth_SessionExpired].Value
                         }));
 
                         return;
                     }
-
                     else if (!session.Success)
                     {
                         _logger.LogWarning("Redis is unavailable. Skipping token revocation check for user {UserId}.", userId);

@@ -64,6 +64,17 @@ namespace Application.Localization
             public const string Auth_LoggedOut = "Auth_LoggedOut";
             public const string Auth_LoggedOutAll = "Auth_LoggedOutAll";
             public const string Auth_InvalidRefreshToken = "Auth_InvalidRefreshToken";
+            public const string Auth_UserNotFound = "Auth_UserNotFound";
+            public const string Auth_EmailNotConfigured = "Auth_EmailNotConfigured";
+            public const string Auth_EmailAlreadyConfirmed = "Auth_EmailAlreadyConfirmed";
+            public const string Auth_InvalidConfirmationToken = "Auth_InvalidConfirmationToken";
+            public const string Auth_EmailRequired = "Auth_EmailRequired";
+            public const string Auth_EmailNotFoundPrivacy = "Auth_EmailNotFoundPrivacy";
+            public const string Auth_UserAlreadyExists = "Auth_UserAlreadyExists";
+            public const string Auth_RegistrationError = "Auth_RegistrationError";
+            public const string Auth_PasswordResetSuccess = "Auth_PasswordResetSuccess";
+            public const string Auth_SessionExpired = "Auth_SessionExpired";
+            public const string Profile_UserNotFound = "Profile_UserNotFound";
         }
         
         public static class Exception

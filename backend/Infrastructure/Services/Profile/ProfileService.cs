@@ -4,6 +4,7 @@ using Application.Helper;
 using Application.Interfaces.Profile;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.Localization;
 using AutoMapper;
 using Domain.Entites.Audits;
 using Domain.Entites.Users;
@@ -50,8 +51,8 @@ namespace Infrastructure.Services.Profile
             }
 
             var user = await _userManager.FindByIdAsync(userId);
-            if(user == null)
-                return Result<ProfileResponse>.Unauthorized("User not found");
+            if (user == null)
+                return Result<ProfileResponse>.Unauthorized(MessageKeys.Common.Profile_UserNotFound);
 
             var result = _mapper.Map<ProfileResponse>(user);
             await _cache.SetAsync<ProfileResponse>(cacheKey, result, TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:ProfileExpirationMinutes")));
@@ -69,8 +70,7 @@ namespace Infrastructure.Services.Profile
             if (user is null)
             {
                 _logger.LogWarning("User {UserId} not found while updating profile", userId);
-
-                return Result<ProfileResponse>.Unauthorized("User not found");
+                return Result<ProfileResponse>.Unauthorized(MessageKeys.Common.Profile_UserNotFound);
             }
 
             return await ExecuteProfileUpdateAsync(user, request, cacheKey);

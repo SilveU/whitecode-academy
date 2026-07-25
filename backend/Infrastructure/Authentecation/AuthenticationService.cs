@@ -26,22 +26,16 @@ namespace Infrastructure.Authentecation
         private readonly IEmailVerificationService _emailVerificationService;
         private readonly IRefreshTokenService _refreshTokenSerivce;
 
-        public AuthenticationService(
-            IConfiguration configuration,
-            UserManager<ApplicationUser> userManager,
-            IMapper mapper,
-            ApplicationDbContext context,
-            IEmailVerificationService emailVerificationService,
-            IRefreshTokenService refreshTokenSerivce,
-            ICacheService cache)
+        public AuthenticationService(IConfiguration configuration, UserManager<ApplicationUser> userManager, IMapper mapper, ApplicationDbContext context, 
+        IEmailVerificationService emailVerificationService, IRefreshTokenService refreshTokenSerivce, ICacheService cache)
         {
-            _configuration           = configuration;
-            _userManager             = userManager;
-            this.mapper              = mapper;
-            _context                 = context;
+            _configuration = configuration;
+            _userManager = userManager;
+            this.mapper = mapper;
+            _context = context;
             _emailVerificationService = emailVerificationService;
-            _refreshTokenSerivce     = refreshTokenSerivce;
-            _cache                   = cache;
+            _refreshTokenSerivce = refreshTokenSerivce;
+            _cache = cache;
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress)
@@ -127,9 +121,9 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message         = "Email, username, or phone number already exists.",
-                        Expiration      = DateTime.UtcNow,
-                        AccessToken     = string.Empty
+                        Message = MessageKeys.Common.Auth_UserAlreadyExists,
+                        Expiration = DateTime.UtcNow,
+                        AccessToken = string.Empty
                     };
                 }
 
@@ -178,7 +172,7 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message         = "An error occurred during registration."
+                    Message = MessageKeys.Common.Auth_RegistrationError
                 };
             }
         }

@@ -4,6 +4,7 @@ using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
 using Application.Interfaces.BackgroundJobs;
 using Application.Interfaces.Services;
+using Application.Localization;
 using Domain.Entites.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +20,7 @@ namespace Infrastructure.Authentecation
         private readonly ICacheService _cache;
 
         public ResetPasswordService(IConfiguration config, IEmailSender emailSender, UserManager<ApplicationUser> userManager,
-        ICacheService cache, IApplicationBackgroundJobClient backgroundJobClient)
+            ICacheService cache, IApplicationBackgroundJobClient backgroundJobClient)
         {
             _config = config;
             _emailSender = emailSender;
@@ -37,28 +38,26 @@ namespace Infrastructure.Authentecation
                 {
                     Email = email,
                     IsAuthenticated = false,
-                    Message = "If this email exists, a confirmation link has been sent."
+                    Message = MessageKeys.Common.Auth_EmailNotFoundPrivacy
                 };
             }
+
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encoded = WebUtility.UrlEncode(token);
             var frontendBaseUrl = _config.GetValue<string>("EmailSettings:FrontendBaseUrl");
             var resetPasswordLink = $"{frontendBaseUrl}/api/authentication/confirm-reset-password?userId={user.Id}&token={encoded}";
             var cooldownMinutes = _config.GetValue<double>("Redis:ResetPasswordResendCooldownMinutes");
-            
+
             var path = Path.Combine(AppContext.BaseDirectory, "Templates", "ResetPassword.html");
             var body = await File.ReadAllTextAsync(path);
-
             var subject = "Reset Password";
-            
+
             body = body
                 .Replace("{{UserName}}", user.UserName!)
                 .Replace("{{ResetPasswordUrl}}", resetPasswordLink);
 
-            
             _backgroundJobClient.Enqueue<IEmailSender>(x => x.SendEmailAsync(user.Email!, subject, body));
 
-            // Set cooldown key — prevents resend spam for the configured duration
             var cooldownKey = CacheKeys.ResetPasswordCooldown(user.Id);
             await _cache.SetAsync<bool>(cooldownKey, true, TimeSpan.FromMinutes(cooldownMinutes));
 
@@ -69,19 +68,27 @@ namespace Infrastructure.Authentecation
                 UserName = user.UserName,
                 PhoneNumber = user.PhoneNumber,
                 IsAuthenticated = false,
-                Message = "Email confirmation link has been sent successfully."
+                Message = MessageKeys.Common.Auth_EmailSent
             };
-        } 
+        }
+
         public async Task<AuthResponse> ConfirmResetPasswordAsync(string userId, string token, NewPasswordRequest newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
-                return new AuthResponse { Id = userId, IsAuthenticated = false, Message = "User not found." };
+                return new AuthResponse { Id = userId, IsAuthenticated = false, Message = MessageKeys.Common.Auth_UserNotFound };
 
             if (string.IsNullOrWhiteSpace(token))
-                return new AuthResponse { Id = user.Id, Email = user.Email, UserName = user.UserName,
-                PhoneNumber = user.PhoneNumber, IsAuthenticated = false, Message = "Invalid confirmation token." };
+                return new AuthResponse
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber,
+                    IsAuthenticated = false,
+                    Message = MessageKeys.Common.Auth_InvalidConfirmationToken
+                };
 
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword.NewPassword);
 
@@ -98,7 +105,6 @@ namespace Infrastructure.Authentecation
                 };
             }
 
-            // Clean up cooldown key once email is confirmed
             await _cache.RemoveAsync(CacheKeys.EmailVerificationCooldown(user.Id));
 
             return new AuthResponse
@@ -108,7 +114,7 @@ namespace Infrastructure.Authentecation
                 UserName = user.UserName,
                 PhoneNumber = user.PhoneNumber,
                 IsAuthenticated = true,
-                Message = "Reset Password Successfully."
+                Message = MessageKeys.Common.Auth_PasswordResetSuccess
             };
         }
 
@@ -120,7 +126,7 @@ namespace Infrastructure.Authentecation
                 {
                     Email = email,
                     IsAuthenticated = false,
-                    Message = "Email is required."
+                    Message = MessageKeys.Common.Auth_EmailRequired
                 };
             }
 
@@ -132,7 +138,7 @@ namespace Infrastructure.Authentecation
                 {
                     Email = email,
                     IsAuthenticated = false,
-                    Message = "If this email exists, a confirmation link has been sent."
+                    Message = MessageKeys.Common.Auth_EmailNotFoundPrivacy
                 };
             }
 
@@ -145,17 +151,15 @@ namespace Infrastructure.Authentecation
                     UserName = user.UserName,
                     PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = true,
-                    Message = "Email is already confirmed."
+                    Message = MessageKeys.Common.Auth_EmailAlreadyConfirmed
                 };
             }
 
-            // Block resend if cooldown is still active (token was already sent recently)
-            var cooldownKey   = CacheKeys.ResetPasswordCooldown(user.Id);
+            var cooldownKey = CacheKeys.ResetPasswordCooldown(user.Id);
             var cooldownActive = await _cache.GetAsync<bool?>(cooldownKey);
 
             if (cooldownActive.Item2 is true)
             {
-                var cooldownMinutes = _config.GetValue<double>("Redis:EmailVerificationResendCooldownMinutes");
                 return new AuthResponse
                 {
                     Id = user.Id,
@@ -163,7 +167,7 @@ namespace Infrastructure.Authentecation
                     UserName = user.UserName,
                     PhoneNumber = user.PhoneNumber,
                     IsAuthenticated = false,
-                    Message = $"A confirmation email was already sent. Please wait {(int)cooldownMinutes} minutes before requesting a new one."
+                    Message = MessageKeys.Common.Auth_EmailAlreadySent
                 };
             }
 
