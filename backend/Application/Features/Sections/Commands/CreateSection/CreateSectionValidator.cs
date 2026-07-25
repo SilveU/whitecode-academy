@@ -7,7 +7,7 @@ namespace Application.Features.Sections.Commands.CreateSection
 {
     public class CreateSectionValidator : AbstractValidator<CreateSectionCommand>
     {
-        public CreateSectionValidator(IMessageLocalizer<ValidationMessages> localizer)
+        public CreateSectionValidator(IMessageLocalizer<ValidationMessages> localizer) // عشان يتعمل localization في نفس اللحظه 
         {
             RuleFor(x => x.Name)
                 .NotEmpty()

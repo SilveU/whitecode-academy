@@ -13,7 +13,7 @@ namespace Application.Interfaces.Repositories
     {
         Task<Idempotency?> GetAsync(string? userId, string httpMethod, string path, string idempotencyKey);
         void Delete(Idempotency idempotency);
-        Task DeleteExpiredAsync();
+        Task<int> DeleteExpiredAsync();
         Task<List<Idempotency>> GetExpiredAsync();
     }
 }

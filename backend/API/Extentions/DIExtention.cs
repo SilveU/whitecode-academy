@@ -2,6 +2,7 @@ using API.Extentions.HealthChecks;
 using API.Mapping;
 using Application.Features.Courses.Commands.CreateCourse;
 using Application.Interfaces.Authentecation;
+using Application.Interfaces.BackgroundJobs;
 using Application.Interfaces.Profile;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -10,7 +11,10 @@ using Domain.Entites.Users;
 using FFMpegCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hangfire;
 using Infrastructure.Authentecation;
+using Infrastructure.BackgroundJobs;
+using Infrastructure.BackgroundJobs.Jobs;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Infrastructure.Services.Email;
@@ -88,6 +92,12 @@ namespace API.Extentions
             service.AddScoped<IFileSecurityService, ClamAvFileScanner>();
             service.AddScoped<ICacheService, RedisService>();
 
+            // background Jobs
+            service.AddScoped<IApplicationBackgroundJobClient, BackgroundJobService>();
+            service.AddScoped<RefreshTokenCleanupJob>();
+            service.AddScoped<IdempotencyCleanUpJob>();
+
+
             // 9. Register MediatR and scan the assembly where the Program class lives
             service.AddMediatR(cfg => 
                 cfg.RegisterServicesFromAssembly(typeof(CreateCourseHandler).Assembly));
@@ -134,6 +144,15 @@ namespace API.Extentions
 
                     metrics.AddPrometheusExporter(); // رحله الخروج من ال Matrics اللي جوا .net الي  /matrics (Endpoint)
                 });
+
+
+            // Register Hangfire
+            service.AddHangfire(config => config
+            .UseSqlServerStorage(connectionString)
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings());
+            service.AddHangfireServer();
         }
     }
 }

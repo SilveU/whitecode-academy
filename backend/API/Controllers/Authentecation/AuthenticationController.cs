@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using API.Localization;
+using Application.Localization;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
 using Application.Helper;

@@ -157,7 +157,7 @@ namespace Infrastructure.Authentecation
                     return new AuthResponse
                     {
                         IsAuthenticated = false,
-                        Message         = string.Join(" | ", addToRoleResult.Errors.Select(e => e.Description))
+                        Message = string.Join(" | ", addToRoleResult.Errors.Select(e => e.Description))
                     };
                 }
 
@@ -166,11 +166,11 @@ namespace Infrastructure.Authentecation
                 return new AuthResponse
                 {
                     IsAuthenticated = false,
-                    Message         = MessageKeys.Common.Auth_AccountCreated,
-                    Id              = user.Id,
-                    Email           = user.Email,
-                    UserName        = user.UserName,
-                    PhoneNumber     = user.PhoneNumber
+                    Message = MessageKeys.Common.Auth_AccountCreated,
+                    Id = user.Id,
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    PhoneNumber = user.PhoneNumber
                 };
             }
             catch (Exception)

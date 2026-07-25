@@ -61,7 +61,7 @@ namespace Application.Features.Sections.Commands.CreateSection
             if (course == null)
             {
                 _logger.LogWarning("Course {CourseId} was not found.", request.CourseId);
-                return Result<SectionResponse>.NotFound(MessageKeys.Common.Course_NotFound);
+                return Result<SectionResponse>.NotFound(MessageKeys.Common.Course_NotFound); // مش محتاجين نعمل localization في ساعتها بس محتاجين اننا بس نشاور علي اللي حصل
             }
 
             if (request.IsInstructor)

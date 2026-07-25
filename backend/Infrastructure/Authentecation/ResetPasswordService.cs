@@ -2,6 +2,7 @@ using System.Net;
 using Application.Common;
 using Application.DTOs.Authentication;
 using Application.Interfaces.Authentecation;
+using Application.Interfaces.BackgroundJobs;
 using Application.Interfaces.Services;
 using Domain.Entites.Users;
 using Microsoft.AspNetCore.Identity;
@@ -14,14 +15,17 @@ namespace Infrastructure.Authentecation
         private readonly IConfiguration _config;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IApplicationBackgroundJobClient _backgroundJobClient;
         private readonly ICacheService _cache;
 
-        public ResetPasswordService(IConfiguration config, IEmailSender emailSender, UserManager<ApplicationUser> userManager, ICacheService cache)
+        public ResetPasswordService(IConfiguration config, IEmailSender emailSender, UserManager<ApplicationUser> userManager,
+        ICacheService cache, IApplicationBackgroundJobClient backgroundJobClient)
         {
             _config = config;
             _emailSender = emailSender;
             _userManager = userManager;
             _cache = cache;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<AuthResponse> ResetPassword(string email)
@@ -51,7 +55,8 @@ namespace Infrastructure.Authentecation
                 .Replace("{{UserName}}", user.UserName!)
                 .Replace("{{ResetPasswordUrl}}", resetPasswordLink);
 
-            await _emailSender.SendEmailAsync(user.Email!, subject, body);
+            
+            _backgroundJobClient.Enqueue<IEmailSender>(x => x.SendEmailAsync(user.Email!, subject, body));
 
             // Set cooldown key — prevents resend spam for the configured duration
             var cooldownKey = CacheKeys.ResetPasswordCooldown(user.Id);

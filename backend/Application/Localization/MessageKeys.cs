@@ -65,5 +65,17 @@ namespace Application.Localization
             public const string Auth_LoggedOutAll = "Auth_LoggedOutAll";
             public const string Auth_InvalidRefreshToken = "Auth_InvalidRefreshToken";
         }
+        
+        public static class Exception
+        {
+            public const string NotFound = "Exception_NotFound_Generic";
+            public const string Unauthorized = "Exception_Unauthorized";
+            public const string InvalidInput = "Exception_InvalidInput";
+            public const string Concurrency = "Exception_Concurrency";
+            public const string DatabaseUpdate = "Exception_DatabaseUpdate";
+            public const string Database = "Exception_Database";
+            public const string InvalidOperation = "Exception_InvalidOperation";
+            public const string Unexpected = "Exception_Unexpected";
+        }
     }
 }
