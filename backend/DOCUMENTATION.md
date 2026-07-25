@@ -17,8 +17,9 @@
 6. [Idempotency](#idempotency)
 7. [File Handling](#file-handling)
 8. [Health Checks](#health-checks)
-9. [Localization](#localization)
-10. [API Endpoints](#api-endpoints)
+9. [Background Jobs (Hangfire)](#background-jobs-hangfire)
+10. [Localization](#localization)
+11. [API Endpoints](#api-endpoints)
     - [Authentication](#authentication)
     - [Courses](#courses)
     - [Departments](#departments)
@@ -301,6 +302,81 @@ On section create/update with a video file:
 
 SQL Server degraded → `Unhealthy`. Redis degraded → `Degraded` (not fully unhealthy).
 
+
+---
+
+## Background Jobs (Hangfire)
+
+The API uses **Hangfire** for reliable background job processing — fire-and-forget email delivery and scheduled cleanup tasks — using SQL Server as the persistence store.
+
+### Dashboard
+
+| Endpoint | Access | Purpose |
+|---|---|---|
+| `GET /hangfire` | Development only (no auth currently) | Monitor job queues, retries, and history |
+
+> **Production note:** Dashboard authentication via `HangfireAuthorizationFilter` is wired but commented out. Enable it before going live by uncommenting the `DashboardOptions` block in `Program.cs`.
+
+---
+
+### Job Types
+
+#### Fire-and-Forget Jobs
+
+Triggered immediately when an event occurs. Hangfire executes them asynchronously in the background — the HTTP response is returned instantly without waiting for the job to complete.
+
+| Trigger | Job | Description |
+|---|---|---|
+| User registers | `IEmailSender.SendEmailAsync` | Sends confirmation email |
+| User requests password reset | `IEmailSender.SendEmailAsync` | Sends password reset email |
+| Resend email confirmation | `IEmailSender.SendEmailAsync` | Resends confirmation email |
+
+**Example:** When `POST /api/authentication/register` completes, the confirmation email is enqueued as a background job rather than sent inline — keeping registration latency low.
+
+#### Recurring Jobs (Weekly)
+
+Registered at application startup via `IRecurringJobManager`. Both jobs run **weekly** on a Cron schedule and retry automatically up to **3 times** on failure (`[AutomaticRetry(Attempts = 3)]`).
+
+| Job ID (from `appsettings.json`) | Class | What it does |
+|---|---|---|
+| `Hangfire:CleanUpRefreshToken` | `RefreshTokenCleanupJob` | Deletes expired and revoked refresh tokens from the database |
+| `Hangfire:CleanUpIdempotency` | `IdempotencyCleanUpJob` | Deletes expired idempotency records from the database |
+
+**Schedule configuration** (`appsettings.json`):
+```json
+{
+  "Hangfire": {
+    "CleanUpRefreshToken": "cleanup-refresh-tokens",
+    "CleanUpIdempotency":  "cleanup-idempotency"
+  }
+}
+```
+
+The string value is the **Hangfire job identifier** — change it to rename the job in the dashboard. The Cron schedule (`Cron.Weekly()`) is set in code.
+
+---
+
+### Architecture
+
+```
+HTTP Request  →  EmailVerificationService / ResetPasswordService
+                    │
+                    │  _backgroundJobClient.Enqueue<IEmailSender>(...)
+                    ▼
+              Hangfire Queue (SQL Server)
+                    │
+                    │  Hangfire Server polls the queue
+                    ▼
+              IEmailSender.SendEmailAsync(...)  →  SMTP
+
+Application Startup:
+  backgroundJobClient.AddOrUpdateRecurring<RefreshTokenCleanupJob>(Cron.Weekly)
+  backgroundJobClient.AddOrUpdateRecurring<IdempotencyCleanUpJob>(Cron.Weekly)
+```
+
+### Persistence
+
+Hangfire uses the same SQL Server database as the application (`ConnectionStrings:DefaultConnection`). Job history, queues, and state are persisted in Hangfire-managed tables automatically created on first run.
 
 ---
 
@@ -1320,10 +1396,14 @@ Validation failures from FluentValidation return `422` with this structure:
     "EnrollmentExpirationMinutes":              "30",
     "EnrollmentsExpirationMinutes":             "10",
     "EmailVerificationExpirationMinutes":       "10",
-    "EmailVerificationResendCooldownMinutes":   "10",
-    "ResetPasswordResendCooldownMinutes":       "10",
+    "EmailVerificationResendCooldownMinutes":   "5",
+    "ResetPasswordResendCooldownMinutes":       "5",
     "AuthTokenActiveCacheMinutes":              "60",
     "IdempotencyExpirationMinutes":             "30"
+  },
+  "Hangfire": {
+    "CleanUpRefreshToken": "cleanup-refresh-tokens",
+    "CleanUpIdempotency":  "cleanup-idempotency"
   },
   "ClamAV": {
     "Host": "localhost",
