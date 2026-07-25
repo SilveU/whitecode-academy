@@ -192,8 +192,9 @@ Controllers apply a base policy at class level; individual endpoints can overrid
 | `SectionExpirationMinutes` | 60 min |
 | `SectionsExpirationMinutes` | 15 min |
 | `EnrollmentExpirationMinutes` | 30 min |
-| `EnrollmentsExpirationMinutes` | 10 min |
-| `EmailVerificationResendCooldownMinutes` | 10 min |
+| `EnrollmentsExpirationMinutes` | 5 min |
+| `EmailVerificationResendCooldownMinutes` | 5 min |
+| `ResetPasswordResendCooldownMinutes` | 5 min |
 | `AuthTokenActiveCacheMinutes` | 60 min |
 | `IdempotencyExpirationMinutes` | 30 min |
 
