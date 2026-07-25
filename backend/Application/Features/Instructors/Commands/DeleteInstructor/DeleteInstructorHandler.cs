@@ -33,7 +33,7 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             _auditLogRepository   = auditLogRepository;
             _userManager          = userManager;
             _logger               = logger;
-            _cache                = cache;
+            _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteInstructorCommand request, CancellationToken cancellationToken)
