@@ -28,7 +28,7 @@ An advanced educational platform offering specialized training courses and pract
 - **SQL Server**
 - **JWT Authentication** (Login/Register, Token Refresh)
 
-## Backend Documentation
+## Documentation
 
 The complete backend documentation is available here:
 
