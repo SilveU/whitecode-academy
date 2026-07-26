@@ -41,5 +41,13 @@ namespace Infrastructure.Repositories
         {
             return await _context.SaveChangesAsync();
         }
+
+        public async Task<int> DeleteExpiredAsync(int retentionDays)
+        {
+            var cutoff = DateTimeOffset.UtcNow.AddDays(retentionDays);
+            return await _context.AuditLogs
+                .Where(x => x.CreatedAt < cutoff)
+                .ExecuteDeleteAsync();
+        }
     }
 }

@@ -18,11 +18,11 @@ namespace Infrastructure.BackgroundJobs.Jobs
         [AutomaticRetry(Attempts = 3)]
         public async Task ExecuteAsync()
         {
-            _logger.LogInformation("Refresh token cleanup started");
+            _logger.LogInformation("Idempotency cleanup started");
 
             var deletedCount = await _idempoRepository.DeleteExpiredAsync();
 
-            _logger.LogInformation("Refresh token cleanup finished. Deleted {Count} tokens", deletedCount);
+            _logger.LogInformation("Idempotency cleanup finished. Deleted {Count} tokens", deletedCount);
         }
     }
 }

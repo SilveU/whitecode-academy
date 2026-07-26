@@ -96,6 +96,7 @@ namespace API.Extentions
             service.AddScoped<IApplicationBackgroundJobClient, BackgroundJobService>();
             service.AddScoped<RefreshTokenCleanupJob>();
             service.AddScoped<IdempotencyCleanUpJob>();
+            service.AddScoped<AuditLoggingCleanUp>();
 
 
             // 9. Register MediatR and scan the assembly where the Program class lives

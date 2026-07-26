@@ -21,6 +21,8 @@
 10. [Localization](#localization)
 11. [API Endpoints](#api-endpoints)
     - [Authentication](#authentication)
+    - [Email Verification](#email-verification)
+    - [Password](#password)
     - [Courses](#courses)
     - [Departments](#departments)
     - [Enrollments](#enrollments)
@@ -112,11 +114,11 @@ This means logout takes effect **instantly** — no need to wait for JWT expiry.
 - `POST /api/authentication/login`
 - `POST /api/authentication/register`
 - `POST /api/authentication/refresh`
-- `GET  /api/authentication/confirm-email`
-- `POST /api/authentication/resend-email-confirmation`
-- `POST /api/authentication/reset-password`
-- `GET  /api/authentication/confirm-reset-password`
-- `POST /api/authentication/resend-reset-password`
+- `GET  /api/emailverification/confirm-email`
+- `POST /api/emailverification/resend-email-confirmation`
+- `POST /api/password/reset-password`
+- `GET  /api/password/confirm-reset-password`
+- `POST /api/password/resend-reset-password`
 
 
 ---
@@ -127,12 +129,12 @@ All policies use **Fixed Window** algorithm. Rejected requests → `429 Too Many
 
 | Policy | Limit | Window | Used On |
 |---|---|---|---|
-| `AuthPolicy` | 10 requests | 3 minutes | All `/api/authentication/*` endpoints |
-| `OtpPolicy` | 5 requests | 3 minutes | Reserved for OTP endpoints |
+| `AuthPolicy` | 10 requests | 3 minutes | All auth controllers (`/api/authentication`, `/api/emailverification`, `/api/password`) |
+| `VerifyPolicy` | 5 requests | 5 minutes | Resend endpoints (`resend-email-confirmation`, `resend-reset-password`) |
 | `HeavyPolicy` | 60 requests | 1 minute | All write operations (POST/PUT/DELETE) |
 | `ReadPolicy` | 300 requests | 1 minute | All read operations (GET) |
 
-Controllers apply a base policy at class level; individual endpoints can override with a stricter policy.
+Controllers apply a base policy at class level; individual endpoints can override with a stricter policy (`VerifyPolicy` overrides `AuthPolicy` on resend endpoints).
 
 ---
 
@@ -336,24 +338,31 @@ Triggered immediately when an event occurs. Hangfire executes them asynchronousl
 
 #### Recurring Jobs (Weekly)
 
-Registered at application startup via `IRecurringJobManager`. Both jobs run **weekly** on a Cron schedule and retry automatically up to **3 times** on failure (`[AutomaticRetry(Attempts = 3)]`).
+Registered at application startup via `IRecurringJobManager`. All jobs run **weekly** on a Cron schedule and retry automatically up to **3 times** on failure (`[AutomaticRetry(Attempts = 3)]`).
 
 | Job ID (from `appsettings.json`) | Class | What it does |
 |---|---|---|
 | `Hangfire:CleanUpRefreshToken` | `RefreshTokenCleanupJob` | Deletes expired and revoked refresh tokens from the database |
 | `Hangfire:CleanUpIdempotency` | `IdempotencyCleanUpJob` | Deletes expired idempotency records from the database |
+| `Hangfire:CleanUpAuditLogging` | `AuditLoggingCleanUp` | Deletes audit log records older than the configured retention period |
 
 **Schedule configuration** (`appsettings.json`):
 ```json
 {
   "Hangfire": {
-    "CleanUpRefreshToken": "cleanup-refresh-tokens",
-    "CleanUpIdempotency":  "cleanup-idempotency"
+    "CleanUpRefreshToken":  "cleanup-refresh-tokens",
+    "CleanUpIdempotency":   "cleanup-idempotency",
+    "CleanUpAuditLogging":  "cleanup-auditlogging"
+  },
+  "Audit": {
+    "RetentionDays": "90"
   }
 }
 ```
 
 The string value is the **Hangfire job identifier** — change it to rename the job in the dashboard. The Cron schedule (`Cron.Weekly()`) is set in code.
+
+> **Database backups** are handled by the infrastructure layer (SQL Server Agent / Cloud Managed Backups) and are intentionally kept outside the application.
 
 ---
 
@@ -373,6 +382,7 @@ HTTP Request  →  EmailVerificationService / ResetPasswordService
 Application Startup:
   backgroundJobClient.AddOrUpdateRecurring<RefreshTokenCleanupJob>(Cron.Weekly)
   backgroundJobClient.AddOrUpdateRecurring<IdempotencyCleanUpJob>(Cron.Weekly)
+  backgroundJobClient.AddOrUpdateRecurring<AuditLoggingCleanUp>(Cron.Weekly)
 ```
 
 ### Persistence
@@ -509,6 +519,8 @@ All paginated list endpoints accept these query parameters:
 **Base route:** `/api/authentication`  
 **Rate limit:** `AuthPolicy` — 10 requests / 3 minutes (entire controller)
 
+> **Note:** Email verification and password reset endpoints were extracted into dedicated controllers in a later refactor. See [Email Verification](#email-verification) and [Password](#password) sections below.
+
 ---
 
 #### `POST /api/authentication/register`
@@ -545,6 +557,8 @@ Register a new user account. Sends a confirmation email automatically.
 }
 ```
 
+**Response `400 Bad Request`:** Returned when registration fails (e.g. duplicate email/username, validation error from Identity).
+
 ---
 
 #### `POST /api/authentication/login`
@@ -576,58 +590,11 @@ Authenticate and receive an access token + refresh token cookie.
 
 The `RefreshToken` is set as an **HttpOnly cookie** — not in the response body.
 
+**Response `401 Unauthorized`:** Returned when credentials are invalid or email is not confirmed.
+
 **Possible failure messages:**
-- `"Invalid email, username, phone number, or password."` → 200 with `isAuthenticated: false`
-- `"Please confirm your email before logging in."` → 200 with `isAuthenticated: false`
-
-
----
-
-#### `GET /api/authentication/confirm-email`
-
-Confirm a user's email address using the token from the confirmation email.
-
-**Query parameters:**
-
-| Param | Type | Required |
-|---|---|---|
-| `userId` | string | ✅ |
-| `token` | string (URL-encoded) | ✅ |
-
-**Response `200 OK`:**
-```json
-{
-  "isAuthenticated": true,
-  "message": "Email confirmed successfully."
-}
-```
-
----
-
-#### `POST /api/authentication/resend-email-confirmation`
-
-Re-send the confirmation email. Blocked for 10 minutes after each send (Redis cooldown).
-
-**Query parameters:**
-
-| Param | Type | Required |
-|---|---|---|
-| `email` | string | ✅ |
-
-**Response `200 OK`:**
-```json
-{
-  "message": "Email confirmation link has been sent successfully."
-}
-```
-
-**Blocked response (cooldown active):**
-```json
-{
-  "isAuthenticated": false,
-  "message": "A confirmation email was already sent. Please wait 10 minutes before requesting a new one."
-}
-```
+- `"Invalid email, username, phone number, or password."`
+- `"Please confirm your email before logging in."`
 
 ---
 
@@ -650,6 +617,8 @@ Reads the `RefreshToken` HttpOnly cookie automatically.
 
 The new `RefreshToken` is set as a new HttpOnly cookie, old one is revoked.
 
+**Response `401 Unauthorized`:** Cookie missing or token invalid/expired.
+
 ---
 
 #### `POST /api/authentication/logout`
@@ -665,6 +634,8 @@ Revoke the current refresh token and clear the Redis session key.
 
 After logout, the `auth:token:active:{userId}` Redis key is deleted → any subsequent request with the old JWT is rejected immediately by `TokenRevocationMiddleware`.
 
+**Response `400 Bad Request`:** Refresh token cookie missing or token not found.
+
 ---
 
 #### `POST /api/authentication/logout-all`
@@ -678,13 +649,86 @@ Revoke **all** active refresh tokens for the current user across all devices.
 { "message": "Logged out from all devices successfully." }
 ```
 
+**Response `400 Bad Request`:** User ID claim not found in token.
+
 ---
 
-#### `POST /api/authentication/reset-password`
+### Email Verification
+
+**Base route:** `/api/emailverification`  
+**Rate limit:** `AuthPolicy` — 10 requests / 3 minutes (controller-level); resend endpoint overrides with `VerifyPolicy` — 5 requests / 5 minutes
+
+---
+
+#### `GET /api/emailverification/confirm-email`
+
+Confirm a user's email address using the token from the confirmation email.
+
+**No auth required** (`[SkipTokenRevocation]`)
+
+**Query parameters:**
+
+| Param | Type | Required |
+|---|---|---|
+| `userId` | string | ✅ |
+| `token` | string (URL-encoded) | ✅ |
+
+**Response `200 OK`:**
+```json
+{
+  "isAuthenticated": true,
+  "message": "Email confirmed successfully."
+}
+```
+
+---
+
+#### `POST /api/emailverification/resend-email-confirmation`
+
+Re-send the confirmation email. Blocked by Redis cooldown after each send.
+
+**No auth required** (`[SkipTokenRevocation]`)  
+**Rate limit:** `VerifyPolicy` — 5 requests / 5 minutes  
+**Content-Type:** `application/json`
+
+**Request body:**
+```json
+{
+  "email": "ahmed@example.com"
+}
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Email confirmation link has been sent successfully."
+}
+```
+
+**Response `400 Bad Request`:** Email field is empty.
+
+**Cooldown active response (`200 OK`):**
+```json
+{
+  "isAuthenticated": false,
+  "message": "A confirmation email was already sent. Please wait before requesting a new one."
+}
+```
+
+---
+
+### Password
+
+**Base route:** `/api/password`  
+**Rate limit:** `AuthPolicy` — 10 requests / 3 minutes (controller-level); resend endpoint overrides with `VerifyPolicy` — 5 requests / 5 minutes
+
+---
+
+#### `POST /api/password/reset-password`
 
 Send a password reset email to the user.
 
-**No auth required**  
+**No auth required** (`[SkipTokenRevocation]`)  
 **Content-Type:** `application/json`
 
 **Request body:**
@@ -706,11 +750,11 @@ If the email does not exist, the same response is returned to prevent user enume
 
 ---
 
-#### `GET /api/authentication/confirm-reset-password`
+#### `GET /api/password/confirm-reset-password`
 
 Confirm the password reset using the token from the email and set a new password.
 
-**No auth required**  
+**No auth required** (`[SkipTokenRevocation]`)  
 **Query parameters:**
 
 | Param | Type | Required |
@@ -738,20 +782,24 @@ Confirm the password reset using the token from the email and set a new password
 }
 ```
 
-**Response `400 Bad Request`:** Invalid or expired token.
+**Response `400 Bad Request`:** Invalid or expired token, or passwords don't match.
 
 ---
 
-#### `POST /api/authentication/resend-reset-password`
+#### `POST /api/password/resend-reset-password`
 
-Re-send the password reset email if the previous one expired.
+Re-send the password reset email.
 
-**No auth required**  
-**Query parameters:**
+**No auth required** (`[SkipTokenRevocation]`)  
+**Rate limit:** `VerifyPolicy` — 5 requests / 5 minutes  
+**Content-Type:** `application/json`
 
-| Param | Type | Required |
-|---|---|---|
-| `email` | string | ✅ |
+**Request body:**
+```json
+{
+  "email": "ahmed@example.com"
+}
+```
 
 **Response `200 OK`:**
 ```json
@@ -761,14 +809,15 @@ Re-send the password reset email if the previous one expired.
 }
 ```
 
-**Cooldown active response:**
+**Response `400 Bad Request`:** Email field is empty.
+
+**Cooldown active response (`200 OK`):**
 ```json
 {
   "isAuthenticated": false,
-  "message": "A confirmation email was already sent. Please wait 10 minutes before requesting a new one."
+  "message": "A confirmation email was already sent. Please wait before requesting a new one."
 }
 ```
-
 
 ---
 
@@ -801,7 +850,6 @@ Get a paginated, searchable list of courses.
   }
 ]
 ```
-
 ---
 
 #### `GET /api/course/{id}`
@@ -1404,7 +1452,11 @@ Validation failures from FluentValidation return `422` with this structure:
   },
   "Hangfire": {
     "CleanUpRefreshToken": "cleanup-refresh-tokens",
-    "CleanUpIdempotency":  "cleanup-idempotency"
+    "CleanUpIdempotency":  "cleanup-idempotency",
+    "CleanUpAuditLogging": "cleanup-auditlogging"
+  },
+  "Audit": {
+    "RetentionDays": "90"
   },
   "ClamAV": {
     "Host": "localhost",

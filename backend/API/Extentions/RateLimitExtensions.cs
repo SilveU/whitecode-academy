@@ -16,10 +16,10 @@ namespace API.Extentions
                     opt.QueueLimit = 0;
                 });
 
-                options.AddFixedWindowLimiter("OtpPolicy", opt =>
+                options.AddFixedWindowLimiter("VerifyPolicy", opt =>
                 {
                     opt.PermitLimit = 5;
-                    opt.Window = TimeSpan.FromMinutes(3);
+                    opt.Window = TimeSpan.FromMinutes(5);
                     opt.QueueLimit = 0;
                 });
 
