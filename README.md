@@ -28,6 +28,22 @@ An advanced educational platform offering specialized training courses and pract
 - **SQL Server**
 - **JWT Authentication** (Login/Register, Token Refresh)
 
+## Backend Documentation
+
+The complete backend documentation is available here:
+
+- 📄 [Backend Documentation](backend/DOCUMENTATION.md)
+
+It includes:
+- Architecture Overview
+- Project Structure
+- Authentication Flow
+- Background Jobs
+- Caching Strategy
+- Security
+- Deployment
+- And more...
+
 ---
 
 ## 🚀 Run the Project Locally
