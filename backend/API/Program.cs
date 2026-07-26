@@ -127,6 +127,9 @@ namespace API
 
                 backgroundJobClient.AddOrUpdateRecurring<IdempotencyCleanUpJob>(x => x.ExecuteAsync(), 
                 builder.Configuration.GetValue<string>("Hangfire:CleanUpIdempotency")!, Cron.Weekly());
+
+                backgroundJobClient.AddOrUpdateRecurring<AuditLoggingCleanUp>(x => x.ExecuteAsync(), 
+                builder.Configuration.GetValue<string>("Hangfire:CleanUpAuditLogging")!, Cron.Weekly());
             }
 
             app.MapControllers();

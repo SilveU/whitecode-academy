@@ -67,60 +67,6 @@ namespace API.Controllers.Authentication
             return Ok(Translate(registerResult));
         }
 
-        [HttpGet("confirm-email")]
-        [SkipTokenRevocation]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
-        {
-            var result = await _emailVerificationService.ConfirmEmailAsync(userId, token);
-
-            return Ok(Translate(result));
-        }
-
-        [HttpPost("resend-email-confirmation")]
-        [SkipTokenRevocation]
-        public async Task<IActionResult> ResendEmailConfirmation([FromQuery] ResendEmailConfirmationRequest request)
-        {
-            var result = await _emailVerificationService.ResendEmailConfirmationAsync(request.Email);
-
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest(Translate(result));
-
-            return Ok(Translate(result));
-        }
-
-        [HttpPost("reset-password")]
-        [SkipTokenRevocation]
-        public async Task<IActionResult> ResetPassword([FromBody] EmailResetPasswordRequest request)
-        {
-            var result = await _resetPasswordService.ResetPassword(request.Email);
-
-            return Ok(Translate(result));
-        }
-
-        [HttpGet("confirm-reset-password")]
-        [SkipTokenRevocation]
-        public async Task<IActionResult> ConfirmResetPassword([FromQuery] string userId, [FromQuery] string token, [FromBody] NewPasswordRequest request)
-        {
-            var result = await _resetPasswordService.ConfirmResetPasswordAsync(userId, token, request);
-
-            if (!result.IsAuthenticated)
-                return BadRequest(Translate(result));
-
-            return Ok(Translate(result));
-        }
-
-        [HttpPost("resend-reset-password")]
-        [SkipTokenRevocation]
-        public async Task<IActionResult> ResendResetPassword([FromQuery] EmailResetPasswordRequest request)
-        {
-            var result = await _resetPasswordService.ResendResetPasswordAsync(request.Email);
-
-            if (string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest(Translate(result));
-
-            return Ok(Translate(result));
-        }
-
         [HttpPost("refresh")]
         [SkipTokenRevocation]
         public async Task<IActionResult> RefreshToken()
