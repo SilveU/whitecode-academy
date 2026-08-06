@@ -12,13 +12,13 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task CreateAsync(T entity) 
-            => await _context.Set<T>().AddAsync(entity);
+        public async Task CreateAsync(T entity, CancellationToken cancellationToken = default)
+            => await _context.Set<T>().AddAsync(entity, cancellationToken);
 
-        public async Task<T?> GetByIdAsync(Guid id)
-            => await _context.Set<T>().FindAsync(id);
+        public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => await _context.Set<T>().FindAsync([id], cancellationToken);
 
-        public async Task<int> SaveChangesAsync() 
-            => await _context.SaveChangesAsync();
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+            => await _context.SaveChangesAsync(cancellationToken);
     }
 }

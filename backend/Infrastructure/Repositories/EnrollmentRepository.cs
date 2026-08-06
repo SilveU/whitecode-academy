@@ -20,32 +20,32 @@ namespace Infrastructure.Repositories
             enrollment.DeletedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<Enrollment?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId)
+        public async Task<Enrollment?> GetByStudentAndCourseAsync(Guid studentId, Guid courseId, CancellationToken cancellationToken = default)
         {
             return await _context.Enrollments
                 .Include(e => e.Student)
                     .ThenInclude(s => s.User)
                 .Include(e => e.Course)
-                .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == courseId && !e.IsDeleted);
+                .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == courseId && !e.IsDeleted, cancellationToken);
         }
 
-        public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(Guid studentId)
+        public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(Guid studentId, CancellationToken cancellationToken = default)
         {
             return await _context.Enrollments
                 .Include(e => e.Course)
                 .Where(e => e.StudentId == studentId && !e.IsDeleted)
                 .OrderByDescending(e => e.CreatedAt)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<IEnumerable<Enrollment>> GetByCourseIdAsync(Guid courseId)
+        public async Task<IEnumerable<Enrollment>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default)
         {
             return await _context.Enrollments
                 .Include(e => e.Student)
                     .ThenInclude(s => s.User)
                 .Where(e => e.CourseId == courseId && !e.IsDeleted)
                 .OrderByDescending(e => e.CreatedAt)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

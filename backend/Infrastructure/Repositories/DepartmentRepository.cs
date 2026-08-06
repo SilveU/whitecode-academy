@@ -26,39 +26,39 @@ namespace Infrastructure.Repositories
             department.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<Department?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        public async Task<Department?> GetByIdWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Departments
                 .Include(d => d.Courses.Where(c => !c.IsDeleted))
                 .Include(d => d.Instructors.Where(i => !i.IsDeleted))
                     .ThenInclude(i => i.User)
-                .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+                .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, cancellationToken);
         }
 
-        public async Task<IEnumerable<Department>> SearchAsync(QueryParameters query)
+        public async Task<IEnumerable<Department>> SearchAsync(QueryParameters query, CancellationToken cancellationToken = default)
         {
             var queryable = _context.Departments
                 .AsNoTracking()
                 .Where(d => !d.IsDeleted)
                 .AsQueryable();
 
-            return await ApplyQueryParameters(queryable, query);
+            return await ApplyQueryParameters(queryable, query, cancellationToken);
         }
 
-        public async Task<bool> HasActiveCoursesOrInstructorsAsync(Guid departmentId)
+        public async Task<bool> HasActiveCoursesOrInstructorsAsync(Guid departmentId, CancellationToken cancellationToken = default)
         {
             var hasActiveCourses = await _context.Courses
-                .AnyAsync(c => c.DepartmentId == departmentId && !c.IsDeleted);
+                .AnyAsync(c => c.DepartmentId == departmentId && !c.IsDeleted, cancellationToken);
 
             if (hasActiveCourses) return true;
 
             var hasActiveInstructors = await _context.Instructors
-                .AnyAsync(i => i.DepartmentId == departmentId && !i.IsDeleted);
+                .AnyAsync(i => i.DepartmentId == departmentId && !i.IsDeleted, cancellationToken);
 
             return hasActiveInstructors;
         }
 
-        private async Task<IEnumerable<Department>> ApplyQueryParameters(IQueryable<Department> query, QueryParameters queryParameters)
+        private async Task<IEnumerable<Department>> ApplyQueryParameters(IQueryable<Department> query, QueryParameters queryParameters, CancellationToken cancellationToken = default)
         {
             if (!string.IsNullOrEmpty(queryParameters.WordForSearch) || !queryParameters.WordForSearch!.Equals("all"))
             {
@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
             int skip = (queryParameters.PageNumber - 1) * queryParameters.PageSize;
             query = query.Skip(skip).Take(queryParameters.PageSize);
 
-            return await query.ToListAsync();
+            return await query.ToListAsync(cancellationToken);
         }
     }
 }

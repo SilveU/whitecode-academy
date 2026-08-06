@@ -24,45 +24,43 @@ namespace Application.Features.Departments.Commands.DeleteDepartment
             ICacheService cache)
         {
             _departmentRepository = departmentRepository;
-            _auditLogRepository   = auditLogRepository;
-            _logger               = logger;
-            _cache                = cache;
+            _auditLogRepository = auditLogRepository;
+            _logger = logger;
+            _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteDepartmentCommand request, CancellationToken cancellationToken)
         {
-            var department = await _departmentRepository.GetByIdAsync(request.Id);
+            var department = await _departmentRepository.GetByIdAsync(request.Id, cancellationToken);
             if (department == null)
             {
                 _logger.LogWarning("Department {DepartmentId} was not found.", request.Id);
                 return Result<bool>.NotFound(MessageKeys.Common.Department_NotFound);
             }
 
-            var hasActiveDependencies = await _departmentRepository.HasActiveCoursesOrInstructorsAsync(request.Id);
+            var hasActiveDependencies = await _departmentRepository.HasActiveCoursesOrInstructorsAsync(request.Id, cancellationToken);
             if (hasActiveDependencies)
             {
-                _logger.LogWarning(
-                    "Department {DepartmentId} cannot be deleted because it has active courses or instructors.",
-                    request.Id);
+                _logger.LogWarning("Department {DepartmentId} cannot be deleted because it has active courses or instructors.", request.Id);
                 return Result<bool>.Failure(MessageKeys.Common.Department_HasActiveDependencies, 409);
             }
 
             _departmentRepository.Delete(department);
-            await _departmentRepository.SaveChangesAsync();
+            await _departmentRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.Department(department.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix());
+            await _cache.RemoveAsync(CacheKeys.Department(department.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix(), cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Delete",
+                UserId = "system",
+                Action = "Delete",
                 EntityName = nameof(Department),
-                EntityId   = department.Id,
-                OldValues  = null,
-                NewValues  = null,
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = department.Id,
+                OldValues = null,
+                NewValues = null,
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
             _logger.LogInformation("Department {DepartmentId} '{Name}' deleted successfully.", department.Id, department.Name);
 

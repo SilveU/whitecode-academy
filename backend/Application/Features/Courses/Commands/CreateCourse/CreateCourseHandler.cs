@@ -48,7 +48,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
 
             if (request.IsInstructor)
             {
-                var found = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
+                var found = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId, cancellationToken);
                 if (found == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
@@ -64,7 +64,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
                     return Result<CourseResponse>.Failure(MessageKeys.Common.Course_InstructorIdRequired);
                 }
 
-                var found = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.InstructorId.Value);
+                var found = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.InstructorId.Value, cancellationToken);
                 if (found == null)
                 {
                     _logger.LogWarning("Instructor {InstructorId} was not found.", request.InstructorId);
@@ -76,7 +76,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
             if (instructor.Department == null || instructor.DepartmentId != request.DepartmentId)
             {
                 _logger.LogWarning("Instructor {InstructorId} does not belong to department {DepartmentId}.",
-                instructor.Id, request.DepartmentId);
+                    instructor.Id, request.DepartmentId);
                 return Result<CourseResponse>.Failure(MessageKeys.Common.Course_InstructorDepartmentMismatch);
             }
 
@@ -92,17 +92,17 @@ namespace Application.Features.Courses.Commands.CreateCourse
             instructor.Department.Courses ??= new List<Course>();
             instructor.Department.Courses.Add(course);
 
-            await _courseRepository.CreateAsync(course);
-            await _courseRepository.SaveChangesAsync();
+            await _courseRepository.CreateAsync(course, cancellationToken);
+            await _courseRepository.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<CourseResponse>(course);
 
-            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Course(course.Id);
-
             await _cache.SetAsync<CourseResponse>(redisKey, response,
-            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
@@ -113,7 +113,7 @@ namespace Application.Features.Courses.Commands.CreateCourse
                 OldValues = null,
                 NewValues = Serializer.Serialize(response),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
             _logger.LogInformation("Course {CourseId} created successfully by user {UserId}.", course.Id, request.CurrentUserId);
 

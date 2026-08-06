@@ -21,29 +21,30 @@ namespace Application.Features.Sections.Queries.GetSectionsByCourse
             IMapper mapper, ICacheService cache, IConfiguration configuration)
         {
             _sectionRepository = sectionRepository;
-            _courseRepository  = courseRepository;
-            _mapper            = mapper;
-            _cache             = cache;
-            _configuration     = configuration;
+            _courseRepository = courseRepository;
+            _mapper = mapper;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<IEnumerable<SectionResponse>>> Handle(GetSectionsByCourseQuery request, CancellationToken cancellationToken)
         {
             var redisKey = $"{CacheKeys.SectionsByCoursePrefix(request.CourseId)}:all";
-            var cached   = await _cache.GetAsync<IEnumerable<SectionResponse>>(redisKey);
+            var cached = await _cache.GetAsync<IEnumerable<SectionResponse>>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<IEnumerable<SectionResponse>>.Success(cached.Item2);
 
-            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
             if (course == null)
                 return Result<IEnumerable<SectionResponse>>.NotFound(MessageKeys.Common.Course_NotFound);
 
-            var sections = await _sectionRepository.GetByCourseIdAsync(request.CourseId);
+            var sections = await _sectionRepository.GetByCourseIdAsync(request.CourseId, cancellationToken);
             var response = _mapper.Map<IEnumerable<SectionResponse>>(sections);
 
             await _cache.SetAsync(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionsExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionsExpirationMinutes")),
+                cancellationToken);
 
             return Result<IEnumerable<SectionResponse>>.Success(response);
         }

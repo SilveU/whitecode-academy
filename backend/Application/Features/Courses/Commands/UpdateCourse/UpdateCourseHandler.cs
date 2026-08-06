@@ -45,44 +45,30 @@ namespace Application.Features.Courses.Commands.UpdateCourse
         {
             if (!request.Id.HasValue)
             {
-                _logger.LogWarning(
-                    "Update course failed: missing {CourseId}.",
-                    request.Id);
-
+                _logger.LogWarning("Update course failed: missing {CourseId}.", request.Id);
                 return Result<CourseResponse>.Failure("Id cannot be empty.", 400);
             }
 
-            var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value);
-
+            var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value, cancellationToken);
             if (course == null)
             {
-                _logger.LogWarning(
-                    "Course {CourseId} not found.",
-                    request.Id);
-
+                _logger.LogWarning("Course {CourseId} not found.", request.Id);
                 return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_NotFound);
             }
 
             if (request.IsInstructor)
             {
-                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
-
+                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId, cancellationToken);
                 if (instructor == null)
                 {
-                    _logger.LogWarning(
-                        "Instructor profile not found for user {UserId}.",
-                        request.CurrentUserId);
-
+                    _logger.LogWarning("Instructor profile not found for user {UserId}.", request.CurrentUserId);
                     return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (course.InstructorId != instructor.Id)
                 {
-                    _logger.LogWarning(
-                        "User {UserId} attempted to update course {CourseId} without ownership.",
-                        request.CurrentUserId,
-                        course.Id);
-
+                    _logger.LogWarning("User {UserId} attempted to update course {CourseId} without ownership.",
+                        request.CurrentUserId, course.Id);
                     return Result<CourseResponse>.Forbidden(MessageKeys.Common.Course_AccessDenied);
                 }
             }
@@ -95,47 +81,39 @@ namespace Application.Features.Courses.Commands.UpdateCourse
             request.Description ??= course.Description;
 
             var targetInstructor = await _instructorRepository
-                .GetByIdWithNavigationPropertiesAsync(request.InstructorId.Value);
+                .GetByIdWithNavigationPropertiesAsync(request.InstructorId.Value, cancellationToken);
 
             if (targetInstructor == null)
             {
-                _logger.LogWarning(
-                    "Instructor {InstructorId} not found.",
-                    request.InstructorId);
-
+                _logger.LogWarning("Instructor {InstructorId} not found.", request.InstructorId);
                 return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_InstructorWithIdNotFound);
             }
 
             if (targetInstructor.Department == null ||
                 targetInstructor.DepartmentId != request.DepartmentId)
             {
-                _logger.LogWarning(
-                    "Instructor {InstructorId} does not belong to department {DepartmentId}.",
-                    targetInstructor.Id,
-                    request.DepartmentId);
-
+                _logger.LogWarning("Instructor {InstructorId} does not belong to department {DepartmentId}.",
+                    targetInstructor.Id, request.DepartmentId);
                 return Result<CourseResponse>.Failure(MessageKeys.Common.Course_InstructorDepartmentMismatch);
             }
 
             course = _mapper.Map(request, course);
 
             _courseRepository.Update(course);
-            await _courseRepository.SaveChangesAsync();
-            
+            await _courseRepository.SaveChangesAsync(cancellationToken);
+
             var response = _mapper.Map<CourseResponse>(course);
 
-            await _cache.RemoveAsync(CacheKeys.Course(course.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+            await _cache.RemoveAsync(CacheKeys.Course(course.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Course(course.Id);
-
             await _cache.SetAsync<CourseResponse>(redisKey, response,
-            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")),
+                cancellationToken);
 
-            _logger.LogInformation(
-                "Course {CourseId} updated successfully by user {UserId}.",
-                course.Id,
-                request.CurrentUserId);
+            _logger.LogInformation("Course {CourseId} updated successfully by user {UserId}.",
+                course.Id, request.CurrentUserId);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
@@ -146,7 +124,7 @@ namespace Application.Features.Courses.Commands.UpdateCourse
                 OldValues = oldValues,
                 NewValues = Serializer.Serialize(_mapper.Map<CourseResponse>(course)),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
             return Result<CourseResponse>.Success(_mapper.Map<CourseResponse>(course));
         }

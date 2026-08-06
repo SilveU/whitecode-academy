@@ -38,23 +38,23 @@ namespace Application.Features.Students.Commands.DeleteStudent
 
         public async Task<Result<bool>> Handle(DeleteStudentCommand request, CancellationToken cancellationToken)
         {
-            var student = await _studentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var student = await _studentRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (student == null)
             {
                 _logger.LogWarning("Student {StudentId} was not found.", request.Id);
                 return Result<bool>.NotFound(MessageKeys.Common.Student_NotFound);
             }
 
-            var enrollments = await _enrollmentRepository.GetByStudentIdAsync(request.Id);
+            var enrollments = await _enrollmentRepository.GetByStudentIdAsync(request.Id, cancellationToken);
             foreach (var enrollment in enrollments)
                 _enrollmentRepository.Delete(enrollment);
 
             _studentRepository.Delete(student);
-            await _studentRepository.SaveChangesAsync();
+            await _studentRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.Student(student.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.StudentsPrefix());
-            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(student.Id));
+            await _cache.RemoveAsync(CacheKeys.Student(student.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.StudentsPrefix(), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(student.Id), cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
@@ -65,7 +65,7 @@ namespace Application.Features.Students.Commands.DeleteStudent
                 OldValues  = null,
                 NewValues  = null,
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
             _logger.LogInformation("Student {StudentId} and their enrollments deleted successfully.", request.Id);
 

@@ -24,41 +24,39 @@ namespace Application.Features.Enrollments.Commands.DeleteEnrollment
             ICacheService cache)
         {
             _enrollmentRepository = enrollmentRepository;
-            _auditLogRepository   = auditLogRepository;
-            _logger               = logger;
-            _cache                = cache;
+            _auditLogRepository = auditLogRepository;
+            _logger = logger;
+            _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteEnrollmentCommand request, CancellationToken cancellationToken)
         {
-            var enrollment = await _enrollmentRepository.GetByStudentAndCourseAsync(request.StudentId, request.CourseId);
+            var enrollment = await _enrollmentRepository.GetByStudentAndCourseAsync(request.StudentId, request.CourseId, cancellationToken);
             if (enrollment == null)
             {
-                _logger.LogWarning(
-                    "Enrollment for student {StudentId} in course {CourseId} was not found.",
+                _logger.LogWarning("Enrollment for student {StudentId} in course {CourseId} was not found.",
                     request.StudentId, request.CourseId);
                 return Result<bool>.NotFound(MessageKeys.Common.Enrollment_NotFound);
             }
 
             _enrollmentRepository.Delete(enrollment);
-            await _enrollmentRepository.SaveChangesAsync();
+            await _enrollmentRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByCoursePrefix(request.CourseId));
-            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(request.StudentId));
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByCoursePrefix(request.CourseId), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.EnrollmentsByStudentPrefix(request.StudentId), cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Delete",
+                UserId = "system",
+                Action = "Delete",
                 EntityName = nameof(Enrollment),
-                EntityId   = enrollment.Id,
-                OldValues  = null,
-                NewValues  = null,
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = enrollment.Id,
+                OldValues = null,
+                NewValues = null,
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
-            _logger.LogInformation(
-                "Enrollment for student {StudentId} in course {CourseId} deleted successfully.",
+            _logger.LogInformation("Enrollment for student {StudentId} in course {CourseId} deleted successfully.",
                 request.StudentId, request.CourseId);
 
             return Result<bool>.Success(true);

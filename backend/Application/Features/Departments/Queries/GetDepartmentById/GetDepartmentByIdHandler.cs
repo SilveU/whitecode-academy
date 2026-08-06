@@ -20,27 +20,28 @@ namespace Application.Features.Departments.Queries.GetDepartmentById
             ICacheService cache, IConfiguration configuration)
         {
             _departmentRepository = departmentRepository;
-            _mapper               = mapper;
-            _cache                = cache;
-            _configuration        = configuration;
+            _mapper = mapper;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<DepartmentResponse>> Handle(GetDepartmentByIdQuery request, CancellationToken cancellationToken)
         {
             var redisKey = CacheKeys.Department(request.Id);
-            var cached   = await _cache.GetAsync<DepartmentResponse>(redisKey);
+            var cached = await _cache.GetAsync<DepartmentResponse>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<DepartmentResponse>.Success(cached.Item2);
 
-            var department = await _departmentRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var department = await _departmentRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (department == null)
                 return Result<DepartmentResponse>.NotFound(MessageKeys.Common.Department_NotFound);
 
             var response = _mapper.Map<DepartmentResponse>(department);
 
             await _cache.SetAsync(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")),
+                cancellationToken);
 
             return Result<DepartmentResponse>.Success(response);
         }

@@ -4,9 +4,9 @@ namespace Application.Interfaces.Repositories
 {
     public interface IRepository<T> where T : class
     {
-        Task CreateAsync(T entity);
-        Task<int> SaveChangesAsync();
-        Task<T?> GetByIdAsync(Guid id);
+        Task CreateAsync(T entity, CancellationToken cancellationToken = default);
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     }
 
     public interface IIdempotencyRepository : IRepository<Idempotency>

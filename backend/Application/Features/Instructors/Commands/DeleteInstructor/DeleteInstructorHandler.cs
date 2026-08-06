@@ -29,16 +29,16 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             ICacheService cache)
         {
             _instructorRepository = instructorRepository;
-            _courseRepository     = courseRepository;
-            _auditLogRepository   = auditLogRepository;
-            _userManager          = userManager;
-            _logger               = logger;
+            _courseRepository = courseRepository;
+            _auditLogRepository = auditLogRepository;
+            _userManager = userManager;
+            _logger = logger;
             _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteInstructorCommand request, CancellationToken cancellationToken)
         {
-            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (instructor == null)
             {
                 _logger.LogWarning("Instructor {InstructorId} was not found.", request.Id);
@@ -48,9 +48,7 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             var hasActiveCourses = instructor.Courses.Any(c => !c.IsDeleted);
             if (hasActiveCourses)
             {
-                _logger.LogWarning(
-                    "Instructor {InstructorId} cannot be deleted because they have active courses.",
-                    request.Id);
+                _logger.LogWarning("Instructor {InstructorId} cannot be deleted because they have active courses.", request.Id);
                 return Result<bool>.Failure(MessageKeys.Common.Instructor_HasActiveCourses, 409);
             }
 
@@ -60,21 +58,21 @@ namespace Application.Features.Instructors.Commands.DeleteInstructor
             if (user != null)
                 await _userManager.RemoveFromRoleAsync(user, "Instructor");
 
-            await _instructorRepository.SaveChangesAsync();
+            await _instructorRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
+            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix(), cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Delete",
+                UserId = "system",
+                Action = "Delete",
                 EntityName = nameof(Instructor),
-                EntityId   = instructor.Id,
-                OldValues  = null,
-                NewValues  = null,
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = instructor.Id,
+                OldValues = null,
+                NewValues = null,
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
             _logger.LogInformation("Instructor {InstructorId} deleted successfully.", request.Id);
 

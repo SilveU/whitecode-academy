@@ -16,32 +16,31 @@ namespace Application.Features.Courses.Queries.GetCourseById
         private readonly ICacheService _cache;
         private readonly IMapper _mapper;
 
-        public GetCourseByIdHandler(ICourseRepository courseRepository, IMapper mapper, ICacheService cache, IConfiguration conifguration)
+        public GetCourseByIdHandler(ICourseRepository courseRepository, IMapper mapper, ICacheService cache, IConfiguration configuration)
         {
             _courseRepository = courseRepository;
             _mapper = mapper;
             _cache = cache;
-            _configuration = conifguration;
+            _configuration = configuration;
         }
 
         public async Task<Result<CourseResponse>> Handle(GetCourseByIdQuery request, CancellationToken cancellationToken)
         {
             var redisKey = CacheKeys.Course(request.Id);
-
-            var cached = await _cache.GetAsync<CourseResponse>(redisKey);
+            var cached = await _cache.GetAsync<CourseResponse>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<CourseResponse>.Success(cached.Item2);
 
-
-            var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var course = await _courseRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (course == null)
                 return Result<CourseResponse>.NotFound(MessageKeys.Common.Course_NotFound);
 
             var response = _mapper.Map<CourseResponse>(course);
 
             await _cache.SetAsync(redisKey, response,
-            TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:CourseExpirationMinutes")),
+                cancellationToken);
 
             return Result<CourseResponse>.Success(response);
         }

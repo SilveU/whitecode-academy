@@ -51,7 +51,7 @@ namespace Application.Features.Students.Commands.AssignStudent
                 return Result<StudentResponse>.NotFound(MessageKeys.Common.Student_NotFound);
             }
 
-            var existingStudent = await _studentRepository.GetByUserIdAsync(request.UserId);
+            var existingStudent = await _studentRepository.GetByUserIdAsync(request.UserId, cancellationToken);
             if (existingStudent != null)
             {
                 _logger.LogWarning("User {UserId} is already registered as a student.", request.UserId);
@@ -64,17 +64,18 @@ namespace Application.Features.Students.Commands.AssignStudent
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            await _studentRepository.CreateAsync(student);
-            await _studentRepository.SaveChangesAsync();
+            await _studentRepository.CreateAsync(student, cancellationToken);
+            await _studentRepository.SaveChangesAsync(cancellationToken);
 
-            var created  = await _studentRepository.GetByIdWithNavigationPropertiesAsync(student.Id);
+            var created  = await _studentRepository.GetByIdWithNavigationPropertiesAsync(student.Id, cancellationToken);
             var response = _mapper.Map<StudentResponse>(created!);
 
-            await _cache.RemoveByPrefixAsync(CacheKeys.StudentsPrefix());
+            await _cache.RemoveByPrefixAsync(CacheKeys.StudentsPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Student(student.Id);
             await _cache.SetAsync<StudentResponse>(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:StudentExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:StudentExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
@@ -85,7 +86,7 @@ namespace Application.Features.Students.Commands.AssignStudent
                 OldValues  = null,
                 NewValues  = Serializer.Serialize(response),
                 IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
             _logger.LogInformation("Student profile created for user {UserId} with ID {StudentId}.", request.UserId, student.Id);
 

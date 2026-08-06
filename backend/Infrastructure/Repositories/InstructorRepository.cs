@@ -25,24 +25,24 @@ namespace Infrastructure.Repositories
             instructor.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<Instructor?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        public async Task<Instructor?> GetByIdWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Instructors
                 .Include(i => i.User)
                 .Include(i => i.Department)
                 .Include(i => i.Courses.Where(c => !c.IsDeleted))
-                .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted);
+                .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, cancellationToken);
         }
 
-        public async Task<Instructor?> GetByUserIdAsync(string userId)
+        public async Task<Instructor?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
         {
             return await _context.Instructors
                 .Include(i => i.User)
                 .Include(i => i.Department)
-                .FirstOrDefaultAsync(i => i.UserId == userId && !i.IsDeleted);
+                .FirstOrDefaultAsync(i => i.UserId == userId && !i.IsDeleted, cancellationToken);
         }
 
-        public async Task<IEnumerable<Instructor>> SearchAsync(QueryParameters query)
+        public async Task<IEnumerable<Instructor>> SearchAsync(QueryParameters query, CancellationToken cancellationToken = default)
         {
             var queryable = _context.Instructors
                 .AsNoTracking()
@@ -51,10 +51,10 @@ namespace Infrastructure.Repositories
                 .Where(i => !i.IsDeleted)
                 .AsQueryable();
 
-            return await ApplyQueryParameters(queryable, query);
+            return await ApplyQueryParameters(queryable, query, cancellationToken);
         }
 
-        private async Task<IEnumerable<Instructor>> ApplyQueryParameters(IQueryable<Instructor> query, QueryParameters queryParameters)
+        private async Task<IEnumerable<Instructor>> ApplyQueryParameters(IQueryable<Instructor> query, QueryParameters queryParameters, CancellationToken cancellationToken = default)
         {
             if (!string.IsNullOrEmpty(queryParameters.WordForSearch) || !queryParameters.WordForSearch!.Equals("all"))
             {
@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
             int skip = (queryParameters.PageNumber - 1) * queryParameters.PageSize;
             query = query.Skip(skip).Take(queryParameters.PageSize);
 
-            return await query.ToListAsync();
+            return await query.ToListAsync(cancellationToken);
         }
     }
 }
