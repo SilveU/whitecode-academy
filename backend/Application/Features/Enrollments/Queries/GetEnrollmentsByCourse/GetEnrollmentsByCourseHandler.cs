@@ -20,29 +20,30 @@ namespace Application.Features.Enrollments.Queries.GetEnrollmentsByCourse
             IMapper mapper, ICacheService cache, IConfiguration configuration)
         {
             _enrollmentRepository = enrollmentRepository;
-            _courseRepository     = courseRepository;
-            _mapper               = mapper;
-            _cache                = cache;
-            _configuration        = configuration;
+            _courseRepository = courseRepository;
+            _mapper = mapper;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<IEnumerable<EnrollmentResponse>>> Handle(GetEnrollmentsByCourseQuery request, CancellationToken cancellationToken)
         {
             var redisKey = $"{CacheKeys.EnrollmentsByCoursePrefix(request.CourseId)}:all";
-            var cached   = await _cache.GetAsync<IEnumerable<EnrollmentResponse>>(redisKey);
+            var cached = await _cache.GetAsync<IEnumerable<EnrollmentResponse>>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<IEnumerable<EnrollmentResponse>>.Success(cached.Item2);
 
-            var course = await _courseRepository.GetByIdAsync(request.CourseId);
+            var course = await _courseRepository.GetByIdAsync(request.CourseId, cancellationToken);
             if (course == null)
                 return Result<IEnumerable<EnrollmentResponse>>.NotFound($"Course with ID {request.CourseId} not found.");
 
-            var enrollments = await _enrollmentRepository.GetByCourseIdAsync(request.CourseId);
-            var response    = _mapper.Map<IEnumerable<EnrollmentResponse>>(enrollments);
+            var enrollments = await _enrollmentRepository.GetByCourseIdAsync(request.CourseId, cancellationToken);
+            var response = _mapper.Map<IEnumerable<EnrollmentResponse>>(enrollments);
 
             await _cache.SetAsync(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:EnrollmentsExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:EnrollmentsExpirationMinutes")),
+                cancellationToken);
 
             return Result<IEnumerable<EnrollmentResponse>>.Success(response);
         }

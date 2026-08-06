@@ -28,8 +28,9 @@ namespace Application.Features.Sections.Commands.UpdateSection
         private readonly IAuditLogRepository _auditLogRepository;
         private readonly IMapper _mapper;
 
-        public UpdateSectionHandler(ISectionRepository sectionRepository, IInstructorRepository instructorRepository, IFileStorageService fileStorageService,
-            IFileSecurityService fileSecurityService, IAuditLogRepository auditLogRepository, IWebHostEnvironment environment, IMapper mapper,
+        public UpdateSectionHandler(ISectionRepository sectionRepository, IInstructorRepository instructorRepository,
+            IFileStorageService fileStorageService, IFileSecurityService fileSecurityService,
+            IAuditLogRepository auditLogRepository, IWebHostEnvironment environment, IMapper mapper,
             ILogger<UpdateSectionHandler> logger, ICacheService cache, IConfiguration configuration)
         {
             _sectionRepository = sectionRepository;
@@ -52,7 +53,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 return Result<SectionResponse>.Failure("Id cannot be empty.", 400);
             }
 
-            var section = await _sectionRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value);
+            var section = await _sectionRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value, cancellationToken);
             if (section == null)
             {
                 _logger.LogWarning("Section {SectionId} was not found.", request.Id);
@@ -61,7 +62,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
             if (request.IsInstructor)
             {
-                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
+                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId, cancellationToken);
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
@@ -70,7 +71,8 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
                 if (section.Course.InstructorId != instructor.Id)
                 {
-                    _logger.LogWarning("User {UserId} attempted to update section {SectionId} without ownership.", request.CurrentUserId, request.Id);
+                    _logger.LogWarning("User {UserId} attempted to update section {SectionId} without ownership.",
+                        request.CurrentUserId, request.Id);
                     return Result<SectionResponse>.Forbidden(MessageKeys.Common.Section_AccessDenied);
                 }
             }
@@ -79,13 +81,13 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
             if (!string.IsNullOrEmpty(request.Name))
                 section.Name = request.Name;
-            if (!string.IsNullOrEmpty(request.Description)) 
+            if (!string.IsNullOrEmpty(request.Description))
                 section.Description = request.Description;
 
             if (request.VideoFile != null)
             {
-                await _fileSecurityService.ValidateVideoAsync(request.VideoFile);
-                await _fileSecurityService.ScanAsync(request.VideoFile);
+                await _fileSecurityService.ValidateVideoAsync(request.VideoFile, cancellationToken);
+                await _fileSecurityService.ScanAsync(request.VideoFile, cancellationToken);
 
                 if (!string.IsNullOrEmpty(section.VideoUrl))
                     await _fileStorageService.DeleteAsync(section.VideoUrl);
@@ -94,7 +96,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 section.VideoUrl = await _fileStorageService.UploadAsync(request.VideoFile, videoFolder);
 
                 var physicalVideoPath = Path.Combine(_environment.WebRootPath, section.VideoUrl);
-                var mediaInfo = await FFProbe.AnalyseAsync(physicalVideoPath);
+                var mediaInfo = await FFProbe.AnalyseAsync(physicalVideoPath, cancellationToken: cancellationToken);
 
                 var oldDuration = (long)(section.EndAt - section.StartAt).TotalSeconds;
                 section.Course.TotalDurationInSeconds =
@@ -106,8 +108,8 @@ namespace Application.Features.Sections.Commands.UpdateSection
 
             if (request.PdfFile != null)
             {
-                await _fileSecurityService.ValidatePdfAsync(request.PdfFile);
-                await _fileSecurityService.ScanAsync(request.PdfFile);
+                await _fileSecurityService.ValidatePdfAsync(request.PdfFile, cancellationToken);
+                await _fileSecurityService.ScanAsync(request.PdfFile, cancellationToken);
 
                 if (!string.IsNullOrEmpty(section.PdfUrl))
                     await _fileStorageService.DeleteAsync(section.PdfUrl);
@@ -117,16 +119,16 @@ namespace Application.Features.Sections.Commands.UpdateSection
             }
 
             _sectionRepository.Update(section);
-            await _sectionRepository.SaveChangesAsync();
+            await _sectionRepository.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<SectionResponse>(section);
 
-            await _cache.RemoveAsync(CacheKeys.Section(section.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId));
+            await _cache.RemoveAsync(CacheKeys.Section(section.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId), cancellationToken);
 
-            // Update single-section cache
             await _cache.SetAsync<SectionResponse>(CacheKeys.Section(section.Id), response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:SectionExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
@@ -137,7 +139,7 @@ namespace Application.Features.Sections.Commands.UpdateSection
                 OldValues = oldValues,
                 NewValues = Serializer.Serialize(response),
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
             _logger.LogInformation("Section {SectionId} updated successfully by user {UserId}.", section.Id, request.CurrentUserId);
 

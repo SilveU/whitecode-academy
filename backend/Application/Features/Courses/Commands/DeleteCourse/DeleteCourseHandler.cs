@@ -22,7 +22,7 @@ namespace Application.Features.Courses.Commands.DeleteCourse
         private readonly IInstructorRepository _instructorRepository;
 
         public DeleteCourseHandler(ICourseRepository courseRepository, IInstructorRepository instructorRepository,
-        ILogger<DeleteCourseHandler> logger, IAuditLogRepository auditLogRepository, IMapper mapper, ICacheService cache)
+            ILogger<DeleteCourseHandler> logger, IAuditLogRepository auditLogRepository, IMapper mapper, ICacheService cache)
         {
             _courseRepository = courseRepository;
             _instructorRepository = instructorRepository;
@@ -34,41 +34,34 @@ namespace Application.Features.Courses.Commands.DeleteCourse
 
         public async Task<Result<bool>> Handle(DeleteCourseCommand request, CancellationToken cancellationToken)
         {
-            var course = await _courseRepository.GetByIdAsync(request.Id);
-
+            var course = await _courseRepository.GetByIdAsync(request.Id, cancellationToken);
             if (course == null)
             {
                 _logger.LogWarning("Course {CourseId} was not found.", request.Id);
-
                 return Result<bool>.NotFound(MessageKeys.Common.Course_NotFound);
             }
 
             if (request.IsInstructor)
             {
-                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
-
+                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId, cancellationToken);
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
-
                     return Result<bool>.NotFound(MessageKeys.Common.Course_InstructorNotFound);
                 }
 
                 if (course.InstructorId != instructor.Id)
                 {
                     _logger.LogWarning("User {UserId} attempted to delete course {CourseId} without ownership.",
-                    request.CurrentUserId, request.Id);
-
+                        request.CurrentUserId, request.Id);
                     return Result<bool>.Forbidden(MessageKeys.Common.Course_AccessDenied);
                 }
             }
 
-            var hasActiveEnrollments = await _courseRepository.HasActiveEnrollmentsAsync(request.Id);
-
+            var hasActiveEnrollments = await _courseRepository.HasActiveEnrollmentsAsync(request.Id, cancellationToken);
             if (hasActiveEnrollments)
             {
                 _logger.LogWarning("Course {CourseId} cannot be deleted because it has active enrollments.", request.Id);
-
                 return Result<bool>.Failure(MessageKeys.Common.Course_HasActiveEnrollments, 409);
             }
 
@@ -83,13 +76,12 @@ namespace Application.Features.Courses.Commands.DeleteCourse
                 OldValues = Serializer.Serialize(_mapper.Map<CourseResponse>(course)),
                 NewValues = null,
                 IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+            }, cancellationToken);
 
-            await _courseRepository.SaveChangesAsync();
+            await _courseRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.Course(course.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
-
+            await _cache.RemoveAsync(CacheKeys.Course(course.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix(), cancellationToken);
 
             _logger.LogInformation("Course {CourseId} was deleted successfully by user {UserId}.", request.Id, request.CurrentUserId);
 

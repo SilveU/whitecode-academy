@@ -35,13 +35,13 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             IConfiguration configuration)
         {
             _departmentRepository = departmentRepository;
-            _fileStorageService   = fileStorageService;
-            _fileSecurityService  = fileSecurityService;
-            _auditLogRepository   = auditLogRepository;
-            _mapper               = mapper;
-            _logger               = logger;
-            _cache                = cache;
-            _configuration        = configuration;
+            _fileStorageService = fileStorageService;
+            _fileSecurityService = fileSecurityService;
+            _auditLogRepository = auditLogRepository;
+            _mapper = mapper;
+            _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<DepartmentResponse>> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
@@ -52,7 +52,7 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
                 return Result<DepartmentResponse>.Failure("Id cannot be empty.", 400);
             }
 
-            var department = await _departmentRepository.GetByIdAsync(request.Id.Value);
+            var department = await _departmentRepository.GetByIdAsync(request.Id.Value, cancellationToken);
             if (department == null)
             {
                 _logger.LogWarning("Department {DepartmentId} was not found.", request.Id);
@@ -66,8 +66,8 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
 
             if (request.ImageFile != null)
             {
-                await _fileSecurityService.ValidateImageAsync(request.ImageFile);
-                await _fileSecurityService.ScanAsync(request.ImageFile);
+                await _fileSecurityService.ValidateImageAsync(request.ImageFile, cancellationToken);
+                await _fileSecurityService.ScanAsync(request.ImageFile, cancellationToken);
 
                 if (!string.IsNullOrEmpty(department.ImageUrl))
                     await _fileStorageService.DeleteAsync(department.ImageUrl);
@@ -77,27 +77,28 @@ namespace Application.Features.Departments.Commands.UpdateDepartment
             }
 
             _departmentRepository.Update(department);
-            await _departmentRepository.SaveChangesAsync();
+            await _departmentRepository.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<DepartmentResponse>(department);
 
-            await _cache.RemoveAsync(CacheKeys.Department(department.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix());
+            await _cache.RemoveAsync(CacheKeys.Department(department.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.DepartmentsPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Department(department.Id);
             await _cache.SetAsync<DepartmentResponse>(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Update",
+                UserId = "system",
+                Action = "Update",
                 EntityName = nameof(Department),
-                EntityId   = department.Id,
-                OldValues  = oldValues,
-                NewValues  = Serializer.Serialize(response),
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = department.Id,
+                OldValues = oldValues,
+                NewValues = Serializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
             _logger.LogInformation("Department {DepartmentId} updated successfully.", department.Id);
 

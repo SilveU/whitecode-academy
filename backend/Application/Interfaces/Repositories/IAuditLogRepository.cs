@@ -4,10 +4,10 @@ namespace Application.Interfaces.Repositories
 {
     public interface IAuditLogRepository
     {
-        Task LogAsync(AuditLog auditLog);
+        Task LogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
         Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityName, Guid entityId);
         Task<IEnumerable<AuditLog>> GetByUserAsync(string userId);
         Task<int> DeleteExpiredAsync(int retentionDays);
-        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

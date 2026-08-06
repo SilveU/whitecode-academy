@@ -10,6 +10,7 @@ namespace Infrastructure.Services.Server
         private readonly IDatabase _database;
         private readonly IServer _server;
         private readonly ILogger<RedisService> _logger;
+
         public RedisService(IConnectionMultiplexer connection, ILogger<RedisService> logger)
         {
             _database = connection.GetDatabase();
@@ -17,13 +18,13 @@ namespace Infrastructure.Services.Server
             _server = connection.GetServer(endPoint);
             _logger = logger;
         }
-        public async Task<bool> SetAsync<T>(string key, T value, TimeSpan? expiry = null)
+
+        public async Task<bool> SetAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 var json = Serializer.Serialize(value);
                 var expiration = expiry ?? TimeSpan.FromHours(1);
-
                 return await _database.StringSetAsync(key, json, expiration);
             }
             catch (Exception ex)
@@ -33,13 +34,12 @@ namespace Infrastructure.Services.Server
             }
         }
 
-        public async Task<bool> SetIfNotExistsAsync<T>(string key, T value, TimeSpan? expiry = null)
+        public async Task<bool> SetIfNotExistsAsync<T>(string key, T value, TimeSpan? expiry = null, CancellationToken cancellationToken = default)
         {
             try
             {
                 var json = Serializer.Serialize(value);
                 var expiration = expiry ?? TimeSpan.FromHours(1);
-
                 return await _database.StringSetAsync(key, json, expiration, When.NotExists);
             }
             catch (Exception ex)
@@ -49,7 +49,7 @@ namespace Infrastructure.Services.Server
             }
         }
 
-        public async Task RemoveAsync(string key)
+        public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace Infrastructure.Services.Server
             }
         }
 
-        public async Task<(bool Success, T?)> GetAsync<T>(string key)
+        public async Task<(bool Success, T?)> GetAsync<T>(string key, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace Infrastructure.Services.Server
             }
         }
 
-        public async Task<(bool Success, bool Exists)> ExistsAsync(string key)
+        public async Task<(bool Success, bool Exists)> ExistsAsync(string key, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Infrastructure.Services.Server
             }
         }
 
-        public async Task RemoveByPrefixAsync(string prefix)
+        public async Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default)
         {
             try
             {

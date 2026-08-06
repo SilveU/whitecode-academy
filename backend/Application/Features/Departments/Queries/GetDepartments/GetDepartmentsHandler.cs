@@ -1,14 +1,10 @@
 using Application.Common;
 using Application.DTOs.Core;
-using Application.Helper;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
-using Domain.Entites.Audits;
-using Domain.Entites.Core;
 using MediatR;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Departments.Queries.GetDepartments
 {
@@ -23,24 +19,25 @@ namespace Application.Features.Departments.Queries.GetDepartments
             ICacheService cache, IConfiguration configuration)
         {
             _departmentRepository = departmentRepository;
-            _mapper               = mapper;
-            _cache                = cache;
-            _configuration        = configuration;
+            _mapper = mapper;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<IEnumerable<DepartmentResponse>>> Handle(GetDepartmentsQuery request, CancellationToken cancellationToken)
         {
             var redisKey = CacheKeys.SearchDepartments(request.Parameters);
-            var cached   = await _cache.GetAsync<IEnumerable<DepartmentResponse>>(redisKey);
+            var cached = await _cache.GetAsync<IEnumerable<DepartmentResponse>>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<IEnumerable<DepartmentResponse>>.Success(cached.Item2);
 
-            var departments = await _departmentRepository.SearchAsync(request.Parameters);
-            var response    = _mapper.Map<IEnumerable<DepartmentResponse>>(departments);
+            var departments = await _departmentRepository.SearchAsync(request.Parameters, cancellationToken);
+            var response = _mapper.Map<IEnumerable<DepartmentResponse>>(departments);
 
             await _cache.SetAsync(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentsExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:DepartmentsExpirationMinutes")),
+                cancellationToken);
 
             return Result<IEnumerable<DepartmentResponse>>.Success(response);
         }

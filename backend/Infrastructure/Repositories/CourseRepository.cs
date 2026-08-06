@@ -20,13 +20,13 @@ namespace Infrastructure.Repositories
             course.DeletedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<bool> HasActiveEnrollmentsAsync(Guid courseId)
+        public async Task<bool> HasActiveEnrollmentsAsync(Guid courseId, CancellationToken cancellationToken = default)
         {
             return await _context.Enrollments
-                .AnyAsync(e => e.CourseId == courseId && !e.IsDeleted);
+                .AnyAsync(e => e.CourseId == courseId && !e.IsDeleted, cancellationToken);
         }
 
-        public async Task<Course?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        public async Task<Course?> GetByIdWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Courses
                 .Include(c => c.Instructor)
@@ -34,10 +34,10 @@ namespace Infrastructure.Repositories
                 .Include(c => c.Department)
                 .Include(c => c.Enrollments.Where(e => !e.IsDeleted))
                 .Include(c => c.Sections!.Where(s => !s.IsDeleted))
-                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
         }
 
-        public async Task<IEnumerable<Course>> SearchAsync(QueryParameters query)
+        public async Task<IEnumerable<Course>> SearchAsync(QueryParameters query, CancellationToken cancellationToken = default)
         {
             var queryable = _context.Courses
                 .AsNoTracking()
@@ -46,16 +46,16 @@ namespace Infrastructure.Repositories
                 .Include(c => c.Department)
                 .AsQueryable();
 
-            return await ApplyQueryParameters(queryable, query);
+            return await ApplyQueryParameters(queryable, query, cancellationToken);
         }
 
-        private async Task<IQueryable<Course>> ApplyQueryParameters(IQueryable<Course> query, QueryParameters queryParameters)
+        private async Task<IEnumerable<Course>> ApplyQueryParameters(IQueryable<Course> query, QueryParameters queryParameters, CancellationToken cancellationToken = default)
         {
             // Apply search filter
             if (!string.IsNullOrEmpty(queryParameters.WordForSearch) && !queryParameters.WordForSearch!.Equals("all"))
             {
                 var searchTerm = $"%{queryParameters.WordForSearch.Trim().ToLower()}%";
-                query = 
+                query =
                 query.Where(c => EF.Functions.Like(c.Name, searchTerm) ||
                 EF.Functions.Like(c.Description, searchTerm) ||
                 EF.Functions.Like(c.Instructor.User.FirstName, searchTerm) ||
@@ -70,16 +70,16 @@ namespace Infrastructure.Repositories
                     query = query.OrderBy(c => c.Name);
                     break;
                 case "totaldurationinseconds_asc":
-                    query = query.OrderBy(c => c.TotalDurationInSeconds); // Assuming TotalDurationInSeconds is used as a proxy for price
+                    query = query.OrderBy(c => c.TotalDurationInSeconds);
                     break;
                 case "totaldurationinseconds_desc":
-                    query = query.OrderByDescending(c => c.TotalDurationInSeconds); // Assuming TotalDurationInSeconds is used as a proxy for price
+                    query = query.OrderByDescending(c => c.TotalDurationInSeconds);
                     break;
                 case "totalsections_asc":
-                    query = query.OrderBy(c => c.TotalSections); // Assuming TotalSections is used as a proxy for sections
+                    query = query.OrderBy(c => c.TotalSections);
                     break;
                 case "totalsections_desc":
-                    query = query.OrderByDescending(c => c.TotalSections); // Assuming TotalSections is used as a proxy for sections
+                    query = query.OrderByDescending(c => c.TotalSections);
                     break;
                 default:
                     query = query.OrderBy(c => c.Name);
@@ -90,7 +90,7 @@ namespace Infrastructure.Repositories
             int skip = (queryParameters.PageNumber - 1) * queryParameters.PageSize;
             query = query.Skip(skip).Take(queryParameters.PageSize);
 
-            return query;
+            return await query.ToListAsync(cancellationToken);
         }
 
         public void Update(Course course)

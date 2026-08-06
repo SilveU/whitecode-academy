@@ -10,9 +10,9 @@ namespace Application.Interfaces.Services
     }
     public interface IFileSecurityService
     {
-        Task ValidatePdfAsync(IFormFile file);
-        Task ValidateImageAsync(IFormFile file);
-        Task ValidateVideoAsync(IFormFile file);
-        Task ScanAsync(IFormFile file);
+        Task ValidatePdfAsync(IFormFile file, CancellationToken cancellationToken = default);
+        Task ValidateImageAsync(IFormFile file, CancellationToken cancellationToken = default);
+        Task ValidateVideoAsync(IFormFile file, CancellationToken cancellationToken = default);
+        Task ScanAsync(IFormFile file, CancellationToken cancellationToken = default);
     }
 }

@@ -34,11 +34,11 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
-            _auditLogRepository   = auditLogRepository;
-            _mapper               = mapper;
-            _logger               = logger;
-            _cache                = cache;
-            _configuration        = configuration;
+            _auditLogRepository = auditLogRepository;
+            _mapper = mapper;
+            _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(UpdateInstructorCommand request, CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
                 return Result<InstructorResponse>.Failure("Id cannot be empty.", 400);
             }
 
-            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value);
+            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id.Value, cancellationToken);
             if (instructor == null)
             {
                 _logger.LogWarning("Instructor {InstructorId} was not found.", request.Id);
@@ -60,7 +60,7 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
 
             if (request.DepartmentId.HasValue)
             {
-                var department = await _departmentRepository.GetByIdAsync(request.DepartmentId.Value);
+                var department = await _departmentRepository.GetByIdAsync(request.DepartmentId.Value, cancellationToken);
                 if (department == null)
                 {
                     _logger.LogWarning("Department {DepartmentId} was not found.", request.DepartmentId);
@@ -71,27 +71,28 @@ namespace Application.Features.Instructors.Commands.UpdateInstructor
             }
 
             _instructorRepository.Update(instructor);
-            await _instructorRepository.SaveChangesAsync();
+            await _instructorRepository.SaveChangesAsync(cancellationToken);
 
             var response = _mapper.Map<InstructorResponse>(instructor);
 
-            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
+            await _cache.RemoveAsync(CacheKeys.Instructor(instructor.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Instructor(instructor.Id);
             await _cache.SetAsync<InstructorResponse>(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Update",
+                UserId = "system",
+                Action = "Update",
                 EntityName = nameof(Instructor),
-                EntityId   = instructor.Id,
-                OldValues  = oldValues,
-                NewValues  = Serializer.Serialize(response),
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = instructor.Id,
+                OldValues = oldValues,
+                NewValues = Serializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
             _logger.LogInformation("Instructor {InstructorId} updated successfully.", instructor.Id);
 

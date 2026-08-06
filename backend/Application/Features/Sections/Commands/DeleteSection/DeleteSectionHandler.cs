@@ -27,17 +27,17 @@ namespace Application.Features.Sections.Commands.DeleteSection
             ILogger<DeleteSectionHandler> logger,
             ICacheService cache)
         {
-            _sectionRepository    = sectionRepository;
+            _sectionRepository = sectionRepository;
             _instructorRepository = instructorRepository;
-            _fileStorageService   = fileStorageService;
-            _auditLogRepository   = auditLogRepository;
-            _logger               = logger;
-            _cache                = cache;
+            _fileStorageService = fileStorageService;
+            _auditLogRepository = auditLogRepository;
+            _logger = logger;
+            _cache = cache;
         }
 
         public async Task<Result<bool>> Handle(DeleteSectionCommand request, CancellationToken cancellationToken)
         {
-            var section = await _sectionRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var section = await _sectionRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (section == null)
             {
                 _logger.LogWarning("Section {SectionId} was not found.", request.Id);
@@ -46,7 +46,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
 
             if (request.IsInstructor)
             {
-                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId);
+                var instructor = await _instructorRepository.GetByUserIdAsync(request.CurrentUserId, cancellationToken);
                 if (instructor == null)
                 {
                     _logger.LogWarning("Instructor profile for user {UserId} was not found.", request.CurrentUserId);
@@ -55,8 +55,7 @@ namespace Application.Features.Sections.Commands.DeleteSection
 
                 if (section.Course.InstructorId != instructor.Id)
                 {
-                    _logger.LogWarning(
-                        "User {UserId} attempted to delete section {SectionId} without ownership.",
+                    _logger.LogWarning("User {UserId} attempted to delete section {SectionId} without ownership.",
                         request.CurrentUserId, request.Id);
                     return Result<bool>.Forbidden(MessageKeys.Common.Section_AccessDenied);
                 }
@@ -69,28 +68,25 @@ namespace Application.Features.Sections.Commands.DeleteSection
                 await _fileStorageService.DeleteAsync(section.PdfUrl);
 
             _sectionRepository.Delete(section);
-            await _sectionRepository.SaveChangesAsync();
+            await _sectionRepository.SaveChangesAsync(cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.Section(section.Id));
-            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId));
-            // Also bust the course cache since TotalSections / TotalDuration changed
-            await _cache.RemoveAsync(CacheKeys.Course(section.CourseId));
-            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix());
+            await _cache.RemoveAsync(CacheKeys.Section(section.Id), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.SectionsByCoursePrefix(section.CourseId), cancellationToken);
+            await _cache.RemoveAsync(CacheKeys.Course(section.CourseId), cancellationToken);
+            await _cache.RemoveByPrefixAsync(CacheKeys.CoursesPrefix(), cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = request.CurrentUserId,
-                Action     = "Delete",
+                UserId = request.CurrentUserId,
+                Action = "Delete",
                 EntityName = nameof(Section),
-                EntityId   = section.Id,
-                OldValues  = null,
-                NewValues  = null,
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = section.Id,
+                OldValues = null,
+                NewValues = null,
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
-            _logger.LogInformation(
-                "Section {SectionId} deleted successfully by user {UserId}.",
-                request.Id, request.CurrentUserId);
+            _logger.LogInformation("Section {SectionId} deleted successfully by user {UserId}.", request.Id, request.CurrentUserId);
 
             return Result<bool>.Success(true);
         }

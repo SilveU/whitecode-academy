@@ -14,13 +14,13 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task LogAsync(AuditLog auditLog)
+        public async Task LogAsync(AuditLog auditLog, CancellationToken cancellationToken = default)
         {
             auditLog.Id = Guid.NewGuid();
             auditLog.CreatedAt = DateTimeOffset.UtcNow;
 
-            await _context.AuditLogs.AddAsync(auditLog);
-            await _context.SaveChangesAsync();
+            await _context.AuditLogs.AddAsync(auditLog, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityName, Guid entityId)
@@ -37,9 +37,9 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<int> DeleteExpiredAsync(int retentionDays)

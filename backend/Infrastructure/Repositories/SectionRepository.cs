@@ -25,22 +25,22 @@ namespace Infrastructure.Repositories
             section.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<Section?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        public async Task<Section?> GetByIdWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Sections
                 .Include(s => s.Course)
                     .ThenInclude(c => c.Instructor)
                         .ThenInclude(i => i.User)
-                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
         }
 
-        public async Task<IEnumerable<Section>> GetByCourseIdAsync(Guid courseId)
+        public async Task<IEnumerable<Section>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default)
         {
             return await _context.Sections
                 .Where(s => s.CourseId == courseId && !s.IsDeleted)
                 .OrderBy(s => s.DayOfWeek)
                 .ThenBy(s => s.StartAt)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

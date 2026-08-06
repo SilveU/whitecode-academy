@@ -38,12 +38,12 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
         {
             _instructorRepository = instructorRepository;
             _departmentRepository = departmentRepository;
-            _auditLogRepository   = auditLogRepository;
-            _userManager          = userManager;
-            _mapper               = mapper;
-            _logger               = logger;
-            _cache                = cache;
-            _configuration        = configuration;
+            _auditLogRepository = auditLogRepository;
+            _userManager = userManager;
+            _mapper = mapper;
+            _logger = logger;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(AssignInstructorCommand request, CancellationToken cancellationToken)
@@ -55,7 +55,7 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
                 return Result<InstructorResponse>.NotFound(MessageKeys.Common.Instructor_UserNotFound);
             }
 
-            var existingInstructor = await _instructorRepository.GetByUserIdAsync(request.UserId);
+            var existingInstructor = await _instructorRepository.GetByUserIdAsync(request.UserId, cancellationToken);
             if (existingInstructor != null)
             {
                 _logger.LogWarning("User {UserId} is already assigned as an instructor.", request.UserId);
@@ -64,7 +64,7 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
 
             if (request.DepartmentId.HasValue)
             {
-                var department = await _departmentRepository.GetByIdAsync(request.DepartmentId.Value);
+                var department = await _departmentRepository.GetByIdAsync(request.DepartmentId.Value, cancellationToken);
                 if (department == null)
                 {
                     _logger.LogWarning("Department {DepartmentId} was not found.", request.DepartmentId);
@@ -74,34 +74,35 @@ namespace Application.Features.Instructors.Commands.AssignInstructor
 
             var instructor = new Instructor
             {
-                UserId       = request.UserId,
+                UserId = request.UserId,
                 DepartmentId = request.DepartmentId,
-                CreatedAt    = DateTimeOffset.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
-            await _instructorRepository.CreateAsync(instructor);
+            await _instructorRepository.CreateAsync(instructor, cancellationToken);
             await _userManager.AddToRoleAsync(user, Role.Instructor.ToString());
-            await _instructorRepository.SaveChangesAsync();
+            await _instructorRepository.SaveChangesAsync(cancellationToken);
 
-            var created  = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(instructor.Id);
+            var created = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(instructor.Id, cancellationToken);
             var response = _mapper.Map<InstructorResponse>(created!);
 
-            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix());
+            await _cache.RemoveByPrefixAsync(CacheKeys.InstructorsPrefix(), cancellationToken);
 
             var redisKey = CacheKeys.Instructor(instructor.Id);
             await _cache.SetAsync<InstructorResponse>(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")),
+                cancellationToken);
 
             await _auditLogRepository.LogAsync(new AuditLog
             {
-                UserId     = "system",
-                Action     = "Create",
+                UserId = "system",
+                Action = "Create",
                 EntityName = nameof(Instructor),
-                EntityId   = instructor.Id,
-                OldValues  = null,
-                NewValues  = Serializer.Serialize(response),
-                IpAddress  = await IpAddressHelper.GetRealPublicIpAsync()
-            });
+                EntityId = instructor.Id,
+                OldValues = null,
+                NewValues = Serializer.Serialize(response),
+                IpAddress = await IpAddressHelper.GetRealPublicIpAsync()
+            }, cancellationToken);
 
             _logger.LogInformation("Instructor profile created for user {UserId} with ID {InstructorId}.", request.UserId, instructor.Id);
 

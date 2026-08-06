@@ -25,20 +25,20 @@ namespace Infrastructure.Repositories
             student.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
-        public async Task<Student?> GetByIdWithNavigationPropertiesAsync(Guid id)
+        public async Task<Student?> GetByIdWithNavigationPropertiesAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _context.Students
                 .Include(s => s.User)
                 .Include(s => s.Enrollments.Where(e => !e.IsDeleted))
                     .ThenInclude(e => e.Course)
-                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
         }
 
-        public async Task<Student?> GetByUserIdAsync(string userId)
+        public async Task<Student?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
         {
             return await _context.Students
                 .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.UserId == userId && !s.IsDeleted);
+                .FirstOrDefaultAsync(s => s.UserId == userId && !s.IsDeleted, cancellationToken);
         }
     }
 }

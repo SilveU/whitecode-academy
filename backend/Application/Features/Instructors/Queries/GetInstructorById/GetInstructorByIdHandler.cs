@@ -20,27 +20,28 @@ namespace Application.Features.Instructors.Queries.GetInstructorById
             ICacheService cache, IConfiguration configuration)
         {
             _instructorRepository = instructorRepository;
-            _mapper               = mapper;
-            _cache                = cache;
-            _configuration        = configuration;
+            _mapper = mapper;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         public async Task<Result<InstructorResponse>> Handle(GetInstructorByIdQuery request, CancellationToken cancellationToken)
         {
             var redisKey = CacheKeys.Instructor(request.Id);
-            var cached   = await _cache.GetAsync<InstructorResponse>(redisKey);
+            var cached = await _cache.GetAsync<InstructorResponse>(redisKey, cancellationToken);
 
             if (cached.Item2 is not null)
                 return Result<InstructorResponse>.Success(cached.Item2);
 
-            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id);
+            var instructor = await _instructorRepository.GetByIdWithNavigationPropertiesAsync(request.Id, cancellationToken);
             if (instructor == null)
                 return Result<InstructorResponse>.NotFound(MessageKeys.Common.Instructor_NotFound);
 
             var response = _mapper.Map<InstructorResponse>(instructor);
 
             await _cache.SetAsync(redisKey, response,
-                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")));
+                TimeSpan.FromMinutes(_configuration.GetValue<double>("Redis:InstructorExpirationMinutes")),
+                cancellationToken);
 
             return Result<InstructorResponse>.Success(response);
         }

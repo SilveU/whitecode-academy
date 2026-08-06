@@ -15,7 +15,7 @@ namespace Infrastructure.Services.Upload
             _client = client;
         }
 
-        public async Task ScanAsync(IFormFile file)
+        public async Task ScanAsync(IFormFile file, CancellationToken cancellationToken = default)
         {
             if (file == null || file.Length == 0)
                 throw new BusinessRuleException("File is required.");
@@ -33,65 +33,48 @@ namespace Infrastructure.Services.Upload
             throw new BusinessRuleException($"File scan failed: {result.RawResult}");
         }
 
-        public async Task ValidatePdfAsync(IFormFile file)
+        public async Task ValidatePdfAsync(IFormFile file, CancellationToken cancellationToken = default)
         {
             if (file == null || file.Length == 0)
                 throw new BusinessRuleException("File is required.");
 
-            var imagesAllowedExtensions = new[] { ".pdf" };
-
+            var allowedExtensions = new[] { ".pdf" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            long maxSizeInBytes;
-
-            if (!imagesAllowedExtensions.Contains(extension))
+            if (!allowedExtensions.Contains(extension))
                 throw new BusinessRuleException("Extention not Allowed");
 
-
-            maxSizeInBytes = 5 * OneMB;
-
-            if (file.Length > maxSizeInBytes)
+            if (file.Length > 5 * OneMB)
                 throw new BusinessRuleException("File size exceeds the allowed limit.");
         }
 
-        public async Task ValidateVideoAsync(IFormFile file)
+        public async Task ValidateVideoAsync(IFormFile file, CancellationToken cancellationToken = default)
         {
             if (file == null || file.Length == 0)
                 throw new BusinessRuleException("File is required.");
 
-            var videoExtention = new[] { ".mp4" };
-
+            var allowedExtensions = new[] { ".mp4" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            long maxSizeInBytes;
-
-            if(!videoExtention.Contains(extension))
+            if (!allowedExtensions.Contains(extension))
                 throw new BusinessRuleException("Extention not Allowed");
 
-            maxSizeInBytes = 1000 * OneMB;
-
-            if (file.Length > maxSizeInBytes)
+            if (file.Length > 1000 * OneMB)
                 throw new BusinessRuleException("File size exceeds the allowed limit.");
         }
 
-        public async Task ValidateImageAsync(IFormFile file)
+        public async Task ValidateImageAsync(IFormFile file, CancellationToken cancellationToken = default)
         {
             if (file == null || file.Length == 0)
                 throw new BusinessRuleException("File is required.");
 
-            var imagesAllowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            long maxSizeInBytes;
-
-            if (!imagesAllowedExtensions.Contains(extension))
+            if (!allowedExtensions.Contains(extension))
                 throw new BusinessRuleException("Extention not Allowed");
 
-
-            maxSizeInBytes = 5 * OneMB;
-
-            if (file.Length > maxSizeInBytes)
+            if (file.Length > 5 * OneMB)
                 throw new BusinessRuleException("File size exceeds the allowed limit.");
         }
     }
