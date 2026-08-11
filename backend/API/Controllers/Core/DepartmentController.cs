@@ -30,7 +30,7 @@ namespace API.Controllers.Core
 
         // GET /api/department?pageNumber=1&pageSize=10&wordForSearch=...&sortBy=name
         [HttpGet]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetDepartments([FromQuery] QueryParameters parameters)
         {
             var result = await _mediator.Send(new GetDepartmentsQuery(parameters));
@@ -42,7 +42,7 @@ namespace API.Controllers.Core
 
         // GET /api/department/{id}
         [HttpGet("{id:guid}")]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetDepartmentById(Guid id)
         {
             var result = await _mediator.Send(new GetDepartmentByIdQuery(id));
