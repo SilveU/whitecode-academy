@@ -140,6 +140,7 @@ namespace API.Extentions
                     metrics.AddProcessInstrumentation(); // بياخد معلومات من ال Process نفسها
                     metrics.AddHttpClientInstrumentation(); // بياخد المعلومات من اي Request خارجي
                     metrics.AddAspNetCoreInstrumentation(); // بياخد المعلومات عن طريق Hook بيعملوا جوا ال Pipeline
+                    metrics.AddSqlClientInstrumentation(); // بياخد المعلومات من ال SQL Client
 
                     metrics.AddMeter("WhiteCodeAcademy"); // تجهيز لل Custom matrics
 
