@@ -141,7 +141,7 @@ namespace API.Extentions
                     metrics.AddHttpClientInstrumentation(); // بياخد المعلومات من اي Request خارجي
                     metrics.AddAspNetCoreInstrumentation(); // بياخد المعلومات عن طريق Hook بيعملوا جوا ال Pipeline
                     metrics.AddSqlClientInstrumentation(); // بياخد المعلومات من ال SQL Client
-
+                    metrics.AddMeter("WhiteCodeAcademy.Redis"); // تجهيز لل Custom matrics
                     metrics.AddMeter("WhiteCodeAcademy"); // تجهيز لل Custom matrics
 
                     metrics.AddPrometheusExporter(); // رحله الخروج من ال Matrics اللي جوا .net الي  /matrics (Endpoint)
